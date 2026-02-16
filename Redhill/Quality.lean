@@ -1,50 +1,43 @@
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Redhill.Radical
+import Redhill.ToMathlib.Radical
 
-/-- The maximum absolute value of a multiset of integers (0 for the empty multiset). -/
-def maxAbs (a : Multiset ℤ) : ℕ :=
-  (a.map Int.natAbs).fold max 0
+open Finset
 
-variable {a : Multiset ℤ}
+variable {n : ℕ} [NeZero n]
 
-lemma prod_natAbs_comm : a.prod.natAbs = (a.map Int.natAbs).prod := by
-  induction a using Multiset.induction with
-  | empty => simp
-  | cons n a ih => simp_rw [Multiset.map_cons, Multiset.prod_cons, ← ih, Int.natAbs_mul]
-
-lemma le_maxAbs {l : ℕ} (ha : ∃ n ∈ a, l ≤ n.natAbs) : l ≤ maxAbs a := by
-  obtain ⟨n, mn, hn⟩ := ha
-  rw [← Multiset.cons_erase mn, maxAbs, Multiset.map_cons, Multiset.fold_cons_left, le_max_iff]
-  exact .inl hn
+/-- The maximum absolute value of a tuple of integers. -/
+def maxAbs (a : Fin n → ℤ) : ℕ :=
+  (univ.image fun i ↦ (a i).natAbs).max' (by simp)
 
 open Real ENNReal
 
-/-- The quality of a single multiset. -/
-noncomputable def multisetQuality (a : Multiset ℤ) : ℝ≥0∞ :=
-  .ofReal (log (maxAbs a) / log a.prod.natAbs.radical)
+/-- The quality of a single tuple. -/
+noncomputable def tupleQuality (a : Fin n → ℤ) : ℝ≥0∞ :=
+  .ofReal (log (maxAbs a) / log (∏ i, a i).natAbs.radical)
 
-/-- The quality of a set of multisets. -/
-noncomputable def quality (A : Set (Multiset ℤ)) : ℝ≥0∞ :=
-  sInf {q | {a ∈ A | q < multisetQuality a}.Finite}
+/-- The quality of a set of tuples, defined as the infimum of those numbers where
+only finitely many tuples in the set have a strictly higher quality. -/
+noncomputable def quality (A : Set (Fin n → ℤ)) : ℝ≥0∞ :=
+  sInf {q | {a ∈ A | q < tupleQuality a}.Finite}
 
-variable {A B : Set (Multiset ℤ)} {q : ℝ≥0∞}
+variable {A B : Set (Fin n → ℤ)} {q : ℝ≥0∞}
 
 lemma quality_mono (h : A ⊆ B) : quality A ≤ quality B :=
   sInf_le_sInf fun _ mq ↦ mq.subset fun _ ma ↦ ⟨h ma.1, ma.2⟩
 
-lemma quality_le_of_finite (hq : {a ∈ A | q < multisetQuality a}.Finite) : quality A ≤ q :=
+lemma quality_le_of_finite (hq : {a ∈ A | q < tupleQuality a}.Finite) : quality A ≤ q :=
   CompleteSemilatticeInf.sInf_le _ q hq
 
 lemma quality_finite (hA : A.Finite) : quality A = 0 := by
   rw [← nonpos_iff_eq_zero]
   exact quality_le_of_finite (hA.sep _)
 
-lemma quality_empty : quality ∅ = 0 :=
+lemma quality_empty : quality (n := n) ∅ = 0 :=
   quality_finite Set.finite_empty
 
-open Filter Topology in
-lemma quality_ge_of_liminf (f : ℕ ↪ Multiset ℤ) (rf : Set.range f ⊆ A)
-    (qf : q ≤ liminf (multisetQuality ∘ f) atTop) : q ≤ quality A := by
+open Filter in
+lemma quality_ge_of_liminf (f : ℕ ↪ Fin n → ℤ) (rf : Set.range f ⊆ A)
+    (qf : q ≤ liminf (tupleQuality ∘ f) atTop) : q ≤ quality A := by
   rw [quality, le_sInf_iff]
   intro k lk
   contrapose! lk
