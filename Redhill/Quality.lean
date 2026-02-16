@@ -35,6 +35,11 @@ lemma quality_finite (hA : A.Finite) : quality A = 0 := by
 lemma quality_empty : quality (n := n) ∅ = 0 :=
   quality_finite Set.finite_empty
 
+lemma quality_union_finite (h : B.Finite) : quality (A ∪ B) = quality A := by
+  refine le_antisymm (sInf_le_sInf fun q mq ↦ ?_) (quality_mono Set.subset_union_left)
+  simp only [Set.mem_setOf, Set.mem_union, Set.sep_union, Set.finite_union] at mq ⊢
+  refine ⟨mq, h.subset (Set.sep_subset ..)⟩
+
 open Filter in
 lemma quality_ge_of_liminf (f : ℕ ↪ Fin n → ℤ) (rf : Set.range f ⊆ A)
     (qf : q ≤ liminf (tupleQuality ∘ f) atTop) : q ≤ quality A := by

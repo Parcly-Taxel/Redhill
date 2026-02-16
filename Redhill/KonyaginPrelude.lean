@@ -8,8 +8,16 @@ namespace KonyaginPrelude
 variable (k : ℕ)
 
 /-- The quintuple function defined in Section 2.1. -/
-def tup : Multiset ℤ :=
-  .ofList [(6 ^ 2 ^ k + 1) ^ 3, -(6 ^ 2 ^ k - 1) ^ 3, -6 * (6 ^ 2 ^ k) ^ 2, -31, 29]
+def tup : Fin 5 → ℤ
+  | 0 => (6 ^ 2 ^ k + 1) ^ 3
+  | 1 => -(6 ^ 2 ^ k - 1) ^ 3
+  | 2 => -6 * (6 ^ 2 ^ k) ^ 2
+  | 3 => -31
+  | 4 => 29
+
+lemma sum_tup : ∑ i, tup k i = 0 := by
+  simp [tup, Fin.sum_univ_five]
+  ring
 
 lemma natAbs_6pa1 {n : ℕ} : (6 ^ n + 1 : ℤ).natAbs = 6 ^ n + 1 := by
   rw [Int.natAbs_add_of_nonneg (by positivity) zero_le_one]
@@ -21,13 +29,6 @@ lemma natAbs_6ps1 {n : ℕ} : (6 ^ n - 1 : ℤ).natAbs = 6 ^ n - 1 := by
 
 lemma six_pow_two_pow_sub_one_pos : 0 < 6 ^ 2 ^ k - 1 :=
   Nat.zero_lt_sub_of_lt (Nat.one_lt_pow (by positivity) (by lia))
-
-lemma card_tup : (tup k).card = 5 := by
-  simp [tup]
-
-lemma sum_tup : (tup k).sum = 0 := by
-  simp [tup]
-  ring
 
 lemma injective_tup : tup.Injective := fun i j e ↦ by
   have w : -6 * (6 ^ 2 ^ i) ^ 2 ∈ tup i := by simp [tup]
@@ -129,8 +130,8 @@ lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
     · norm_num
     · gcongr <;> lia
 
-lemma le_multisetQuality :
-    .ofReal ((3 * 2 ^ k * log 6) / (2 * 2 ^ k * log 6 + log 5394)) ≤ multisetQuality (tup k) := by
+lemma le_tupleQuality :
+    .ofReal ((3 * 2 ^ k * log 6) / (2 * 2 ^ k * log 6 + log 5394)) ≤ tupleQuality (tup k) := by
   apply ENNReal.ofReal_le_ofReal
   rw [maxAbs_tup]
   apply div_le_div₀
@@ -148,8 +149,8 @@ lemma le_multisetQuality :
   · exact log_radical_tup_le k
 
 open Filter in
-lemma liminf_multisetQuality_tup : 3 / 2 ≤ liminf (multisetQuality ∘ tup) atTop := by
-  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall le_multisetQuality))
+lemma liminf_tupleQuality_tup : 3 / 2 ≤ liminf (tupleQuality ∘ tup) atTop := by
+  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall le_tupleQuality))
   have ceq : (3 / 2 : ENNReal) = ENNReal.ofReal (3 / 2) := by
     simp [ENNReal.ofReal_div_of_pos zero_lt_two]
   simp_rw [ceq, mul_assoc]
@@ -188,7 +189,7 @@ lemma six_pow_two_pow_mod_31_mem : (6 ^ 2 ^ k : ℤ) % 31 ∈ [5, 6, 25] := by
     obtain ih | ih | ih := ih <;> simp [ih]
 
 -- `IsCoprime` subtraction lemmas would be really helpful here!
-lemma pairwise_tup_isCoprime : (tup k).Pairwise IsCoprime := by
+lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun i j h ↦ by
   unfold tup
   set s : ℤ := 6 ^ 2 ^ k
   have rearr : Multiset.ofList [(s + 1) ^ 3, -(s - 1) ^ 3, -6 * s ^ 2, -31, 29] =
@@ -250,20 +251,18 @@ lemma pairwise_tup_isCoprime : (tup k).Pairwise IsCoprime := by
 
 end Coprime
 
-lemma strongSSC_tup : StrongSSC (tup k) := fun p n h₁ h₂ ↦ by
-  unfold tup at h₁
-  set s : ℤ := 6 ^ 2 ^ k
+lemma strongSSC_tup : StrongSSC (tup k) := fun p n h₁ h₂ h₃ ↦ by
   sorry
 
-lemma tup_mem_factorFreeMultisets : tup k ∈ factorFreeMultisets ∅ 5 := by
-  simp [factorFreeMultisets, card_tup, sum_tup, strongSSC_tup, pairwise_tup_isCoprime]
+lemma tup_mem_factorFreeTuples : tup k ∈ factorFreeTuples ∅ 5 := by
+  simp [factorFreeTuples, sum_tup, strongSSC_tup, pairwiseCoprime_tup]
 
 end KonyaginPrelude
 
 open KonyaginPrelude
 
 /-- Theorem 2.1. -/
-theorem konyagin_prelude : 3 / 2 ≤ quality (factorFreeMultisets ∅ 5) := by
+theorem konyagin_prelude : 3 / 2 ≤ quality (factorFreeTuples ∅ 5) := by
   apply quality_ge_of_liminf ⟨_, injective_tup⟩
-  · exact Set.range_subset_iff.mpr tup_mem_factorFreeMultisets
-  · exact liminf_multisetQuality_tup
+  · exact Set.range_subset_iff.mpr tup_mem_factorFreeTuples
+  · exact liminf_tupleQuality_tup
