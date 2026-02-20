@@ -3,17 +3,19 @@ import Redhill.ToMathlib.Radical
 
 open Finset
 
-variable {n : ℕ} [NeZero n]
+variable {n : ℕ}
 
-/-- The maximum absolute value of a tuple of integers. -/
+/-- The maximum absolute value of a tuple of integers (0 if empty). -/
 def maxAbs (a : Fin n → ℤ) : ℕ :=
-  (univ.image fun i ↦ (a i).natAbs).max' (by simp)
+  (List.ofFn fun i ↦ (a i).natAbs).foldr max 0
 
 open Real ENNReal
 
-/-- The quality of a single tuple. -/
+open UniqueFactorizationMonoid in
+/-- The quality of a single tuple.
+This depends on Lean defining `log -x = log x` for all real `x`. -/
 noncomputable def tupleQuality (a : Fin n → ℤ) : ℝ≥0∞ :=
-  .ofReal (log (maxAbs a) / log (∏ i, a i).natAbs.radical)
+  .ofReal (log (maxAbs a) / log (radical (∏ i, a i) : ℤ))
 
 /-- The quality of a set of tuples, defined as the infimum of those numbers where
 only finitely many tuples in the set have a strictly higher quality. -/

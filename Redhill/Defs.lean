@@ -17,7 +17,7 @@ def nConjectureTuples (n : ℕ) : Set (Fin n → ℤ) :=
 
 /-- Browkin and Brzeziński's **`n`-conjecture** for a fixed `n`.
 The conjecture itself is `∀ n ≥ 3, NConjecture n`. -/
-def NConjecture (n : ℕ) [NeZero n] : Prop :=
+def NConjecture (n : ℕ) : Prop :=
   quality (nConjectureTuples n) = (2 * n - 5 : ℕ)
 
 /-- The tuples in Browkin's strong `n`-conjecture. `B(n)` in the paper. -/
@@ -26,7 +26,7 @@ def strongNConjectureTuples (n : ℕ) : Set (Fin n → ℤ) :=
 
 /-- Browkin's **strong `n`-conjecture** for a fixed `n`.
 The conjecture itself is `∀ n ≥ 3, StrongNConjecture n`. -/
-def StrongNConjecture (n : ℕ) [NeZero n] : Prop :=
+def StrongNConjecture (n : ℕ) : Prop :=
   quality (strongNConjectureTuples n) < ⊤
 
 /-- The tuples in Ramaekers's conjecture. `R(n)` in the paper. -/
@@ -35,7 +35,7 @@ def ramaekersTuples (n : ℕ) : Set (Fin n → ℤ) :=
 
 /-- **Ramaekers's conjecture** for a fixed `n`.
 The conjecture itself is `∀ n ≥ 3, RamaekersConjecture n`. -/
-def RamaekersConjecture (n : ℕ) [NeZero n] : Prop :=
+def RamaekersConjecture (n : ℕ) : Prop :=
   quality (ramaekersTuples n) = 1
 
 /-- `U(F,n)` in the paper. -/
@@ -49,6 +49,5 @@ lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
 
 /-- Theorem 1.3 in the paper, Browkin and Brzeziński (1994). -/
 lemma le_quality_nConjectureTuples {n : ℕ} (hn : 3 ≤ n) :
-    have : NeZero n := ⟨Nat.ne_zero_of_lt hn⟩
     (2 * n - 5 : ℕ) ≤ quality (nConjectureTuples n) := by
   sorry

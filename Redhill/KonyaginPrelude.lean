@@ -1,6 +1,4 @@
-import Mathlib.Algebra.EuclideanDomain.Int
-import Mathlib.Data.Nat.Prime.Int
-import Mathlib.RingTheory.PrincipalIdealDomain
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Redhill.Defs
 
 namespace KonyaginPrelude
@@ -19,116 +17,70 @@ lemma sum_tup : ∑ i, tup k i = 0 := by
   simp [tup, Fin.sum_univ_five]
   ring
 
-lemma natAbs_6pa1 {n : ℕ} : (6 ^ n + 1 : ℤ).natAbs = 6 ^ n + 1 := by
-  rw [Int.natAbs_add_of_nonneg (by positivity) zero_le_one]
-  simp
-
-lemma natAbs_6ps1 {n : ℕ} : (6 ^ n - 1 : ℤ).natAbs = 6 ^ n - 1 := by
-  rw [Int.natAbs_sub_of_nonneg_of_le zero_le_one (one_le_pow₀ (by norm_num))]
-  simp
-
-lemma six_pow_two_pow_sub_one_pos : 0 < 6 ^ 2 ^ k - 1 :=
-  Nat.zero_lt_sub_of_lt (Nat.one_lt_pow (by positivity) (by lia))
-
 lemma injective_tup : tup.Injective := fun i j e ↦ by
-  have w : -6 * (6 ^ 2 ^ i) ^ 2 ∈ tup i := by simp [tup]
-  rw [e] at w
-  simp_rw [tup, Multiset.mem_coe, List.mem_cons, List.not_mem_nil, or_false] at w
-  have ev : Even (-6 * (6 ^ 2 ^ i) ^ 2) := by
-    apply Even.mul_right
-    decide
-  have e6 : Even (6 : ℤ) := by decide
-  obtain w | w | w | w | w := w <;> rw [w] at ev
-  · rw [Int.even_pow, Int.even_add_one, Int.even_pow] at ev
-    simp [e6] at ev
-  · rw [even_neg, Int.even_pow, Int.even_sub_one, Int.even_pow] at ev
-    simp [e6] at ev
-  on_goal 2 => lia
-  on_goal 2 => lia
-  rw [mul_right_inj' (by lia), sq_eq_sq₀ (by positivity) (by positivity)] at w
-  replace w := Int.pow_right_injective (by lia) w
-  rwa [Nat.pow_right_inj one_lt_two] at w
+  replace e : (6 ^ 2 ^ i + 1 : ℤ) ^ 3 = (6 ^ 2 ^ j + 1) ^ 3 := congr($e 0)
+  rwa [pow_left_inj₀ (by positivity) (by positivity) (by lia), add_right_cancel_iff,
+    pow_right_inj₀ (by lia) (by lia), Nat.pow_right_inj one_lt_two] at e
 
 section Log
 
-open Real
+open Real UniqueFactorizationMonoid UniqueFactorizationDomain
 
-lemma radical_tup_dvd : (tup k).prod.natAbs.radical ∣ (6 ^ (2 * 2 ^ k) - 1) * 6 * 31 * 29 := by
-  simp_rw [tup, Multiset.prod_coe, List.prod_cons, List.prod_nil, mul_one, ← mul_assoc]
-  rw [mul_neg (_ ^ 3), ← mul_pow, ← mul_self_sub_one, ← sq, ← pow_mul']
-  simp_rw [Int.natAbs_mul, Int.natAbs_neg, Int.natAbs_pow, natAbs_6ps1, Int.reduceAbs]
-  iterate 2 refine Nat.radical_mul_dvd.trans (mul_dvd_mul ?_ Nat.radical_dvd_self)
-  rw [mul_assoc, ← pow_succ' 6]
-  refine Nat.radical_mul_dvd.trans (mul_dvd_mul ?_ ?_)
-  all_goals
-    rw [Nat.radical_pow (by positivity)]
-    exact Nat.radical_dvd_self
+lemma six_pow_pos {n : ℕ} (hn : n ≠ 0) : 0 < (6 : ℤ) ^ n - 1 := by
+  rw [sub_pos]
+  exact one_lt_pow₀ (by lia) hn
 
-lemma one_lt_radical_tup : 1 < (tup k).prod.natAbs.radical := by
-  rw [Nat.one_lt_natRadical_iff, prod_natAbs_comm, tup]
-  simp_rw [Multiset.map_coe, List.map_cons, List.map_nil, Int.natAbs_mul, Int.natAbs_neg,
-    Int.natAbs_pow, Int.reduceAbs, Multiset.prod_coe, List.prod_cons, List.prod_nil, mul_one,
-    Nat.reduceMul, ← mul_assoc]
+lemma radical_tup_dvd : radical (∏ i, tup k i) ∣ (6 ^ (2 * 2 ^ k) - 1) * 5394 := by
+  simp_rw [show (5394 : ℤ) = 6 * 31 * 29 by lia, ← mul_assoc, tup, Fin.prod_univ_five]
+  iterate 3 refine radical_mul_dvd.trans (mul_dvd_mul ?_ ?_)
+  · rw [mul_neg, radical_neg, ← mul_pow, ← mul_self_sub_one, ← sq, pow_mul', radical_pow _ (by lia)]
+    exact radical_dvd_self
+  · rw [neg_mul, radical_neg, ← pow_mul, ← pow_succ', radical_pow _ (by lia)]
+    exact radical_dvd_self
+  · simp [radical_dvd_self]
+  · exact radical_dvd_self
+
+lemma one_lt_radical_tup : 1 < radical (∏ i, tup k i) := by
+  simp_rw [Int.one_lt_radical_iff, tup, Fin.prod_univ_five, Int.natAbs_mul, Int.natAbs_neg,
+    Int.natAbs_pow, Int.reduceAbs, ← mul_assoc]
   rw [Nat.one_lt_mul_iff]
-  norm_num
-  constructor
-  · positivity
-  · rw [natAbs_6ps1]
-    positivity [six_pow_two_pow_sub_one_pos k]
+  simp_rw [show 1 < 29 by lia, or_true, show 0 < 29 by lia, and_true]
+  suffices 0 < (6 ^ 2 ^ k - 1 : ℤ).natAbs by positivity
+  rw [Int.natAbs_pos]
+  exact (six_pow_pos (by positivity)).ne'
 
-lemma log_radical_tup_le : log (tup k).prod.natAbs.radical ≤ 2 * 2 ^ k * log 6 + log 5394 := by
-  have n₁ : 1 < (6 : ℝ) ^ (2 * 2 ^ k) := by
-    exact one_lt_pow₀ (by norm_num) (by positivity)
-  have n₂ : (6 : ℝ) ^ (2 * 2 ^ k) - 1 ≠ 0 := by
-    rw [sub_ne_zero, ne_comm]
-    exact n₁.ne
-  calc
-    _ ≤ log ((6 ^ (2 * 2 ^ k) - 1) * 6 * 31 * 29) := by
-      gcongr
-      · exact_mod_cast Nat.natRadical_pos
-      have rhs_pos : 0 < (6 ^ (2 * 2 ^ k) - 1) * 6 * 31 * 29 := by
-        iterate 3 refine Nat.mul_pos ?_ (by decide)
-        exact Nat.zero_lt_sub_of_lt (Nat.one_lt_pow (by positivity) (by decide))
-      have lhs_pos := Nat.pos_of_dvd_of_pos (radical_tup_dvd k) rhs_pos
-      have llr := Nat.le_of_dvd rhs_pos (radical_tup_dvd k)
-      rw [← Nat.cast_le (α := ℝ)] at llr
-      push_cast at llr
-      convert llr
-      rw [Nat.cast_sub (by rw [Order.one_le_iff_pos]; positivity)] at llr
-      simp
-    _ ≤ _ := by
-      simp_rw [mul_assoc]
-      norm_num
-      rw [log_mul n₂ (by norm_num), ← mul_assoc]
-      refine add_le_add_left ?_ _
-      rw [show (2 * 2 ^ k : ℝ) = (2 * 2 ^ k : ℕ) by norm_cast, ← log_pow]
-      gcongr
-      · rwa [sub_pos]
-      · exact (sub_one_lt _).le
+lemma log_radical_tup_le : log (radical (∏ i, tup k i) : ℤ) ≤ 2 * 2 ^ k * log 6 + log 5394 := by
+  rw [log_le_iff_le_exp (by exact_mod_cast Int.radical_pos),
+    exp_add, exp_log (by lia), mul_comm (_ * _), exp_mul, exp_log (by lia)]
+  norm_cast
+  push_cast
+  have : 0 < (6 : ℤ) ^ (2 * 2 ^ k) - 1 := six_pow_pos (by positivity)
+  apply (Int.le_of_dvd (by positivity) (radical_tup_dvd k)).trans
+  gcongr
+  lia
 
 lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
-  simp_rw [tup, maxAbs, Multiset.map_coe, Multiset.coe_fold_r, List.map_cons, List.map_nil,
-    Int.natAbs_mul, Int.natAbs_neg, Int.natAbs_pow, natAbs_6pa1, natAbs_6ps1, Int.reduceAbs,
-    List.foldr_cons, List.foldr_nil, show max 31 (max 29 0) = 31 by norm_num]
-  simp only [sup_eq_left, sup_le_iff]
-  have : 1 ≤ 6 := by simp
-  refine ⟨?_, ?_, ?_⟩
-  · gcongr
-    lia
-  · rw [← pow_mul', ← pow_succ']
-    calc
-      _ ≤ 6 ^ (3 * 2 ^ k) := by
-        rw [Nat.succ_mul 2]
-        gcongr
-        · norm_num
-        · exact Nat.one_le_two_pow
-      _ ≤ _ := by
-        rw [pow_mul']
-        gcongr
-        exact Nat.le_add_right ..
-  · trans (6 ^ 2 ^ 0 + 1) ^ 3
-    · norm_num
-    · gcongr <;> lia
+  simp_rw [maxAbs, List.ofFn_succ, List.ofFn_zero, Fin.reduceSucc, List.foldr_cons, List.foldr_nil]
+  change max ((6 ^ 2 ^ k + 1) ^ 3) _ = _
+  have e1 : max (tup k 3).natAbs (max (tup k 4).natAbs 0) = 31 := by simp [tup]
+  simp_rw [e1, sup_eq_left, tup]
+  have e2 : max (-6 * (6 ^ 2 ^ k) ^ 2).natAbs 31 = 6 ^ (2 * 2 ^ k + 1) := by
+    rw [neg_mul, Int.natAbs_neg, ← pow_mul', ← pow_succ', Int.natAbs_pow]
+    simp_rw [Int.reduceAbs, sup_eq_left]
+    apply (show 31 ≤ 6 ^ (2 * 2 ^ 0 + 1) by lia).trans
+    gcongr <;> lia
+  rw [e2, sup_le_iff, Int.natAbs_neg, Int.natAbs_pow]
+  refine ⟨pow_le_pow_left₀ (zero_le _) (by lia) _, ?_⟩
+  calc
+    _ ≤ 6 ^ (3 * 2 ^ k) := by
+      rw [Nat.succ_mul 2]
+      gcongr
+      · lia
+      · exact Nat.one_le_two_pow
+    _ ≤ _ := by
+      rw [pow_mul']
+      gcongr
+      exact Nat.le_add_right ..
 
 lemma le_tupleQuality :
     .ofReal ((3 * 2 ^ k * log 6) / (2 * 2 ^ k * log 6 + log 5394)) ≤ tupleQuality (tup k) := by
