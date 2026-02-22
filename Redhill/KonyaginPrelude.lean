@@ -178,7 +178,7 @@ lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun {i j} h ↦ by
     all_goals simp only [tup, neg_left_iff, pow_left_iff zero_lt_three]
     · exact add_one_left_of_dvd (dvd_pow_self 6 (by positivity))
     · exact sub_one_left_of_dvd (dvd_pow_self 6 (by positivity))
-  · rw [tup, isCoprime_comm, IsCoprime.neg_left_iff]
+  · rw [tup, isCoprime_comm, neg_left_iff]
     obtain rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 := by lia
     exacts [(isCoprime_31 k).1, (isCoprime_31 k).2.1, (isCoprime_31 k).2.2]
   · rw [tup, isCoprime_comm]
@@ -203,3 +203,9 @@ theorem konyagin_prelude : 3 / 2 ≤ quality (factorFreeTuples ∅ 5) := by
   apply quality_ge_of_liminf ⟨_, injective_tup⟩
   · exact Set.range_subset_iff.mpr tup_mem_factorFreeTuples
   · exact liminf_tupleQuality_tup
+
+theorem not_ramaekersConjecture_five : ¬RamaekersConjecture 5 := by
+  have := konyagin_prelude.trans quality_factorFreeTuples_le_ramaekersTuples
+  refine (lt_of_lt_of_le ?_ this).ne'
+  rw [ENNReal.lt_div_iff_mul_lt (by simp) (by simp)]
+  norm_num

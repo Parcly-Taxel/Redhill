@@ -7,6 +7,14 @@ open Finset
 def PairwiseCoprime {n : ℕ} (a : Fin n → ℤ) : Prop :=
   ∀ {i j}, i < j → IsCoprime (a i) (a j)
 
+lemma gcd_one_of_pairwiseCoprime
+    {n : ℕ} (hn : 2 ≤ n) {a : Fin n → ℤ} (ha : PairwiseCoprime a) : univ.gcd a = 1 := by
+  obtain ⟨k, rfl⟩ : ∃ k, n = k + 2 := ⟨_, (Nat.sub_add_cancel hn).symm⟩
+  specialize ha Fin.zero_lt_one
+  rw [Int.isCoprime_iff_gcd_eq_one] at ha
+  rw [← union_compl {0, 1}, gcd_union, gcd_insert, Finset.gcd, Finset.fold_singleton, ← gcd_assoc,
+    ← Int.coe_gcd (a 0), ha, Nat.cast_one, gcd_one_left, gcd_one_left]
+
 /-- The **abc conjecture** itself, using `quality`. -/
 def ABCConjecture : Prop :=
   quality {a : Fin 3 → ℤ | ∑ i, a i = 0 ∧ univ.gcd a = 1} = 1
@@ -48,7 +56,44 @@ lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
     have := quality_union_finite (A := {a : Fin 3 → ℤ | SSC a ∧ ∑ i, a i = 0 ∧ univ.gcd a = 1}) hf
     simp_rw [← Set.setOf_or, ← or_and_right, or_not, true_and] at this
     simp [this, and_left_comm]
-  sorry
+  set E := {a : Fin 3 → ℤ | ¬SSC a ∧ ∑ i, a i = 0 ∧ univ.gcd a = 1}
+  have r₀ {a} (ma : a ∈ E) : 0 ∈ Set.range a := by
+    simp_rw [E, Set.mem_setOf, SSC] at ma
+    push_neg at ma
+    obtain ⟨⟨q, nq, nqc, sq⟩, sqc, -⟩ := ma
+    rw [← sum_add_sum_compl q, sq, zero_add] at sqc
+    have cacq : #q + #qᶜ = 3 := by simp
+    all_goals grind [card_eq_one]
+  have sE : E ⊆ {a | ∀ i, a i ∈ Set.Icc (-1) 1} := fun a ma ↦ by
+    obtain ⟨i₀, hi₀⟩ := r₀ ma
+    obtain ⟨-, sa, ga⟩ := ma
+    have ueq : (univ : Finset (Fin 3)) = {i₀, i₀ + 1, i₀ + 2} := by grind
+    rw [ueq, sum_insert (by simp), hi₀, zero_add, sum_pair (by simp), add_eq_zero_iff_eq_neg] at sa
+    rw [ueq, gcd_insert, ← Int.coe_gcd, hi₀, Int.gcd_zero_left, gcd_insert, gcd_singleton,
+      ← Int.abs_eq_normalize, ← abs_neg, ← sa, Int.abs_eq_normalize, ← gcd_singleton, ← gcd_insert,
+      pair_eq_singleton, gcd_singleton, ← Int.abs_eq_normalize, Nat.cast_eq_one,
+      Int.natAbs_abs, Int.natAbs_eq_iff, Nat.cast_one] at ga
+    have ga' : a (i₀ + 2) = 1 ∨ a (i₀ + 2) = -1 := by grind
+    intro i
+    have mi := ueq ▸ mem_univ i
+    simp only [mem_insert, mem_singleton] at mi
+    obtain rfl | rfl | rfl := mi
+    all_goals grind
+  exact (Set.Finite.pi' fun _ ↦ Set.finite_Icc ..).subset sE
+
+variable {n : ℕ} {F : Finset ℕ}
+
+lemma quality_factorFreeTuples_le_nConjectureTuples (hn : 2 ≤ n) :
+    quality (factorFreeTuples F n) ≤ quality (nConjectureTuples n) :=
+  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, SSC_of_strongSSC h₂, gcd_one_of_pairwiseCoprime hn h₃⟩
+
+lemma quality_factorFreeTuples_le_ramaekersTuples :
+    quality (factorFreeTuples F n) ≤ quality (ramaekersTuples n) :=
+  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, SSC_of_strongSSC h₂, h₃⟩
+
+lemma quality_ramaekersTuples_le_strongNConjectureTuples :
+    quality (ramaekersTuples n) ≤ quality (strongNConjectureTuples n) :=
+  quality_mono fun _ ⟨h₁, _, h₃⟩ ↦ ⟨h₁, h₃⟩
 
 /-- Theorem 1.3 in the paper, Browkin and Brzeziński (1994). -/
 lemma le_quality_nConjectureTuples {n : ℕ} (hn : 3 ≤ n) :
