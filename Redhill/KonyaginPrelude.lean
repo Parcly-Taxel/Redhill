@@ -1,11 +1,12 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Redhill.Defs
+import Redhill.ToMathlib.Coprime
 
 namespace KonyaginPrelude
 
 variable (k : ℕ)
 
-/-- The quintuple function defined in Section 2.1. -/
+/-- The quintuple defined in Section 2.1. -/
 def tup : Fin 5 → ℤ
   | 0 => (6 ^ 2 ^ k + 1) ^ 3
   | 1 => -(6 ^ 2 ^ k - 1) ^ 3
@@ -140,70 +141,54 @@ lemma six_pow_two_pow_mod_31_mem : (6 ^ 2 ^ k : ℤ) % 31 ∈ [5, 6, 25] := by
     simp only [List.mem_cons, List.not_mem_nil, or_false] at ih
     obtain ih | ih | ih := ih <;> simp [ih]
 
--- `IsCoprime` subtraction lemmas would be really helpful here!
-lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun i j h ↦ by
-  unfold tup
-  set s : ℤ := 6 ^ 2 ^ k
-  have rearr : Multiset.ofList [(s + 1) ^ 3, -(s - 1) ^ 3, -6 * s ^ 2, -31, 29] =
-      [29, -31, -6 * s ^ 2, (s + 1) ^ 3, -(s - 1) ^ 3] := by
-    rw [Multiset.coe_eq_coe]
-    grind
-  rw [rearr, Multiset.pairwise_coe_iff_pairwise fun _ _ h ↦ h.symm, List.pairwise_cons]
+open IsCoprime in
+lemma isCoprime_29 :
+    IsCoprime 29 ((6 ^ 2 ^ k + 1) ^ 3 : ℤ) ∧ IsCoprime 29 (-(6 ^ 2 ^ k - 1) ^ 3) ∧
+    IsCoprime 29 (-6 * (6 ^ 2 ^ k) ^ 2) := by
   have p29 : Prime (29 : ℤ) := by rw [Int.prime_ofNat_iff]; decide
+  rw [neg_right_iff, pow_right_iff zero_lt_three, pow_right_iff zero_lt_three, mul_right_iff]
+  simp_rw [show IsCoprime 29 (-6) by decide, true_and, pow_right_iff zero_lt_two,
+    p29.coprime_iff_not_dvd, Int.dvd_iff_emod_eq_zero]
+  rw [← Int.emod_add_emod, ← Int.emod_sub_emod]
+  have := six_pow_two_pow_mod_29_mem k
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at this
+  obtain h | h | h | h := this <;> simp [h]
+
+open IsCoprime in
+lemma isCoprime_31 :
+    IsCoprime 31 ((6 ^ 2 ^ k + 1) ^ 3 : ℤ) ∧ IsCoprime 31 (-(6 ^ 2 ^ k - 1) ^ 3) ∧
+    IsCoprime 31 (-6 * (6 ^ 2 ^ k) ^ 2) := by
   have p31 : Prime (31 : ℤ) := by rw [Int.prime_ofNat_iff]; decide
-  refine ⟨fun a ma ↦ ?_, ?_⟩
-  · fin_cases ma
-    · decide
-    · exact IsCoprime.mul_right (by decide) ((IsCoprime.pow_right (by decide)).pow_right)
-    · apply IsCoprime.pow_right
-      rw [p29.coprime_iff_not_dvd, Int.dvd_iff_emod_eq_zero, ← Int.emod_add_emod]
-      have := six_pow_two_pow_mod_29_mem k
-      simp only [List.mem_cons, List.not_mem_nil, or_false] at this
-      obtain h | h | h | h := this <;> norm_num [s, h]
-    · refine IsCoprime.neg_right (IsCoprime.pow_right ?_)
-      rw [p29.coprime_iff_not_dvd, Int.dvd_iff_emod_eq_zero, ← Int.emod_sub_emod]
-      have := six_pow_two_pow_mod_29_mem k
-      simp only [List.mem_cons, List.not_mem_nil, or_false] at this
-      obtain h | h | h | h := this <;> norm_num [s, h]
-  rw [List.pairwise_cons]
-  refine ⟨fun a ma ↦ ?_, ?_⟩
-  · apply IsCoprime.neg_left
-    fin_cases ma
-    · exact IsCoprime.mul_right (by decide) ((IsCoprime.pow_right (by decide)).pow_right)
-    · apply IsCoprime.pow_right
-      rw [p31.coprime_iff_not_dvd, Int.dvd_iff_emod_eq_zero, ← Int.emod_add_emod]
-      have := six_pow_two_pow_mod_31_mem k
-      simp only [List.mem_cons, List.not_mem_nil, or_false] at this
-      obtain h | h | h := this <;> norm_num [s, h]
-    · refine (IsCoprime.pow_right ?_).neg_right
-      rw [p31.coprime_iff_not_dvd, Int.dvd_iff_emod_eq_zero, ← Int.emod_sub_emod]
-      have := six_pow_two_pow_mod_31_mem k
-      simp only [List.mem_cons, List.not_mem_nil, or_false] at this
-      obtain h | h | h := this <;> norm_num [s, h]
-  rw [List.pairwise_cons]
-  refine ⟨fun a ma ↦ ?_, ?_⟩
-  · simp_rw [neg_mul, IsCoprime.neg_left_iff, s, ← pow_mul, ← pow_succ']
-    rw [IsCoprime.pow_left_iff (by positivity)]
-    fin_cases ma <;> unfold s
-    · apply IsCoprime.pow_right
-      rw [show 2 ^ k = 2 ^ k - 1 + 1 by grind, pow_succ, IsCoprime.mul_add_right_right_iff]
-      decide
-    · refine (IsCoprime.pow_right ?_).neg_right
-      rw [show 2 ^ k = 2 ^ k - 1 + 1 by grind, pow_succ, sub_eq_add_neg,
-        IsCoprime.mul_add_right_right_iff]
-      decide
-  rw [List.pairwise_pair, IsCoprime.pow_left_iff zero_lt_three, IsCoprime.neg_right_iff,
-    IsCoprime.pow_right_iff zero_lt_three, show s - 1 = 1 * (s + 1) + -2 by ring,
-    IsCoprime.mul_add_right_right_iff, IsCoprime.neg_right_iff]
-  unfold s
-  rw [show 2 ^ k = 2 ^ k - 1 + 1 by grind,
-    show (6 : ℤ) ^ (2 ^ k - 1 + 1) = 3 * 6 ^ (2 ^ k - 1) * 2 by ring,
-    IsCoprime.mul_add_right_left_iff]
-  decide
+  rw [neg_right_iff, pow_right_iff zero_lt_three, pow_right_iff zero_lt_three, mul_right_iff]
+  simp_rw [show IsCoprime 31 (-6) by decide, true_and, pow_right_iff zero_lt_two,
+    p31.coprime_iff_not_dvd, Int.dvd_iff_emod_eq_zero]
+  rw [← Int.emod_add_emod, ← Int.emod_sub_emod]
+  have := six_pow_two_pow_mod_31_mem k
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at this
+  obtain h | h | h := this <;> simp [h]
+
+open IsCoprime in
+lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun {i j} h ↦ by
+  fin_cases j <;> simp only [Fin.reduceFinMk, Fin.not_lt_zero, Fin.lt_one_iff] at *
+  · subst h
+    rw [tup, pow_left_iff zero_lt_three, tup, neg_right_iff, pow_right_iff zero_lt_three]
+    exact add_one_sub_one_of_even ((show (2 : ℤ) ∣ 6 by lia).pow (by positivity))
+  · rw [tup, neg_mul, neg_right_iff, ← pow_mul, ← pow_succ', pow_right_iff (by positivity)]
+    obtain rfl | rfl : i = 0 ∨ i = 1 := by lia
+    all_goals simp only [tup, neg_left_iff, pow_left_iff zero_lt_three]
+    · exact add_one_left_of_dvd (dvd_pow_self 6 (by positivity))
+    · exact sub_one_left_of_dvd (dvd_pow_self 6 (by positivity))
+  · rw [tup, isCoprime_comm, IsCoprime.neg_left_iff]
+    obtain rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 := by lia
+    exacts [(isCoprime_31 k).1, (isCoprime_31 k).2.1, (isCoprime_31 k).2.2]
+  · rw [tup, isCoprime_comm]
+    obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by lia
+    on_goal 4 => rw [tup]; decide
+    exacts [(isCoprime_29 k).1, (isCoprime_29 k).2.1, (isCoprime_29 k).2.2]
 
 end Coprime
 
-lemma strongSSC_tup : StrongSSC (tup k) := fun p n h₁ h₂ h₃ ↦ by
+lemma strongSSC_tup : StrongSSC (tup k) := fun p n dj n₁ n₂ ↦ by
   sorry
 
 lemma tup_mem_factorFreeTuples : tup k ∈ factorFreeTuples ∅ 5 := by

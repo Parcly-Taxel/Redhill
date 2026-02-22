@@ -5,7 +5,7 @@ open Finset
 
 /-- A predicate stating that the given tuple's numbers are pairwise coprime. -/
 def PairwiseCoprime {n : ℕ} (a : Fin n → ℤ) : Prop :=
-  ∀ i j, i ≠ j → IsCoprime (a i) (a j)
+  ∀ {i j}, i < j → IsCoprime (a i) (a j)
 
 /-- The **abc conjecture** itself, using `quality`. -/
 def ABCConjecture : Prop :=
@@ -43,8 +43,11 @@ def factorFreeTuples (F : Finset ℕ) (n : ℕ) : Set (Fin n → ℤ) :=
   {a | ∑ i, a i = 0 ∧ StrongSSC a ∧ PairwiseCoprime a ∧ ∀ f ∈ F, ∀ i, ¬↑f ∣ a i}
 
 lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
-  unfold NConjecture ABCConjecture nConjectureTuples
-  norm_num
+  norm_num [NConjecture, ABCConjecture, nConjectureTuples]
+  suffices hf : {a : Fin 3 → ℤ | ¬SSC a ∧ ∑ i, a i = 0 ∧ univ.gcd a = 1}.Finite by
+    have := quality_union_finite (A := {a : Fin 3 → ℤ | SSC a ∧ ∑ i, a i = 0 ∧ univ.gcd a = 1}) hf
+    simp_rw [← Set.setOf_or, ← or_and_right, or_not, true_and] at this
+    simp [this, and_left_comm]
   sorry
 
 /-- Theorem 1.3 in the paper, Browkin and Brzeziński (1994). -/
