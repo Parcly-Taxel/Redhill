@@ -51,8 +51,8 @@ lemma one_lt_radical_tup : 1 < radical (∏ i, tup k i) := by
   exact (six_pow_pos (by positivity)).ne'
 
 lemma log_radical_tup_le : log (radical (∏ i, tup k i) : ℤ) ≤ 2 * 2 ^ k * log 6 + log 5394 := by
-  rw [log_le_iff_le_exp (by exact_mod_cast Int.radical_pos),
-    exp_add, exp_log (by lia), mul_comm (_ * _), exp_mul, exp_log (by lia)]
+  rw [log_le_iff_le_exp (by exact_mod_cast Int.radical_pos _),
+    exp_add, exp_log (by norm_num), mul_comm (_ * _), exp_mul, exp_log (by norm_num)]
   norm_cast
   push_cast
   have : 0 < (6 : ℤ) ^ (2 * 2 ^ k) - 1 := six_pow_pos (by positivity)
@@ -93,10 +93,10 @@ lemma le_tupleQuality :
     rw [log_pow, Nat.cast_ofNat, mul_assoc]
     gcongr
     calc
-      _ = log (6 ^ 2 ^ k) := by simp
+      _ = log (6 ^ 2 ^ k) := by simp only [log_pow, Nat.cast_pow, Nat.cast_ofNat]
       _ ≤ _ := by
         gcongr
-        lia
+        norm_num
   · apply log_pos
     exact_mod_cast one_lt_radical_tup k
   · exact log_radical_tup_le k

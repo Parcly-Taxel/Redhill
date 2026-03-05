@@ -1,5 +1,5 @@
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Redhill.ToMathlib.Radical
+import Mathlib.RingTheory.Radical.NatInt
 
 open Finset
 
