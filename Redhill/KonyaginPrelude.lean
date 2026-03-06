@@ -188,8 +188,66 @@ lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun {i j} h ↦ by
 
 end Coprime
 
-lemma strongSSC_tup : StrongSSC (tup k) := fun p n dj n₁ n₂ ↦ by
+section Subsum
+
+/-- The quintuple defined in Section 2.1 with `k` in place of `6 ^ 2 ^ k`
+for easier term manipulation. -/
+def tupReduced : Fin 5 → ℤ
+  | 0 => (k + 1) ^ 3
+  | 1 => -(k - 1) ^ 3
+  | 2 => -6 * k ^ 2
+  | 3 => -31
+  | 4 => 29
+
+lemma sum_tupReduced_lt_tupReduced_one (hk : 10 ≤ k) :
+    ∑ i ∈ {0, 1}ᶜ, (tupReduced k i).natAbs < (tupReduced k 1).natAbs := by
+  have se : ({0, 1}ᶜ : Finset (Fin 5)) = {2, 3, 4} := by decide
+  simp only [se, Finset.mem_insert, Fin.reduceEq, Finset.mem_singleton, or_self, not_false_eq_true,
+    Finset.sum_insert, Finset.sum_singleton]
+  unfold tupReduced
+  simp only [Int.reduceNeg, neg_mul, Int.natAbs_neg, Int.natAbs_mul, Int.reduceAbs, Int.natAbs_pow,
+    Int.natAbs_natCast, Nat.reduceAdd, show (k - 1 : ℤ).natAbs = k - 1 by lia]
+  induction k, hk using Nat.le_induction with
+  | base => lia
+  | succ k lk ih =>
+    have rearr : (k + 1 - 1) ^ 3 = (k - 1) ^ 3 + (3 * k * (k - 1) + 1) := by
+      rw [add_tsub_cancel_right]
+      replace lk : 1 ≤ k := by lia
+      zify [lk]
+      ring
+    rw [rearr, show 6 * (k + 1) ^ 2 + 60 = 6 * k ^ 2 + 60 + (12 * k + 6) by ring]
+    apply add_lt_add_of_lt_of_le ih
+    calc
+      _ ≤ 3 * 5 * k := by lia
+      _ ≤ 3 * (k - 1) * k := by gcongr; lia
+      _ ≤ _ := by lia
+
+lemma sum_tupReduced_lt_tupReduced_zero (hk : 10 ≤ k) :
+    ∑ i ∈ {0, 1}ᶜ, (tupReduced k i).natAbs < (tupReduced k 0).natAbs := by
+  apply (sum_tupReduced_lt_tupReduced_one _ hk).trans_le
+  simp_rw [tupReduced, Int.natAbs_neg, Int.natAbs_pow]
+  exact pow_le_pow_left₀ (by lia) (by lia) 3
+
+lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := fun b c dj n₁ n₂ ↦ by
+  by_contra! hs
+  have key : SubsumPairFor (tupReduced k) 0 1 :=
+    subsumPairFor_iff_sum_natAbs_lt (sum_tupReduced_lt_tupReduced_zero _ hk)
+      (sum_tupReduced_lt_tupReduced_one _ hk)
+  -- split: either 0 is in the union (and hence 1 is), or 0 is not in the union (and 1 is not)
   sorry
+
+lemma strongSSC_tup_of_pos (hk : k ≠ 0) : StrongSSC (tup k) := by
+  convert strongSSC_tupReduced (6 ^ 2 ^ k) ?_  using 1
+  apply (show 10 ≤ 6 ^ 2 ^ 1 by lia).trans
+  gcongr <;> lia
+
+lemma strongSSC_tup : StrongSSC (tup k) := by
+  obtain rfl | hk := eq_or_ne k 0
+  · rw [StrongSSC]
+    decide +kernel
+  exact strongSSC_tup_of_pos _ hk
+
+end Subsum
 
 lemma tup_mem_factorFreeTuples : tup k ∈ factorFreeTuples ∅ 5 := by
   simp [factorFreeTuples, sum_tup, strongSSC_tup, pairwiseCoprime_tup]
