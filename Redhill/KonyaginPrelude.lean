@@ -229,11 +229,11 @@ lemma sum_tupReduced_lt_tupReduced_zero (hk : 10 ≤ k) :
   exact pow_le_pow_left₀ (by lia) (by lia) 3
 
 lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := fun b c dj n₁ n₂ ↦ by
-  by_contra! hs
-  have key : SubsumPairFor (tupReduced k) 0 1 :=
-    subsumPairFor_iff_sum_natAbs_lt (sum_tupReduced_lt_tupReduced_zero _ hk)
+  have key : IsSubsumBlock (tupReduced k) {0, 1} := by
+    apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced_lt_tupReduced_zero _ hk)
       (sum_tupReduced_lt_tupReduced_one _ hk)
-  -- split: either 0 is in the union (and hence 1 is), or 0 is not in the union (and 1 is not)
+    simp_rw [tupReduced, mul_neg, Int.neg_nonpos_iff, ← mul_pow]
+    exact Int.pow_nonneg (mul_nonneg (by lia) (by lia))
   sorry
 
 lemma strongSSC_tup_of_pos (hk : k ≠ 0) : StrongSSC (tup k) := by
