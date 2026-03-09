@@ -4,7 +4,6 @@ import Mathlib.Algebra.Order.Group.Int
 import Mathlib.Algebra.Order.Group.Unbundled.Int
 import Mathlib.Data.Finset.Sort
 import Mathlib.Tactic.Zify
-import Redhill.ToMathlib.Int
 
 open Finset
 
