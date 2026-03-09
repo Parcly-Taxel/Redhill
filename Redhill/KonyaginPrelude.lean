@@ -258,22 +258,32 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
       (sum_tupReduced_lt_tupReduced_one _ hk)
     simp_rw [tupReduced, mul_neg, Int.neg_nonpos_iff, ← mul_pow]
     exact Int.pow_nonneg (mul_nonneg (by lia) (by lia))
-  apply key.strongSSC_reduce (by simp)
-  have e₁ : IsSubsumBlock.reduce (tupReduced k) {0, 1} = tupReduced2 k := by
-    sorry
+  have c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card := by simp
+  apply key.strongSSC_tupReduce (by simp) c₁
+  have e₁ : tupReduce (tupReduced k) {0, 1} c₁ = tupReduced2 k := by
+    unfold tupReduced tupReduced2
+    ext i
+    cases i using Fin.cases with
+    | zero => rw [tupReduce_01_zero]; ring
+    | succ i => rw [tupReduce_01_succ]; fin_cases i <;> rfl
   rw [e₁]
   have key2 : IsSubsumBlock (tupReduced2 k) {0, 1} := by
     apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced2_lt_tupReduced2_zero _ hk)
       (sum_tupReduced2_lt_tupReduced2_one _ hk)
     simp_rw [tupReduced2, neg_mul, mul_neg, Int.neg_nonpos_iff]
     positivity
-  apply key2.strongSSC_reduce (by simp)
+  have c₂ : 2 = 4 - ({0, 1} : Finset (Fin 4)).card := by simp
+  apply key2.strongSSC_tupReduce (by simp) c₂
   let f : Fin 3 → ℤ
     | 0 => 2
     | 1 => -31
     | 2 => 29
-  have e₂ : IsSubsumBlock.reduce (tupReduced2 k) {0, 1} = f := by
-    sorry
+  have e₂ : tupReduce (tupReduced2 k) {0, 1} c₂ = f := by
+    unfold tupReduced2
+    ext i
+    cases i using Fin.cases with
+    | zero => rw [tupReduce_01_zero]; ring
+    | succ i => rw [tupReduce_01_succ]; fin_cases i <;> rfl
   rw [e₂, StrongSSC]
   decide +kernel
 

@@ -7,7 +7,7 @@ import Mathlib.Tactic.Zify
 
 open Finset
 
-variable {n : ℕ} (a : Fin n → ℤ)
+variable {n k : ℕ} (a : Fin n → ℤ)
 
 /-- The subsum condition: any subset of the tuple summing to 0
 is either empty or the whole tuple. -/
@@ -45,6 +45,34 @@ lemma zero_notMem_of_SSC (hn : 2 ≤ n) (hs : ∑ i, a i = 0) (ha : SSC a) : 0 �
 lemma zero_notMem_of_strongSSC
     (hn : 2 ≤ n) (hs : ∑ i, a i = 0) (ha : StrongSSC a) : 0 ∉ univ.image a :=
   zero_notMem_of_SSC hn hs (SSC_of_strongSSC ha)
+
+section TupReduce
+
+variable (s : Finset (Fin n)) (hk : k = n - #s)
+
+/-- The order-preserving bijection from `Fin k` to `sᶜ`, where `k = n - #s`. -/
+def complRank (i : Fin k) : Fin n :=
+  sᶜ.orderEmbOfFin (by simp [card_compl]) (i.cast hk)
+
+lemma complRank_01 : complRank {0, 1} (n.add_sub_cancel 2).symm = (Fin.addNat · 2) :=
+  (orderEmbOfFin_unique _ (by simp [Fin.ext_iff]) (Fin.strictMono_addNat 2)).symm
+
+variable (a) in
+/-- `tupReduce a s hk` is the tuple with `∑ i ∈ s, a i` at index 0
+and the remaining elements of `a` appended in order.
+`hk : k = n - #s` mitigates definitional equality problems. -/
+def tupReduce : Fin (k + 1) → ℤ :=
+  Fin.cases (∑ i ∈ s, a i) fun i ↦ a (complRank s hk i)
+
+lemma tupReduce_01_zero {a : Fin (n + 2) → ℤ} :
+    tupReduce a {0, 1} (n.add_sub_cancel 2).symm 0 = a 0 + a 1 := by
+  simp [tupReduce, complRank_01]
+
+lemma tupReduce_01_succ {a : Fin (n + 2) → ℤ} {i : Fin n} :
+    tupReduce a {0, 1} (n.add_sub_cancel 2).symm i.succ = a (i.addNat 2) := by
+  simp [tupReduce, complRank_01]
+
+end TupReduce
 
 namespace IsSubsumBlock
 
@@ -142,15 +170,9 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
   refine .inr (.inr ?_)
   simp_all
 
-variable (a s) in
-/-- `reduce a s` is the tuple with `∑ i ∈ s, a i` at index 0
-and the remaining elements of `a` appended unchanged. -/
-def reduce : Fin (n - #s + 1) → ℤ :=
-  Fin.cases (∑ i ∈ s, a i) (fun i ↦ a (sᶜ.orderIsoOfFin (by simp [card_compl]) i))
-
 /-- Reduce a subsum block to a single element when proving the strong subsum condition. -/
-theorem strongSSC_reduce (p : IsSubsumBlock a s) (ns : s.Nonempty) (h : StrongSSC (reduce a s)) :
-    StrongSSC a := by
+theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (ns : s.Nonempty) (hk : k = n - #s)
+    (h : StrongSSC (tupReduce a s hk)) : StrongSSC a := by
   sorry
 
 end IsSubsumBlock
