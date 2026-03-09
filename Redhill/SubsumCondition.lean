@@ -2,7 +2,7 @@ import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Algebra.Order.Group.Int
 import Mathlib.Algebra.Order.Group.Unbundled.Int
-import Mathlib.Tactic.ApplyFun
+import Mathlib.Data.Finset.Sort
 import Mathlib.Tactic.Zify
 import Redhill.ToMathlib.Int
 
@@ -15,7 +15,7 @@ is either empty or the whole tuple. -/
 def SSC : Prop :=
   ∀ b, b.Nonempty → bᶜ.Nonempty → ∑ i ∈ b, a i ≠ 0
 
-/-- The stronger subsum condition: two disjoint sub-tuples with the same sum
+/-- The strong subsum condition: two disjoint sub-tuples with the same sum
 must have their union either empty or the whole tuple. -/
 def StrongSSC : Prop :=
   ∀ b c, Disjoint b c → (b ∪ c).Nonempty → (b ∪ c)ᶜ.Nonempty → ∑ i ∈ b, a i ≠ ∑ i ∈ c, a i
@@ -91,7 +91,7 @@ lemma pair_aux (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).natAbs)
   rw [← insert_erase mi, sum_insert (notMem_erase _ _), ← eq_sub_iff_add_eq] at h
   by_cases mj : j ∈ c
   · rw [← insert_erase mj, sum_insert (notMem_erase _ _), add_sub_assoc, ← sub_eq_iff_eq_add'] at h
-    apply_fun Int.natAbs at h
+    replace h := congrArg Int.natAbs h
     contrapose! h
     apply ne_of_gt
     calc
@@ -108,7 +108,7 @@ lemma pair_aux (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).natAbs)
       _ ≤ _ := by
         rw [Int.mul_nonpos_iff] at hprod
         lia
-  · apply_fun Int.natAbs at h
+  · replace h := congrArg Int.natAbs h
     contrapose! h
     apply ne_of_gt
     calc
@@ -123,6 +123,8 @@ lemma pair_aux (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).natAbs)
         simp [dj.notMem_of_mem_left_finset mi, h, mj]
       _ < _ := hi
 
+/-- If there are two elements of opposite signs, each dominating the remaining `n - 2` elements
+(in the sense of violating the triangle inequality), the two elements form a subsum block. -/
 theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).natAbs)
     (hj : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a j).natAbs) (hprod : a i * a j ≤ 0) :
     IsSubsumBlock a {i, j} := fun b c dj hs ↦ by
@@ -141,12 +143,15 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
   refine .inr (.inr ?_)
   simp_all
 
-theorem strongSSC_reduce (p : IsSubsumBlock a s) {m : ℕ} {a' : Fin m → ℤ} (f : Fin n → Fin m)
-    (h : StrongSSC a') : StrongSSC a := by
-  unfold StrongSSC at *
-  contrapose! h
-  obtain ⟨b, c, dj, n₁, n₂, hs⟩ := h
-  specialize p _ _ dj hs
+variable (a s) in
+/-- `reduce a s` is the tuple with `∑ i ∈ s, a i` at index 0
+and the remaining elements of `a` appended unchanged. -/
+def reduce : Fin (n - #s + 1) → ℤ :=
+  Fin.cases (∑ i ∈ s, a i) (fun i ↦ a (sᶜ.orderIsoOfFin (by simp [card_compl]) i))
+
+/-- Reduce a subsum block to a single element when proving the strong subsum condition. -/
+theorem strongSSC_reduce (p : IsSubsumBlock a s) (ns : s.Nonempty) (h : StrongSSC (reduce a s)) :
+    StrongSSC a := by
   sorry
 
 end IsSubsumBlock

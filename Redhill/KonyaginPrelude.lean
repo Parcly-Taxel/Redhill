@@ -228,13 +228,54 @@ lemma sum_tupReduced_lt_tupReduced_zero (hk : 10 ≤ k) :
   simp_rw [tupReduced, Int.natAbs_neg, Int.natAbs_pow]
   exact pow_le_pow_left₀ (by lia) (by lia) 3
 
-lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := fun b c dj n₁ n₂ ↦ by
+/-- `tupReduced` with the first two terms added together. -/
+def tupReduced2 : Fin 4 → ℤ
+  | 0 => 6 * k ^ 2 + 2
+  | 1 => -6 * k ^ 2
+  | 2 => -31
+  | 3 => 29
+
+lemma sum_tupReduced2_lt_tupReduced2_one (hk : 10 ≤ k) :
+    ∑ i ∈ {0, 1}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 1).natAbs := by
+  have se : ({0, 1}ᶜ : Finset (Fin 4)) = {2, 3} := by decide
+  simp only [se, Fin.reduceEq, Finset.mem_singleton, not_false_eq_true, Finset.sum_insert,
+    Finset.sum_singleton]
+  unfold tupReduced2
+  simp only [Int.natAbs_mul, Int.reduceAbs, Int.natAbs_natCast, Nat.reduceAdd, sq, ← mul_assoc,
+    show 60 = 6 * 2 * 5 by lia]
+  gcongr <;> lia
+
+lemma sum_tupReduced2_lt_tupReduced2_zero (hk : 10 ≤ k) :
+    ∑ i ∈ {0, 1}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 0).natAbs := by
+  apply (sum_tupReduced2_lt_tupReduced2_one _ hk).trans_le
+  simp_rw [tupReduced2, neg_mul, Int.natAbs_neg, ← Nat.cast_le (α := ℤ)]
+  iterate 2 rw [Int.natAbs_of_nonneg (by positivity)]
+  lia
+
+lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
   have key : IsSubsumBlock (tupReduced k) {0, 1} := by
     apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced_lt_tupReduced_zero _ hk)
       (sum_tupReduced_lt_tupReduced_one _ hk)
     simp_rw [tupReduced, mul_neg, Int.neg_nonpos_iff, ← mul_pow]
     exact Int.pow_nonneg (mul_nonneg (by lia) (by lia))
-  sorry
+  apply key.strongSSC_reduce (by simp)
+  have e₁ : IsSubsumBlock.reduce (tupReduced k) {0, 1} = tupReduced2 k := by
+    sorry
+  rw [e₁]
+  have key2 : IsSubsumBlock (tupReduced2 k) {0, 1} := by
+    apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced2_lt_tupReduced2_zero _ hk)
+      (sum_tupReduced2_lt_tupReduced2_one _ hk)
+    simp_rw [tupReduced2, neg_mul, mul_neg, Int.neg_nonpos_iff]
+    positivity
+  apply key2.strongSSC_reduce (by simp)
+  let f : Fin 3 → ℤ
+    | 0 => 2
+    | 1 => -31
+    | 2 => 29
+  have e₂ : IsSubsumBlock.reduce (tupReduced2 k) {0, 1} = f := by
+    sorry
+  rw [e₂, StrongSSC]
+  decide +kernel
 
 lemma strongSSC_tup_of_pos (hk : k ≠ 0) : StrongSSC (tup k) := by
   convert strongSSC_tupReduced (6 ^ 2 ^ k) ?_  using 1
