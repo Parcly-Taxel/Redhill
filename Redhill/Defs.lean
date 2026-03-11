@@ -94,8 +94,3 @@ lemma quality_factorFreeTuples_le_ramaekersTuples :
 lemma quality_ramaekersTuples_le_strongNConjectureTuples :
     quality (ramaekersTuples n) ≤ quality (strongNConjectureTuples n) :=
   quality_mono fun _ ⟨h₁, _, h₃⟩ ↦ ⟨h₁, h₃⟩
-
-/-- Theorem 1.3 in the paper, Browkin and Brzeziński (1994). -/
-lemma le_quality_nConjectureTuples {n : ℕ} (hn : 3 ≤ n) :
-    (2 * n - 5 : ℕ) ≤ quality (nConjectureTuples n) := by
-  sorry

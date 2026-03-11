@@ -1,3 +1,4 @@
+import Redhill.BB94
 import Redhill.Defs
 import Redhill.KonyaginPrelude
 import Redhill.Quality

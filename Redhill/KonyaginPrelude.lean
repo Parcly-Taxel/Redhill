@@ -287,16 +287,13 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
   rw [e₂, StrongSSC]
   decide +kernel
 
-lemma strongSSC_tup_of_pos (hk : k ≠ 0) : StrongSSC (tup k) := by
-  convert strongSSC_tupReduced (6 ^ 2 ^ k) ?_  using 1
-  apply (show 10 ≤ 6 ^ 2 ^ 1 by lia).trans
-  gcongr <;> lia
-
 lemma strongSSC_tup : StrongSSC (tup k) := by
   obtain rfl | hk := eq_or_ne k 0
   · rw [StrongSSC]
     decide +kernel
-  exact strongSSC_tup_of_pos _ hk
+  convert strongSSC_tupReduced (6 ^ 2 ^ k) ?_ using 1
+  apply (show 10 ≤ 6 ^ 2 ^ 1 by lia).trans
+  gcongr <;> lia
 
 end Subsum
 
