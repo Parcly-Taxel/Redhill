@@ -1,9 +1,13 @@
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Mathlib.Algebra.Order.Group.Int
-import Mathlib.Algebra.Order.Group.Unbundled.Int
-import Mathlib.Data.Finset.Sort
-import Mathlib.Tactic.Zify
+module
+
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Algebra.Order.Group.Int
+public import Mathlib.Algebra.Order.Group.Unbundled.Int
+public import Mathlib.Data.Finset.Sort
+public import Mathlib.Tactic.Zify
+
+@[expose] public section
 
 open Finset
 

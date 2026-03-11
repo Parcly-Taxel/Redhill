@@ -1,5 +1,9 @@
-import Redhill.Quality
-import Redhill.SubsumCondition
+module
+
+public import Redhill.Quality
+public import Redhill.SubsumCondition
+
+@[expose] public section
 
 open Finset
 

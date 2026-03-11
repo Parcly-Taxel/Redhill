@@ -1,4 +1,8 @@
-import Mathlib.RingTheory.Coprime.Lemmas
+module
+
+public import Mathlib.RingTheory.Coprime.Lemmas
+
+@[expose] public section
 
 namespace IsCoprime
 

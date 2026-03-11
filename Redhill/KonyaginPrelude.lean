@@ -1,6 +1,10 @@
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Redhill.Defs
-import Redhill.ToMathlib.Coprime
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Redhill.Defs
+public import Redhill.ToMathlib.Coprime
+
+@[expose] public section
 
 namespace KonyaginPrelude
 

@@ -1,5 +1,9 @@
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.RingTheory.Radical.NatInt
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.RingTheory.Radical.NatInt
+
+@[expose] public section
 
 open Finset
 
