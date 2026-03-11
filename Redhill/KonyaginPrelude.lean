@@ -259,7 +259,7 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
     simp_rw [tupReduced, mul_neg, Int.neg_nonpos_iff, ← mul_pow]
     exact Int.pow_nonneg (mul_nonneg (by lia) (by lia))
   have c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card := by simp
-  apply key.strongSSC_tupReduce (by simp) c₁
+  apply key.strongSSC_tupReduce c₁
   have e₁ : tupReduce (tupReduced k) {0, 1} c₁ = tupReduced2 k := by
     unfold tupReduced tupReduced2
     ext i
@@ -273,7 +273,7 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
     simp_rw [tupReduced2, neg_mul, mul_neg, Int.neg_nonpos_iff]
     positivity
   have c₂ : 2 = 4 - ({0, 1} : Finset (Fin 4)).card := by simp
-  apply key2.strongSSC_tupReduce (by simp) c₂
+  apply key2.strongSSC_tupReduce c₂
   let f : Fin 3 → ℤ
     | 0 => 2
     | 1 => -31

@@ -46,6 +46,18 @@ lemma zero_notMem_of_strongSSC
     (hn : 2 ≤ n) (hs : ∑ i, a i = 0) (ha : StrongSSC a) : 0 ∉ univ.image a :=
   zero_notMem_of_SSC hn hs (SSC_of_strongSSC ha)
 
+lemma strongSSC_perm (e : Equiv.Perm (Fin n)) (h : StrongSSC a) : StrongSSC (a ∘ e) := by
+  intro b c dj n₁ n₂
+  specialize h (b.map e) (c.map e)
+  simp_rw [disjoint_map, union_nonempty, map_nonempty, ← union_nonempty, sum_map] at h
+  apply h dj n₁
+  obtain ⟨i, mi⟩ := n₂
+  exact ⟨e i, by simp_all⟩
+
+lemma strongSSC_perm_iff (e : Equiv.Perm (Fin n)) : StrongSSC a ↔ StrongSSC (a ∘ e) where
+  mp h := strongSSC_perm e h
+  mpr h := by simpa [Function.comp_assoc] using strongSSC_perm e.symm h
+
 section TupReduce
 
 variable (s : Finset (Fin n)) (hk : k = n - #s)
@@ -71,6 +83,27 @@ lemma tupReduce_01_zero {a : Fin (n + 2) → ℤ} :
 lemma tupReduce_01_succ {a : Fin (n + 2) → ℤ} {i : Fin n} :
     tupReduce a {0, 1} (n.add_sub_cancel 2).symm i.succ = a (i.addNat 2) := by
   simp [tupReduce, complRank_01]
+
+variable {s hk}
+
+lemma injective_complRank : (complRank s hk).Injective := fun i j h ↦ by
+  simpa [complRank] using h
+
+lemma range_complRank : Set.range (complRank s hk) = sᶜ := by
+  unfold complRank
+  subst hk
+  simp_all
+
+lemma eq_map_complRank {b : Finset (Fin n)} (hb : Disjoint s b) :
+    b = map ⟨complRank s hk, injective_complRank⟩ {i | complRank s hk i ∈ b} := by
+  ext i
+  simp_rw [mem_map, mem_filter_univ, Function.Embedding.coeFn_mk]
+  refine ⟨fun h ↦ ?_, fun ⟨a, ma, ha⟩ ↦ ha.symm ▸ ma⟩
+  have : i ∈ Set.range (complRank s hk) := by
+    rw [range_complRank, mem_coe, mem_compl]
+    exact hb.notMem_of_mem_right_finset h
+  obtain ⟨a, ha⟩ := this
+  refine ⟨a, by simp_all⟩
 
 end TupReduce
 
@@ -171,8 +204,43 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
   simp_all
 
 /-- Reduce a subsum block to a single element when proving the strong subsum condition. -/
-theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (ns : s.Nonempty) (hk : k = n - #s)
+theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (hk : k = n - #s)
     (h : StrongSSC (tupReduce a s hk)) : StrongSSC a := by
-  sorry
+  unfold StrongSSC at *
+  contrapose! h
+  obtain ⟨b, c, dj, n₁, n₂, hs⟩ := h
+  specialize p b c dj hs
+  rw [← or_rotate, disjoint_union_right] at p
+  obtain p | p := p
+  · let b' : Finset (Fin k) := {i | complRank s hk i ∈ b}
+    let c' : Finset (Fin k) := {i | complRank s hk i ∈ c}
+    have eqb : b = b'.map _ := eq_map_complRank p.1
+    have eqc : c = c'.map _ := eq_map_complRank p.2
+    refine ⟨b'.map (Fin.succEmb k), c'.map (Fin.succEmb k), by simp_all, by simp_all, ?_, ?_⟩
+    · exact ⟨0, by simp [b', c']⟩
+    · simp_all [tupReduce]
+  wlog q : s ⊆ b generalizing b c
+  · rw [union_comm] at n₁ n₂
+    exact this c b dj.symm n₁ n₂ hs.symm p.symm (p.resolve_left q)
+  replace p := dj.mono_left q
+  let b' : Finset (Fin k) := {i | complRank s hk i ∈ b \ s}
+  let c' : Finset (Fin k) := {i | complRank s hk i ∈ c}
+  have eqb : b \ s = b'.map _ := eq_map_complRank disjoint_sdiff
+  have eqc : c = c'.map _ := eq_map_complRank p
+  refine ⟨insert 0 (b'.map (Fin.succEmb k)), c'.map (Fin.succEmb k), ?_, by simp, ?_, ?_⟩
+  · have : Disjoint (b \ s) c := dj.mono_left sdiff_le
+    simp_all
+  · obtain ⟨i, mi⟩ := n₂
+    have ni : i ∉ s := by
+      contrapose! mi
+      rw [notMem_compl, mem_union]
+      exact .inl (q mi)
+    rw [← mem_compl, ← mem_coe, ← range_complRank (hk := hk), Set.mem_range] at ni
+    obtain ⟨j, rfl⟩ := ni
+    refine ⟨j.succ, ?_⟩
+    simp [b', c']
+    simp_all
+  · rw [← sum_sdiff q, add_comm] at hs
+    simp_all [tupReduce]
 
 end IsSubsumBlock
