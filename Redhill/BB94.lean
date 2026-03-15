@@ -111,10 +111,13 @@ def tup (n k : ℕ) (i : Fin (n + 3)) : ℤ :=
 
 variable {n k : ℕ}
 
+@[simp]
 lemma tup_last : tup n k (Fin.last _) = 1 := by simp [tup]
 
+@[simp]
 lemma tup_second_last : tup n k (Fin.last _).castSucc = -(2 ^ k) ^ (2 * n + 1) := by simp [tup]
 
+@[simp]
 lemma tup_except_last_two {i : Fin (n + 1)} :
     tup n k i.castSucc.castSucc = C n i.1 * (2 ^ k - 1) ^ (2 * i.1 + 1) * (2 ^ k) ^ (n - i.1) := by
   simp [tup]
@@ -135,9 +138,7 @@ lemma gcd_tup : univ.gcd (tup n k) = 1 := by
   rw [← insert_eq_of_mem (mem_univ (Fin.last (n + 2))), gcd_insert]
   simp [tup]
 
-lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) :
-    (tup n k i < 0 ↔ i = (Fin.last (n + 1)).castSucc) ∧
-    (0 < tup n k i ↔ i ≠ (Fin.last (n + 1)).castSucc) := by
+lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) : 0 < tup n k i ↔ i ≠ (Fin.last _).castSucc := by
   cases i using Fin.lastCases with
   | last => simp [tup_last]; grind
   | cast i =>
@@ -145,7 +146,7 @@ lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) :
     | last => simp [tup_second_last]
     | cast i =>
       suffices (0 : ℤ) < (C n i.1) * (2 ^ k - 1) ^ (2 * i.1 + 1) * (2 ^ k) ^ (n - i.1) by
-        simpa [this, tup_except_last_two] using this.le
+        simp [this]
       have : 0 < C n i.1 := by rw [C_pos_iff]; lia
       have : 0 < (2 : ℤ) ^ k - 1 := by
         rw [sub_pos]
@@ -153,21 +154,33 @@ lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) :
       positivity
 
 lemma SSC_tup (hk : k ≠ 0) : SSC (tup n k) := fun b n₁ n₂ ↦ by
-  by_cases hb : (Fin.last (n + 1)).castSucc ∈ b
+  by_cases hb : (Fin.last _).castSucc ∈ b
   · rw [← @sum_tup n k, ← sum_add_sum_compl b, Ne, left_eq_add, ← Ne]
     refine (sum_pos (fun i mi ↦ ?_) n₂).ne'
     rw [mem_compl] at mi
-    rw [(tup_sign hk).2]
+    rw [tup_sign hk]
     exact (ne_of_mem_of_not_mem hb mi).symm
   · refine (sum_pos (fun i mi ↦ ?_) n₁).ne'
-    rw [(tup_sign hk).2]
+    rw [tup_sign hk]
     exact ne_of_mem_of_not_mem mi hb
 
 lemma tup_mem_nConjectureTuples (hk : k ≠ 0) : tup n k ∈ nConjectureTuples (n + 3) := by
   simp [nConjectureTuples, sum_tup, SSC_tup hk, gcd_tup]
 
 lemma maxAbs_tup (hk : k ≠ 0) : maxAbs (tup n k) = (2 ^ k) ^ (2 * n + 1) := by
-  sorry
+  rw [show (2 ^ k) ^ (2 * n + 1) = (tup n k (Fin.last _).castSucc).natAbs by simp]
+  refine maxAbs_eq_of_forall_le fun i ↦ ?_
+  obtain rfl | hi := eq_or_ne i (Fin.last _).castSucc
+  · rfl
+  conv_rhs =>
+    rw [← Int.natAbs_neg, ← zero_sub, ← @sum_tup n k, ← sum_add_sum_compl {(Fin.last _).castSucc},
+      sum_singleton, add_sub_cancel_left]
+  zify
+  have nng (j) (mj : j ∈ ({(Fin.last _).castSucc} : Finset _)ᶜ) : 0 ≤ tup n k j := by
+    rw [mem_compl, mem_singleton] at mj
+    exact ((tup_sign hk).mpr mj).le
+  rw [abs_sum_of_nonneg nng, abs_of_nonneg ((tup_sign hk).mpr hi).le]
+  exact single_le_sum nng (by simpa using hi)
 
 end BB94
 

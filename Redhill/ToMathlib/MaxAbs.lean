@@ -24,6 +24,6 @@ lemma maxAbs_eq_foldr : maxAbs a = (List.ofFn fun i ↦ (a i).natAbs).foldr max 
     ← (fun i ↦ (a i).natAbs).id_comp, ← sup_image]
   congr; ext; simp
 
-lemma maxAbs_eq_of_forall_le (i : Fin n) (hi : ∀ j, (a j).natAbs ≤ (a i).natAbs) :
+lemma maxAbs_eq_of_forall_le {i : Fin n} (hi : ∀ j, (a j).natAbs ≤ (a i).natAbs) :
     maxAbs a = (a i).natAbs :=
   le_antisymm (Finset.sup_le (by simp_all)) (le_sup (f := fun i ↦ (a i).natAbs) (mem_univ _))
