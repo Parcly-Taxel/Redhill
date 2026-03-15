@@ -1,19 +1,16 @@
 module
 
+public import Mathlib.Algebra.EuclideanDomain.Int
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
-public import Mathlib.RingTheory.Radical.NatInt
+public import Mathlib.RingTheory.PrincipalIdealDomain
+public import Mathlib.RingTheory.Radical.Basic
+public import Redhill.ToMathlib.MaxAbs
 
 @[expose] public section
 
-open Finset
+open Finset Real ENNReal
 
 variable {n : ℕ}
-
-/-- The maximum absolute value of a tuple of integers (0 if empty). -/
-def maxAbs (a : Fin n → ℤ) : ℕ :=
-  (List.ofFn fun i ↦ (a i).natAbs).foldr max 0
-
-open Real ENNReal
 
 open UniqueFactorizationMonoid in
 /-- The quality of a single tuple.

@@ -1,10 +1,9 @@
-module
-
-public import Redhill.BB94
-public import Redhill.Defs
-public import Redhill.KonyaginPrelude
-public import Redhill.OddCase
-public import Redhill.Quality
-public import Redhill.SubsumCondition
-public import Redhill.ToMathlib.Coprime
-public import Redhill.VWPair
+import Redhill.BB94
+import Redhill.Defs
+import Redhill.KonyaginPrelude
+import Redhill.OddCase
+import Redhill.Quality
+import Redhill.SubsumCondition
+import Redhill.ToMathlib.Coprime
+import Redhill.ToMathlib.MaxAbs
+import Redhill.VWPair

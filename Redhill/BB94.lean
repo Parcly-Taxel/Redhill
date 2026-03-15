@@ -135,16 +135,17 @@ lemma gcd_tup : univ.gcd (tup n k) = 1 := by
   rw [← insert_eq_of_mem (mem_univ (Fin.last (n + 2))), gcd_insert]
   simp [tup]
 
-lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) : 0 < tup n k i ↔ i ≠ (Fin.last _).castSucc := by
-  unfold tup
+lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) :
+    (tup n k i < 0 ↔ i = (Fin.last (n + 1)).castSucc) ∧
+    (0 < tup n k i ↔ i ≠ (Fin.last (n + 1)).castSucc) := by
   cases i using Fin.lastCases with
-  | last => simp; grind
+  | last => simp [tup_last]; grind
   | cast i =>
     cases i using Fin.lastCases with
-    | last => simp
+    | last => simp [tup_second_last]
     | cast i =>
       suffices (0 : ℤ) < (C n i.1) * (2 ^ k - 1) ^ (2 * i.1 + 1) * (2 ^ k) ^ (n - i.1) by
-        simp [this]
+        simpa [this, tup_except_last_two] using this.le
       have : 0 < C n i.1 := by rw [C_pos_iff]; lia
       have : 0 < (2 : ℤ) ^ k - 1 := by
         rw [sub_pos]
@@ -156,14 +157,17 @@ lemma SSC_tup (hk : k ≠ 0) : SSC (tup n k) := fun b n₁ n₂ ↦ by
   · rw [← @sum_tup n k, ← sum_add_sum_compl b, Ne, left_eq_add, ← Ne]
     refine (sum_pos (fun i mi ↦ ?_) n₂).ne'
     rw [mem_compl] at mi
-    rw [tup_sign hk]
+    rw [(tup_sign hk).2]
     exact (ne_of_mem_of_not_mem hb mi).symm
   · refine (sum_pos (fun i mi ↦ ?_) n₁).ne'
-    rw [tup_sign hk]
+    rw [(tup_sign hk).2]
     exact ne_of_mem_of_not_mem mi hb
 
 lemma tup_mem_nConjectureTuples (hk : k ≠ 0) : tup n k ∈ nConjectureTuples (n + 3) := by
   simp [nConjectureTuples, sum_tup, SSC_tup hk, gcd_tup]
+
+lemma maxAbs_tup (hk : k ≠ 0) : maxAbs (tup n k) = (2 ^ k) ^ (2 * n + 1) := by
+  sorry
 
 end BB94
 

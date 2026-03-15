@@ -1,6 +1,7 @@
 module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.RingTheory.Radical.NatInt
 public import Redhill.Defs
 public import Redhill.ToMathlib.Coprime
 
@@ -65,7 +66,8 @@ lemma log_radical_tup_le : log (radical (∏ i, tup k i) : ℤ) ≤ 2 * 2 ^ k * 
   lia
 
 lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
-  simp_rw [maxAbs, List.ofFn_succ, List.ofFn_zero, Fin.reduceSucc, List.foldr_cons, List.foldr_nil]
+  simp_rw [maxAbs_eq_foldr, List.ofFn_succ, List.ofFn_zero, Fin.reduceSucc, List.foldr_cons,
+    List.foldr_nil]
   change max ((6 ^ 2 ^ k + 1) ^ 3) _ = _
   have e1 : max (tup k 3).natAbs (max (tup k 4).natAbs 0) = 31 := by simp [tup]
   simp_rw [e1, sup_eq_left, tup]
