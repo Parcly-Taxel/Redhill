@@ -1,5 +1,7 @@
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.RingTheory.Radical.NatInt
 public import Redhill.Defs
 
 @[expose] public section
@@ -122,6 +124,9 @@ lemma tup_except_last_two {i : Fin (n + 1)} :
     tup n k i.castSucc.castSucc = C n i.1 * (2 ^ k - 1) ^ (2 * i.1 + 1) * (2 ^ k) ^ (n - i.1) := by
   simp [tup]
 
+lemma injective_tup : (tup n).Injective := fun i j e ↦ by
+  simpa using congr($e (Fin.last _).castSucc)
+
 lemma sum_tup : ∑ i, tup n k i = 0 := by
   rw [Fin.sum_univ_castSucc, tup_last, Fin.sum_univ_castSucc, tup_second_last]
   simp_rw [tup_except_last_two,
@@ -167,7 +172,15 @@ lemma SSC_tup (hk : k ≠ 0) : SSC (tup n k) := fun b n₁ n₂ ↦ by
 lemma tup_mem_nConjectureTuples (hk : k ≠ 0) : tup n k ∈ nConjectureTuples (n + 3) := by
   simp [nConjectureTuples, sum_tup, SSC_tup hk, gcd_tup]
 
-lemma maxAbs_tup (hk : k ≠ 0) : maxAbs (tup n k) = (2 ^ k) ^ (2 * n + 1) := by
+section Quality
+
+lemma maxAbs_tup : maxAbs (tup n k) = (2 ^ k) ^ (2 * n + 1) := by
+  obtain rfl | hk := eq_or_ne k 0
+  · rw [show (2 ^ 0) ^ (2 * n + 1) = (tup n 0 (Fin.last _)).natAbs by simp]
+    refine maxAbs_eq_of_forall_le fun i ↦ ?_
+    cases i using Fin.lastCases with
+    | last => rfl
+    | cast i => cases i using Fin.lastCases <;> simp
   rw [show (2 ^ k) ^ (2 * n + 1) = (tup n k (Fin.last _).castSucc).natAbs by simp]
   refine maxAbs_eq_of_forall_le fun i ↦ ?_
   obtain rfl | hi := eq_or_ne i (Fin.last _).castSucc
@@ -182,11 +195,98 @@ lemma maxAbs_tup (hk : k ≠ 0) : maxAbs (tup n k) = (2 ^ k) ^ (2 * n + 1) := by
   rw [abs_sum_of_nonneg nng, abs_of_nonneg ((tup_sign hk).mpr hi).le]
   exact single_le_sum nng (by simpa using hi)
 
+open Real UniqueFactorizationMonoid UniqueFactorizationDomain
+
+@[norm_cast] -- TODO: move to mathlib
+lemma radical_cast : radical n = radical (n : ℤ) := by
+  simp [Int.radical_eq_prod_primeFactors, Nat.radical_eq_prod_primeFactors]
+
+lemma radical_prod_tup_dvd :
+    radical (∏ i, tup n k i) ∣ (∏ j ∈ range (n + 1), C n j) * (2 ^ k - 1) * 2 := by
+  rw [Fin.prod_univ_castSucc, tup_last, mul_one, Fin.prod_univ_castSucc, tup_second_last, mul_neg,
+    radical_neg]
+  simp_rw [tup_except_last_two, prod_mul_distrib, prod_pow_eq_pow_sum, mul_assoc, ← pow_add,
+    ← pow_mul, ← mul_assoc]
+  obtain rfl | hk := eq_or_ne k 0
+  · simp
+  iterate 2 refine radical_mul_dvd.trans (mul_dvd_mul ?_ ?_)
+  · norm_cast
+    rw [Fin.prod_univ_eq_prod_range]
+    exact radical_dvd_self
+  · rw [radical_pow _ (by simp)]
+    exact radical_dvd_self
+  · rw [radical_pow _ (by positivity)]
+    exact radical_dvd_self
+
+lemma one_lt_radical_prod_tup (hk : k ≠ 0) : 1 < radical (∏ i, tup n k i) := by
+  rw [Int.one_lt_radical_iff, Fin.prod_univ_castSucc, tup_last, mul_one, Fin.prod_univ_castSucc,
+    tup_second_last, Int.natAbs_mul]
+  have : 1 < (-(2 ^ k) ^ (2 * n + 1)).natAbs := by simp [hk]
+  simp_rw [Nat.one_lt_mul_iff, zero_lt_one.trans this, this, or_true, and_true]
+  zify
+  rw [abs_prod]
+  refine prod_pos fun i _ ↦ ?_
+  rw [abs_pos]
+  exact ((tup_sign hk).mpr (by simp)).ne'
+
+lemma log_radical_prod_tup_le (hk : k ≠ 0) :
+    Real.log (radical (∏ i, tup n k i) : ℤ) ≤
+    Real.log (2 * ∏ j ∈ range (n + 1), C n j) + k * Real.log 2 := by
+  set CP : ℕ := ∏ j ∈ range (n + 1), C n j
+  have CP_pos : 0 < CP := prod_pos fun i mi ↦ by simp_all [C_pos_iff]
+  rw [log_le_iff_le_exp (by exact_mod_cast Int.radical_pos _), exp_add, exp_log (by positivity),
+    mul_comm (k : ℝ), exp_mul, exp_log zero_lt_two]
+  norm_cast
+  have : 0 < (2 : ℤ) ^ k - 1 := by
+    rw [sub_pos]
+    exact (one_lt_pow₀ one_lt_two hk)
+  apply (Int.le_of_dvd (by positivity) (radical_prod_tup_dvd)).trans
+  simp_rw [mul_rotate 2, CP, cast_mul, cast_pow, cast_ofNat]
+  gcongr
+  lia
+
+lemma le_tupleQuality (hk : k ≠ 0) :
+    .ofReal ((2 * n + 1) * (k * Real.log 2) /
+      (Real.log (2 * ∏ j ∈ range (n + 1), C n j) + k * Real.log 2)) ≤ tupleQuality (tup n k) := by
+  apply ENNReal.ofReal_le_ofReal
+  rw [maxAbs_tup]
+  apply div_le_div₀
+  · positivity
+  · simp
+  · apply Real.log_pos
+    exact_mod_cast one_lt_radical_prod_tup hk
+  · exact log_radical_prod_tup_le hk
+
+open Filter in
+lemma liminf_tupleQuality_tup : (2 * n + 1 : ℕ) ≤ liminf (tupleQuality ∘ tup n) atTop := by
+  refine le_of_eq_of_le ?_ <| liminf_le_liminf <|
+    eventually_atTop.mpr ⟨1, fun k hk ↦ le_tupleQuality (by lia)⟩
+  set Q : ℝ := log (2 * ∏ j ∈ range (n + 1), C n j)
+  rw [← ENNReal.ofReal_natCast]
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
+  simp_rw [mul_div_assoc (2 * n + 1 : ℝ)]
+  rw [← mul_one (2 * n + 1)]
+  push_cast
+  apply Tendsto.const_mul
+  have l2n0 : Real.log 2 ≠ 0 := by positivity
+  have key := tendsto_add_mul_div_add_mul_atTop_nhds 0 Q (Real.log 2) l2n0
+  rw [div_self l2n0] at key
+  convert key using 2 with k
+  rw [zero_add, mul_comm]
+
+end Quality
+
 end BB94
 
-#eval BB94.tup 1 2 -- ![36, 27, -64, 1]
+open BB94
 
 /-- Theorem 1.3 in the paper, Browkin and Brzeziński (1994). -/
 lemma le_quality_nConjectureTuples {n : ℕ} (hn : 3 ≤ n) :
     (2 * n - 5 : ℕ) ≤ quality (nConjectureTuples n) := by
-  sorry
+  rw [le_iff_exists_add'] at hn
+  obtain ⟨n, rfl⟩ := hn
+  apply quality_ge_of_liminf ⟨_, injective_tup⟩
+  · refine (Set.Ici_infinite 1).mono fun i mi ↦ ?_
+    rw [Set.mem_Ici, Nat.one_le_iff_ne_zero] at mi
+    simp [tup_mem_nConjectureTuples mi]
+  · exact liminf_tupleQuality_tup

@@ -44,7 +44,7 @@ lemma quality_union_finite (h : B.Finite) : quality (A ∪ B) = quality A := by
   refine ⟨mq, h.subset (Set.sep_subset ..)⟩
 
 open Filter in
-lemma quality_ge_of_liminf (f : ℕ ↪ Fin n → ℤ) (rf : Set.range f ⊆ A)
+lemma quality_ge_of_liminf (f : ℕ ↪ Fin n → ℤ) (rf : {i | f i ∈ A}.Infinite)
     (qf : q ≤ liminf (tupleQuality ∘ f) atTop) : q ≤ quality A := by
   rw [quality, le_sInf_iff]
   intro k lk
@@ -53,6 +53,10 @@ lemma quality_ge_of_liminf (f : ℕ ↪ Fin n → ℤ) (rf : Set.range f ⊆ A)
   replace qf := qf _ lk
   rw [eventually_atTop] at qf
   obtain ⟨N₀, hN₀⟩ := qf
-  refine (Set.Ici_infinite N₀).image f.injective.injOn |>.mono fun a ma ↦ ?_
-  obtain ⟨i, li, hi⟩ := ma
-  exact ⟨rf ⟨_, hi⟩, hi ▸ hN₀ _ li⟩
+  replace rf : {i | N₀ ≤ i ∧ f i ∈ A}.Infinite := by
+    convert rf.diff (Set.finite_lt_nat N₀) using 1
+    ext
+    simp [and_comm]
+  refine rf.image f.injective.injOn |>.mono fun a ma ↦ ?_
+  obtain ⟨i, li, rfl⟩ := ma
+  exact ⟨li.2, hN₀ _ li.1⟩
