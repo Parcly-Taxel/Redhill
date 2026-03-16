@@ -110,22 +110,18 @@ lemma le_tupleQuality :
 open Filter in
 lemma liminf_tupleQuality_tup : 3 / 2 ≤ liminf (tupleQuality ∘ tup) atTop := by
   refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall le_tupleQuality))
-  have ceq : (3 / 2 : ENNReal) = ENNReal.ofReal (3 / 2) := by
+  have e₁ : (3 / 2 : ENNReal) = ENNReal.ofReal (3 / 2) := by
     simp [ENNReal.ofReal_div_of_pos zero_lt_two]
-  simp_rw [ceq, mul_assoc]
+  have e₂ (k : ℕ) : (2 ^ k : ℝ) = (2 ^ k : ℕ) := by norm_cast
+  simp_rw [e₁, e₂]
   refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
-  change Tendsto ((fun x ↦ 3 * x / (2 * x + log 5394)) ∘ (2 ^ · * log 6)) atTop (nhds (3 / 2))
-  have tt : Tendsto (2 ^ · * log 6) atTop atTop := by
-    rw [tendsto_mul_const_atTop_of_pos (by positivity)]
-    exact tendsto_pow_atTop_atTop_of_one_lt one_lt_two
-  refine Tendsto.comp ?_ tt
-  rw [← tendsto_inv_iff₀ (by positivity), show (3 / 2 : ℝ)⁻¹ = 2 / 3 + 0 by norm_num]
-  apply Tendsto.congr' (f₁ := fun x ↦ 2 / 3 + log 5394 / 3 * x⁻¹)
-  · apply eventually_atTop.mpr -- rw [eventually_atTop] doesn't work
-    refine ⟨1, fun x hx ↦ ?_⟩
-    simp only [inv_div]
-    rw [add_div, mul_div_mul_right _ _ (by positivity), ← div_div, div_eq_mul_inv _ x]
-  · exact (Tendsto.const_div_atTop (fun _ ↦ id) _).const_add _
+  change Tendsto ((fun k : ℕ ↦ 3 * k * log 6 / (2 * k * log 6 + log 5394)) ∘ (2 ^ ·))
+    atTop (nhds (3 / 2))
+  refine Tendsto.comp ?_ (tendsto_pow_atTop_atTop_of_one_lt one_lt_two)
+  convert tendsto_add_mul_div_add_mul_atTop_nhds 0 (log 5394) (3 * log 6)
+    (show 2 * log 6 ≠ 0 by positivity) using 2 with k
+  · simp [mul_right_comm _ (k : ℝ), add_comm]
+  · exact (mul_div_mul_right _ _ (by positivity)).symm
 
 end Log
 
