@@ -197,7 +197,8 @@ lemma maxAbs_tup : maxAbs (tup n k) = (2 ^ k) ^ (2 * n + 1) := by
 
 open Real UniqueFactorizationMonoid UniqueFactorizationDomain
 
-@[norm_cast] -- TODO: move to mathlib
+/-- Upstreamable to mathlib! -/
+@[norm_cast]
 lemma radical_cast : radical n = radical (n : ℤ) := by
   simp [Int.radical_eq_prod_primeFactors, Nat.radical_eq_prod_primeFactors]
 
