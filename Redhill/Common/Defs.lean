@@ -1,7 +1,7 @@
 module
 
-public import Redhill.Quality
-public import Redhill.SubsumCondition
+public import Redhill.Common.Quality
+public import Redhill.Common.SubsumCondition
 
 @[expose] public section
 

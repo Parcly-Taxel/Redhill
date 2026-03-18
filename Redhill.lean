@@ -1,9 +1,9 @@
 import Redhill.BB94
-import Redhill.Defs
+import Redhill.Common.Defs
+import Redhill.Common.Quality
+import Redhill.Common.SubsumCondition
+import Redhill.Common.VWPair
 import Redhill.KonyaginPrelude
 import Redhill.OddCase
-import Redhill.Quality
-import Redhill.SubsumCondition
 import Redhill.ToMathlib.Coprime
 import Redhill.ToMathlib.MaxAbs
-import Redhill.VWPair

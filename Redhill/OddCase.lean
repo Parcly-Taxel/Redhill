@@ -1,9 +1,9 @@
 module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
-public import Redhill.Defs
+public import Redhill.Common.Defs
+public import Redhill.Common.VWPair
 public import Redhill.ToMathlib.Coprime
-public import Redhill.VWPair
 
 @[expose] public section
 
