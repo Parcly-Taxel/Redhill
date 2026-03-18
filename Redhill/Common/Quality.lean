@@ -29,7 +29,7 @@ lemma quality_mono (h : A ⊆ B) : quality A ≤ quality B :=
   sInf_le_sInf fun _ mq ↦ mq.subset fun _ ma ↦ ⟨h ma.1, ma.2⟩
 
 lemma quality_le_of_finite (hq : {a ∈ A | q < tupleQuality a}.Finite) : quality A ≤ q :=
-  CompleteSemilatticeInf.sInf_le _ q hq
+  sInf_le hq
 
 lemma quality_finite (hA : A.Finite) : quality A = 0 := by
   rw [← nonpos_iff_eq_zero]
