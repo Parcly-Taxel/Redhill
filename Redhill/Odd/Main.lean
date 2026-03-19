@@ -1,13 +1,14 @@
 module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Redhill.Odd.Defs
 public import Redhill.Common.Defs
-public import Redhill.Common.VWPair
-public import Redhill.ToMathlib.Coprime
 
 @[expose] public section
 
 namespace OddCase
+
+open Nat Finset
 
 end OddCase
 

@@ -4,6 +4,7 @@ import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
 import Redhill.Common.VWPair
 import Redhill.KonyaginPrelude
-import Redhill.OddCase
+import Redhill.Odd.Defs
+import Redhill.Odd.Main
 import Redhill.ToMathlib.Coprime
 import Redhill.ToMathlib.MaxAbs

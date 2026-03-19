@@ -215,7 +215,7 @@ lemma le_primorial_self : m ≤ primorial m := by
     exact not_prime_mul (by decide) (by lia)
 
 /-- Lemma 2.2. When `0 < u` and `max 2 u ≤ m`, we can construct a `VWPair u m`. -/
-def ofUM (hu : 0 < u) (hm : max 2 u ≤ m) : VWPair u m where
+def ofUM (u m : ℕ) (hu : 0 < u) (hm : max 2 u ≤ m) : VWPair u m where
   v := primorial m + 1 + crtShift (primorial m + 1) (primorial m + 1 + u) m
   w := primorial m + 1 + u + crtShift (primorial m + 1) (primorial m + 1 + u) m
   u_eq_sub := by lia
@@ -226,7 +226,8 @@ def ofUM (hu : 0 < u) (hm : max 2 u ≤ m) : VWPair u m where
   not_dvd k hk := crtShift_not_dvd hk
   w_odd := odd_add_crtShift
 
-lemma ofUM_coprime (hu : 0 < u) (hm : max 2 u ≤ m) : (ofUM hu hm).v.Coprime (ofUM hu hm).w :=
-  (ofUM hu hm).coprime_of_le hu (by simp_all)
+lemma ofUM_coprime (hu : 0 < u) (hm : max 2 u ≤ m) :
+    (ofUM u m hu hm).v.Coprime (ofUM u m hu hm).w :=
+  (ofUM u m hu hm).coprime_of_le hu (by simp_all)
 
 end VWPair
