@@ -47,7 +47,9 @@ def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
     | 3 => 10 * (x ^ 2 + 1) ^ 2
     | 4 => -(x + 1) ^ 5
 
-lemma sum_tup {n F} {x : ℤ} : ∑ i, tup n F x i = 0 := by
+variable {n F} {x : ℤ}
+
+lemma sum_tup : ∑ i, tup n F x i = 0 := by
   simp only [tup, Fin.sum_univ_add, Fin.addCases_left, Fin.addCases_right, Fin.sum_univ_five,
     add_assoc, show (x - 1) ^ 5 + (10 * (x ^ 2 + 1) ^ 2 + -(x + 1) ^ 5) = 8 by ring]
   rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).ineq_chain.2.1,
