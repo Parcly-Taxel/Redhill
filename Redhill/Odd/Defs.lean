@@ -7,7 +7,7 @@ public import Redhill.Common.VWPair
 
 namespace OddCase
 
-open Nat Finset
+open Nat Fin Finset
 
 /-- `primeChain s` is the lexicographically earliest sequence of primes
 with `primeChain s 0 > s` and each succeeding element more than 3 times the last. -/
@@ -23,6 +23,9 @@ lemma primeChain_zero_gt {s : ℕ} : s < primeChain s 0 :=
 
 lemma primeChain_succ_gt {s n : ℕ} : 3 * primeChain s n < primeChain s (n + 1) :=
   (Nat.find_spec (exists_infinite_primes _)).1
+
+lemma strictMono_primeChain {s : ℕ} : StrictMono (primeChain s) :=
+  strictMono_nat_of_lt_succ (by grind [primeChain_succ_gt])
 
 variable (n : ℕ) (F : Finset ℕ)
 
@@ -48,17 +51,57 @@ def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
     | 3 => 10 * (x ^ 2 + 1) ^ 2
     | 4 => -(x + 1) ^ 5
 
-variable {n F} {x : ℤ} (dx : ↑(Y n F) ∣ x)
+variable {n F} {x : ℤ}
+
+@[simp] lemma tup_castAdd {i : Fin n} :
+    tup n F x (i.castAdd 5) = primeChain (3 * (F.sup id + 8)) i.1 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_zero : tup n F x (natAdd n 0) = (VW n F).v := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_one : tup n F x (natAdd n 1) = -(VW n F).w := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_two : tup n F x (natAdd n 2) = (x - 1) ^ 5 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_three : tup n F x (natAdd n 3) = 10 * (x ^ 2 + 1) ^ 2 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_four : tup n F x (natAdd n 4) = -(x + 1) ^ 5 := by
+  simp [tup]
 
 lemma sum_tup : ∑ i, tup n F x i = 0 := by
-  simp only [tup, Fin.sum_univ_add, Fin.addCases_left, Fin.addCases_right, Fin.sum_univ_five,
+  simp only [tup, sum_univ_add, addCases_left, addCases_right, sum_univ_five,
     add_assoc, show (x - 1) ^ 5 + (10 * (x ^ 2 + 1) ^ 2 + -(x + 1) ^ 5) = 8 by ring]
   rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).ineq_chain.2.1,
-    ← (VW n F).u_eq_sub, Fin.sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
+    ← (VW n F).u_eq_sub, sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
   norm_num [U]
 
-lemma pairwiseCoprime_tup : PairwiseCoprime (tup n F x) := by
-  refine Pairwise.of_lt (fun i j h ↦ h.symm) fun i j h ↦ ?_
+section Coprime
+
+/-
+lemma isCoprime_tup_castAdd {i j : Fin n} (h : i < j) :
+    IsCoprime (tup n F x (castAdd 5 i)) (tup n F x (castAdd 5 j)) := by
+  simp only [tup_castAdd, isCoprime_iff_coprime]
+  rw [coprime_primes prime_primeChain prime_primeChain]
   sorry
+-/
+
+lemma pairwiseCoprime_tup (dx : ↑(Y n F) ∣ x) : PairwiseCoprime (tup n F x) := by
+  refine Pairwise.of_lt (fun i j h ↦ h.symm) fun i j h ↦ ?_
+  cases i using Fin.addCases with
+  | left i =>
+    cases j using Fin.addCases with
+    | left j =>
+      simp only [tup_castAdd, isCoprime_iff_coprime]
+      rw [coprime_primes prime_primeChain prime_primeChain]
+      exact (strictMono_primeChain h).ne
+    | right j => sorry
+  | right i =>
+    sorry
+
+end Coprime
 
 end OddCase
