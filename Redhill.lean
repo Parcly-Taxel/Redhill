@@ -1,10 +1,12 @@
 import Redhill.BB94
-import Redhill.Common.Defs
+import Redhill.Common.IntDefs
 import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
+import Redhill.Common.TupleSets
 import Redhill.Common.VWPair
 import Redhill.KonyaginPrelude
+import Redhill.Odd.Coprime
 import Redhill.Odd.Defs
 import Redhill.Odd.Main
+import Redhill.Odd.Pell
 import Redhill.ToMathlib.Coprime
-import Redhill.ToMathlib.MaxAbs

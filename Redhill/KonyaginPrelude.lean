@@ -2,7 +2,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.RingTheory.Radical.NatInt
-public import Redhill.Common.Defs
+public import Redhill.Common.TupleSets
 public import Redhill.ToMathlib.Coprime
 
 @[expose] public section
