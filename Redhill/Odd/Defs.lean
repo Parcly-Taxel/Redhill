@@ -1,5 +1,6 @@
 module
 
+public import Redhill.Common.PairwiseCoprime
 public import Redhill.Common.VWPair
 
 @[expose] public section
@@ -47,7 +48,7 @@ def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
     | 3 => 10 * (x ^ 2 + 1) ^ 2
     | 4 => -(x + 1) ^ 5
 
-variable {n F} {x : ℤ}
+variable {n F} {x : ℤ} (dx : ↑(Y n F) ∣ x)
 
 lemma sum_tup : ∑ i, tup n F x i = 0 := by
   simp only [tup, Fin.sum_univ_add, Fin.addCases_left, Fin.addCases_right, Fin.sum_univ_five,
@@ -55,5 +56,9 @@ lemma sum_tup : ∑ i, tup n F x i = 0 := by
   rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).ineq_chain.2.1,
     ← (VW n F).u_eq_sub, Fin.sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
   norm_num [U]
+
+lemma pairwiseCoprime_tup : PairwiseCoprime (tup n F x) := by
+  refine Pairwise.of_lt (fun i j h ↦ h.symm) fun i j h ↦ ?_
+  sorry
 
 end OddCase

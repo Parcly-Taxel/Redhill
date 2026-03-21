@@ -2,7 +2,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Redhill.Odd.Defs
-public import Redhill.Common.TupleSets
+public import Redhill.Common.Conjectures
 
 @[expose] public section
 

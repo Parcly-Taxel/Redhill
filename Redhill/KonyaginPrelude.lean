@@ -2,7 +2,7 @@ module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.RingTheory.Radical.NatInt
-public import Redhill.Common.TupleSets
+public import Redhill.Common.Conjectures
 public import Redhill.ToMathlib.Coprime
 
 @[expose] public section
@@ -170,9 +170,8 @@ lemma isCoprime_31 :
   obtain h | h | h := this <;> simp [h]
 
 open IsCoprime in
-lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun {i j} h' ↦ by
-  wlog h : i < j generalizing i j
-  · exact (this h'.symm ((ne_iff_lt_or_gt.mp h').resolve_left h)).symm
+lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := by
+  refine Pairwise.of_lt (fun i j h ↦ h.symm) fun i j h ↦ ?_
   fin_cases j <;> simp only [Fin.reduceFinMk, Fin.not_lt_zero, Fin.lt_one_iff] at *
   · subst h
     rw [tup, pow_left_iff zero_lt_three, tup, neg_right_iff, pow_right_iff zero_lt_three]

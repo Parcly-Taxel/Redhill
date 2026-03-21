@@ -1,11 +1,11 @@
 import Redhill.BB94
+import Redhill.Common.Conjectures
 import Redhill.Common.MaxAbs
+import Redhill.Common.PairwiseCoprime
 import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
-import Redhill.Common.TupleSets
 import Redhill.Common.VWPair
 import Redhill.KonyaginPrelude
-import Redhill.Odd.Coprime
 import Redhill.Odd.Defs
 import Redhill.Odd.Main
 import Redhill.Odd.Pell
