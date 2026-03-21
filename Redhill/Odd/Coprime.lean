@@ -1,6 +1,6 @@
 module
 
-public import Redhill.Common.IntDefs
+public import Redhill.Common.TupleSets
 public import Redhill.Odd.Defs
 
 @[expose] public section

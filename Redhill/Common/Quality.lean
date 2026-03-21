@@ -4,7 +4,7 @@ public import Mathlib.Algebra.EuclideanDomain.Int
 public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 public import Mathlib.RingTheory.PrincipalIdealDomain
 public import Mathlib.RingTheory.Radical.Basic
-public import Redhill.Common.IntDefs
+public import Redhill.Common.MaxAbs
 
 @[expose] public section
 

@@ -7,6 +7,10 @@ public import Redhill.Common.SubsumCondition
 
 open Finset
 
+/-- A predicate stating that the given tuple's numbers are pairwise coprime. -/
+abbrev PairwiseCoprime {n : ℕ} (a : Fin n → ℤ) : Prop :=
+  Pairwise fun i j ↦ IsCoprime (a i) (a j)
+
 /-- The **abc conjecture** itself, using `quality`. -/
 def ABCConjecture : Prop :=
   quality {a : Fin 3 → ℤ | ∑ i, a i = 0 ∧ univ.gcd a = 1} = 1
@@ -76,8 +80,13 @@ lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
 variable {n : ℕ} {F : Finset ℕ}
 
 lemma quality_factorFreeTuples_le_nConjectureTuples (hn : 2 ≤ n) :
-    quality (factorFreeTuples F n) ≤ quality (nConjectureTuples n) :=
-  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, SSC_of_strongSSC h₂, gcd_one_of_pairwiseCoprime hn h₃⟩
+    quality (factorFreeTuples F n) ≤ quality (nConjectureTuples n) := by
+  refine quality_mono fun a ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, SSC_of_strongSSC h₂, ?_⟩
+  obtain ⟨k, rfl⟩ : ∃ k, n = k + 2 := ⟨_, (Nat.sub_add_cancel hn).symm⟩
+  specialize h₃ Fin.zero_ne_one
+  rw [Int.isCoprime_iff_gcd_eq_one] at h₃
+  rw [← union_compl {0, 1}, gcd_union, gcd_insert, Finset.gcd, Finset.fold_singleton, ← gcd_assoc,
+    ← Int.coe_gcd (a 0), h₃, Nat.cast_one, gcd_one_left, gcd_one_left]
 
 lemma quality_factorFreeTuples_le_ramaekersTuples :
     quality (factorFreeTuples F n) ≤ quality (ramaekersTuples n) :=

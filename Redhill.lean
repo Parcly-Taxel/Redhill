@@ -1,5 +1,5 @@
 import Redhill.BB94
-import Redhill.Common.IntDefs
+import Redhill.Common.MaxAbs
 import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
 import Redhill.Common.TupleSets

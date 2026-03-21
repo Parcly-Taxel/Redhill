@@ -170,7 +170,9 @@ lemma isCoprime_31 :
   obtain h | h | h := this <;> simp [h]
 
 open IsCoprime in
-lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun {i j} h ↦ by
+lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := fun {i j} h' ↦ by
+  wlog h : i < j generalizing i j
+  · exact (this h'.symm ((ne_iff_lt_or_gt.mp h').resolve_left h)).symm
   fin_cases j <;> simp only [Fin.reduceFinMk, Fin.not_lt_zero, Fin.lt_one_iff] at *
   · subst h
     rw [tup, pow_left_iff zero_lt_three, tup, neg_right_iff, pow_right_iff zero_lt_three]
