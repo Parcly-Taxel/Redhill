@@ -24,11 +24,6 @@ of `VWPair`, since said preconditions are light.
 
 open Nat Finset
 
-/-- Upstreamable to mathlib! -/
-lemma Nat.Prime.odd_iff {p : ℕ} (hp : p.Prime) : Odd p ↔ 3 ≤ p := by
-  rw [← not_iff_not, not_odd_iff_even, hp.even_iff, not_le]
-  grind [hp.two_le]
-
 /-- `VWPair u m` holds `v` and `w` and states that `-u, m, v, -w` satisfy the conditions
 in Lemma 2.2. -/
 structure VWPair (u m : ℕ) where
@@ -190,29 +185,6 @@ lemma odd_add_crtShift : Odd (w + crtShift v w m) := by
   simp only [nonDividingShift, ↓reduceIte]
   have key := min'_mem _ (nonempty_double_not_dvd_four v w)
   simp_all
-
-/-- Upstreamable to mathlib! -/
-lemma le_primorial_self : m ≤ primorial m := by
-  rcases lt_or_ge m 3 with hm | hm
-  · obtain rfl | rfl | rfl : m = 0 ∨ m = 1 ∨ m = 2 := by lia
-    all_goals decide
-  · suffices ∃ p ≥ 3, p.Prime ∧ p ≤ m ∧ m ≤ 2 * p by
-      obtain ⟨p, pp, bnd⟩ := this
-      apply bnd.2.2.trans
-      have rearr : 2 * p = ∏ q ∈ {2, p} with q.Prime, q := by
-        rw [prod_filter, prod_insert (by grind), prod_singleton]
-        simp [bnd.1, prime_two]
-      rw [rearr, primorial, prod_filter, prod_filter]
-      refine prod_le_prod_of_subset_of_one_le' (by grind) fun q _ _ ↦ ?_
-      split_ifs with hq
-      · exact hq.one_le
-      · rfl
-    obtain ⟨p, pp, bp₁, bp₂⟩ := bertrand ((m + 1) / 2) (by lia)
-    refine ⟨p, by lia, pp, ?_, by lia⟩
-    suffices p ≠ 2 * ((m + 1) / 2) by lia
-    contrapose pp
-    subst pp
-    exact not_prime_mul (by decide) (by lia)
 
 /-- Lemma 2.2. When `0 < u` and `max 2 u ≤ m`, we can construct a `VWPair u m`. -/
 def ofUM (u m : ℕ) (hu : 0 < u) (hm : max 2 u ≤ m) : VWPair u m where
