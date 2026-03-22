@@ -32,21 +32,21 @@ lemma strictMono_primeChain {s : ℕ} : StrictMono (primeChain s) :=
 variable (n : ℕ) (F : Finset ℕ)
 
 /-- The sum of `tup` over all indices save `n` and `n + 1`, i.e. the input `u` to `VWPair`. -/
-def U : ℕ := 8 + ∑ i ∈ range n, primeChain (2 * (F.sup id + 8)) i
+def U : ℕ := 8 + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i
 
-/-- The `VWPair` generated from the inputs `u = m = U n F`. -/
-def VW : VWPair (U n F) (U n F) := .ofUM _ _ (by grind [U]) (by grind [U])
+/-- The `VWPair` generated from the inputs `u = U n F, m = max (U n F) (F.sup id)`. -/
+def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .ofUM _ _ (by grind [U]) (by grind [U])
 
 /-- We require `x` in `tup` to be a multiple of this number,
 an optimised version of the paper's `y`. -/
 def Y : ℕ :=
-  10 * F.prod id * (∏ i ∈ range n, primeChain (2 * (F.sup id + 8)) i) * (VW n F).v * (VW n F).w
+  10 * F.prod id * (∏ i ∈ range n, primeChain (max 16 (F.sup id)) i) * (VW n F).v * (VW n F).w
 
 /-- The `(n + 5)`-tuple for fixed `n, F` that for infinitely many `x`
 belongs to `factorFreeTuples F n` **and** has quality tending to `5 / 3`,
 assuming `n` is odd and `0, 1, 2, 5, 10 ∉ F`. -/
 def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
-  i.addCases (primeChain (2 * (F.sup id + 8)) ·.1) fun
+  i.addCases (primeChain (max 16 (F.sup id)) ·.1) fun
     | 0 => (VW n F).v
     | 1 => -(VW n F).w
     | 2 => (x - 1) ^ 5
@@ -56,7 +56,7 @@ def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
 variable {n F} {x : ℤ}
 
 @[simp] lemma tup_castAdd {i : Fin n} :
-    tup n F x (i.castAdd 5) = primeChain (2 * (F.sup id + 8)) i.1 := by
+    tup n F x (i.castAdd 5) = primeChain (max 16 (F.sup id)) i.1 := by
   simp [tup]
 
 @[simp] lemma tup_natAdd_zero : tup n F x (natAdd n 0) = (VW n F).v := by
@@ -85,20 +85,20 @@ section Coprime
 
 variable {i : Fin n}
 
-lemma primeChain_lt_U : primeChain (2 * (F.sup id + 8)) i.1 < U n F :=
+lemma primeChain_lt_U : primeChain (max 16 (F.sup id)) i.1 < U n F :=
   (single_le_sum_of_canonicallyOrdered (by simp_all)).trans_lt (lt_add_of_pos_left _ (by decide))
 
-lemma sixteen_lt_primeChain : 16 < primeChain (2 * (F.sup id + 8)) n :=
+lemma sixteen_lt_primeChain : 16 < primeChain (max 16 (F.sup id)) n :=
   calc
-    _ ≤ _ := by lia
+    _ ≤ _ := le_max_left ..
     _ < _ := primeChain_zero_gt
     _ ≤ _ := strictMono_primeChain.monotone (Nat.zero_le _)
 
-lemma primeChain_mem_Icc : primeChain (2 * (F.sup id + 8)) i.1 ∈ Icc 3 (U n F) :=
-  mem_Icc.mpr ⟨sixteen_lt_primeChain.trans' (by decide), primeChain_lt_U.le⟩
+lemma primeChain_mem_Icc : primeChain (max 16 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
+  mem_Icc.mpr ⟨sixteen_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩
 
 lemma dvd_of_Y_dvd (dx : ↑(Y n F) ∣ x) :
-    10 ∣ x ∧ (∀ f ∈ F, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (2 * (F.sup id + 8)) i.1) ∣ x) ∧
+    10 ∣ x ∧ (∀ f ∈ F, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 16 (F.sup id)) i.1) ∣ x) ∧
     ↑(VW n F).v ∣ x ∧ ↑(VW n F).w ∣ x := by
   simp_rw [Y, cast_mul, cast_ofNat, cast_prod, id_eq] at dx
   simp_rw [← and_assoc]
@@ -141,7 +141,7 @@ lemma V_coprime_ten (hn : Even n) : (VW n F).v.Coprime 10 := by
     have key : Even (U n F) := by
       apply Even.add (by decide)
       simp_rw [even_sum_iff_even_card_odd, prime_primeChain.odd_iff]
-      have (i : ℕ) : 3 ≤ primeChain (2 * (F.sup id + 8)) i :=
+      have (i : ℕ) : 3 ≤ primeChain (max 16 (F.sup id)) i :=
         sixteen_lt_primeChain.le.trans' (by decide)
       simpa [this]
     rw [(VW n F).u_eq_sub, even_sub (VW n F).ineq_chain.2.1, ← not_iff_not, not_even_iff_odd,
@@ -206,23 +206,48 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
         IsCoprime.pow_right_iff (by decide), IsCoprime.mul_left_iff]
       exact ⟨IsCoprime.add_one_right_of_dvd d10, cp2.1.pow_left⟩
 
-lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (2 * (F.sup id + 8)) i.1 :=
+lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (max 16 (F.sup id)) n :=
   calc
     _ ≤ F.sup id := le_sup hf
-    _ < _ := by lia
+    _ ≤ _ := le_max_right ..
     _ < _ := primeChain_zero_gt
     _ ≤ _ := strictMono_primeChain.monotone (Nat.zero_le _)
 
-lemma not_dvd_tup (dF : Disjoint {0, 1, 2, 5, 10} F) (f : ℕ) (hf : f ∈ F) (i : Fin (n + 5)) :
-    ¬↑f ∣ tup n F x i := by
-  have lf : 3 ≤ f := by grind
+lemma not_dvd_tup (dx : ↑(Y n F) ∣ x) (dF : Disjoint {0, 1, 2, 5, 10} F) :
+    ∀ f ∈ F, ∀ i, ¬↑f ∣ tup n F x i := fun f hf i ↦ by
+  simp_rw [disjoint_insert_left, disjoint_singleton_left] at dF
+  have lf : 3 ≤ f := by lia
   cases i using Fin.addCases with
   | left i =>
     rw [tup_castAdd]
-    norm_cast
-    sorry
+    exact_mod_cast (prime_def_lt'.mp prime_primeChain).2 _ (by lia) (lt_primeChain_of_mem_F hf)
   | right i =>
-    sorry
+    replace dx := (dvd_of_Y_dvd dx).2.1 _ hf
+    fin_cases i <;> simp only [reduceFinMk]
+    · rw [tup_natAdd_zero]
+      norm_cast
+      exact ((VW n F).not_dvd _ (mem_Icc.mpr ⟨lf, le_max_iff.mpr (.inr (le_sup hf (f := id)))⟩)).1
+    · rw [tup_natAdd_one, dvd_neg]
+      norm_cast
+      exact ((VW n F).not_dvd _ (mem_Icc.mpr ⟨lf, le_max_iff.mpr (.inr (le_sup hf (f := id)))⟩)).2
+    · rw [tup_natAdd_two,
+        show (x - 1) ^ 5 = (x ^ 4 - 5 * x ^ 3 + 10 * x ^ 2 - 10 * x + 5) * x - 1 by ring,
+        dvd_sub_right (dx.mul_left _)]
+      norm_cast
+      rw [dvd_one]
+      lia
+    · rw [tup_natAdd_three, show 10 * (x ^ 2 + 1) ^ 2 = (10 * x ^ 3 + 20 * x) * x + 10 by ring,
+        dvd_add_right (dx.mul_left _)]
+      norm_cast
+      obtain hf' | hf' := le_or_gt f 10
+      · interval_cases f <;> lia
+      · exact not_dvd_of_pos_of_lt (by decide) hf'
+    · rw [tup_natAdd_four, dvd_neg,
+        show (x + 1) ^ 5 = (x ^ 4 + 5 * x ^ 3 + 10 * x ^ 2 + 10 * x + 5) * x + 1 by ring,
+        dvd_add_right (dx.mul_left _)]
+      norm_cast
+      rw [dvd_one]
+      lia
 
 end Coprime
 
