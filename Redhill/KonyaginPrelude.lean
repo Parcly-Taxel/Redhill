@@ -287,12 +287,12 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
     cases i using Fin.cases with
     | zero => rw [tupReduce_01_zero]; ring
     | succ i => rw [tupReduce_01_succ]; fin_cases i <;> rfl
-  rw [e₂, StrongSSC]
+  rw [e₂, StrongSSC, IsSubsumBlock]
   decide +kernel
 
 lemma strongSSC_tup : StrongSSC (tup k) := by
   obtain rfl | hk := eq_or_ne k 0
-  · rw [StrongSSC]
+  · rw [StrongSSC, IsSubsumBlock]
     decide +kernel
   convert strongSSC_tupReduced (6 ^ 2 ^ k) ?_ using 1
   apply (show 10 ≤ 6 ^ 2 ^ 1 by lia).trans

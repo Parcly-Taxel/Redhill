@@ -1,15 +1,13 @@
 module
 
-public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-public import Mathlib.Algebra.Order.Group.Int
-public import Mathlib.Algebra.Order.Group.Unbundled.Int
 public import Mathlib.Data.Finset.Sort
-public import Mathlib.Tactic.Zify
+public import Mathlib.Data.Sign.Defs
 
 @[expose] public section
 
-open Finset
+open Finset SignType
 
 variable {n k : ℕ} (a : Fin n → ℤ)
 
@@ -18,23 +16,30 @@ is either empty or the whole tuple. -/
 def SSC : Prop :=
   ∀ b, b.Nonempty → bᶜ.Nonempty → ∑ i ∈ b, a i ≠ 0
 
-/-- The strong subsum condition: two disjoint sub-tuples with the same sum
-must have their union either empty or the whole tuple. -/
-def StrongSSC : Prop :=
-  ∀ b c, Disjoint b c → (b ∪ c).Nonempty → (b ∪ c)ᶜ.Nonempty → ∑ i ∈ b, a i ≠ ∑ i ∈ c, a i
-
-/-- A subsum block for `a` is an index set respecting the boundaries of any disjoint pair
-of index sets with equal sum. -/
+/-- A subsum block for `a` is an index set that must be constant in any sign weighting
+of the tuple's elements that leads to a zero sum. -/
 def IsSubsumBlock (s : Finset (Fin n)) : Prop :=
-  ∀ b c, Disjoint b c → ∑ i ∈ b, a i = ∑ i ∈ c, a i → (s ⊆ b ∨ s ⊆ c ∨ Disjoint s (b ∪ c))
+  ∀ b : Fin n → SignType, ∑ i, b i * a i = 0 → ∃ c, ∀ i ∈ s, b i = c
+
+/-- The strong subsum condition, defined as all `Fin n` being a subsum block. -/
+def StrongSSC : Prop :=
+  IsSubsumBlock a univ
 
 variable {a}
 
 lemma SSC_of_strongSSC (h : StrongSSC a) : SSC a := by
-  unfold SSC StrongSSC at *
+  unfold SSC StrongSSC IsSubsumBlock at *
   contrapose! h
-  obtain ⟨b, neb, necb, nzb⟩ := h
-  exact ⟨b, ∅, disjoint_empty_right b, by simp [neb], by simp [necb, nzb]⟩
+  obtain ⟨b, n₁, n₂, hs⟩ := h
+  refine ⟨fun i ↦ if i ∈ b then pos else zero, ?_, fun c ↦ ?_⟩
+  · simp_rw [pos_eq_one, zero_eq_zero, apply_ite, coe_one, coe_zero, ite_mul, one_mul, zero_mul,
+      ← sum_filter, filter_univ_mem, hs]
+  · obtain ⟨i₁, mi₁⟩ := n₁
+    obtain ⟨i₂, mi₂⟩ := n₂
+    match c with
+    | zero => exact ⟨i₁, mem_univ _, by simp_all⟩
+    | neg => exact ⟨i₁, mem_univ _, by simp_all⟩
+    | pos => exact ⟨i₂, mem_univ _, by simp_all⟩
 
 lemma zero_notMem_of_SSC (hn : 2 ≤ n) (hs : ∑ i, a i = 0) (ha : SSC a) : 0 ∉ univ.image a := by
   unfold SSC at ha
@@ -50,13 +55,19 @@ lemma zero_notMem_of_strongSSC
     (hn : 2 ≤ n) (hs : ∑ i, a i = 0) (ha : StrongSSC a) : 0 ∉ univ.image a :=
   zero_notMem_of_SSC hn hs (SSC_of_strongSSC ha)
 
-lemma strongSSC_perm (e : Equiv.Perm (Fin n)) (h : StrongSSC a) : StrongSSC (a ∘ e) := by
-  intro b c dj n₁ n₂
-  specialize h (b.map e) (c.map e)
-  simp_rw [disjoint_map, union_nonempty, map_nonempty, ← union_nonempty, sum_map] at h
-  apply h dj n₁
-  obtain ⟨i, mi⟩ := n₂
-  exact ⟨e i, by simp_all⟩
+lemma strongSSC_perm (e : Equiv.Perm (Fin n)) (h : StrongSSC a) : StrongSSC (a ∘ e) := fun b hs ↦ by
+  have : b = (b ∘ e.symm) ∘ e := by simp [Function.comp_assoc]
+  conv_lhs at hs =>
+    enter [2, i]
+    rw [this, Function.comp_apply]
+    enter [2]
+    rw [Function.comp_apply]
+  rw [e.sum_comp univ (fun i ↦ (b ∘ e.symm) i * a i) (by simp)] at hs
+  specialize h _ hs
+  obtain ⟨c, hc⟩ := h
+  refine ⟨c, fun i _ ↦ ?_⟩
+  specialize hc (e i) (mem_univ _)
+  simpa using hc
 
 lemma strongSSC_perm_iff (e : Equiv.Perm (Fin n)) : StrongSSC a ↔ StrongSSC (a ∘ e) where
   mp h := strongSSC_perm e h
@@ -93,21 +104,10 @@ variable {s hk}
 lemma injective_complRank : (complRank s hk).Injective := fun i j h ↦ by
   simpa [complRank] using h
 
-lemma range_complRank : Set.range (complRank s hk) = sᶜ := by
+lemma image_complRank_univ : univ.image (complRank s hk) = sᶜ := by
   unfold complRank
   subst hk
   simp_all
-
-lemma eq_map_complRank {b : Finset (Fin n)} (hb : Disjoint s b) :
-    b = map ⟨complRank s hk, injective_complRank⟩ {i | complRank s hk i ∈ b} := by
-  ext i
-  simp_rw [mem_map, mem_filter_univ, Function.Embedding.coeFn_mk]
-  refine ⟨fun h ↦ ?_, fun ⟨a, ma, ha⟩ ↦ ha.symm ▸ ma⟩
-  have : i ∈ Set.range (complRank s hk) := by
-    rw [range_complRank, mem_coe, mem_compl]
-    exact hb.notMem_of_mem_right_finset h
-  obtain ⟨a, ha⟩ := this
-  refine ⟨a, by simp_all⟩
 
 end TupReduce
 
@@ -115,136 +115,87 @@ namespace IsSubsumBlock
 
 variable {i j : Fin n} {s t : Finset (Fin n)}
 
-lemma empty : IsSubsumBlock a ∅ := fun b c dj h ↦ by simp
+lemma empty : IsSubsumBlock a ∅ := fun b h ↦ by simp
 
-lemma singleton : IsSubsumBlock a {i} := fun b c dj h ↦ by simp; grind
+lemma singleton : IsSubsumBlock a {i} := fun b h ↦ by simp
 
-lemma subset (hs : IsSubsumBlock a s) (ht : t ⊆ s) : IsSubsumBlock a t := fun b c dj h ↦ by
-  specialize hs _ _ dj h
-  obtain hs | hs | hs := hs
-  · exact .inl (ht.trans hs)
-  · exact .inr (.inl (ht.trans hs))
-  · exact .inr (.inr (hs.mono_left ht))
+lemma subset (hs : IsSubsumBlock a s) (ht : t ⊆ s) : IsSubsumBlock a t := fun b h ↦
+  (hs b h).imp fun _ hc _ mi ↦ hc _ (ht mi)
 
 lemma union (hs : IsSubsumBlock a s) (ht : IsSubsumBlock a t) (hd : ¬Disjoint s t) :
-    IsSubsumBlock a (s ∪ t) := fun b c dj h ↦ by
-  specialize hs _ _ dj h
-  specialize ht _ _ dj h
-  obtain ⟨i, mis, mit⟩ := not_disjoint_iff.mp hd
-  obtain hs | hs | hs := hs
-  · refine .inl (union_subset hs ?_)
-    have : ¬Disjoint t (b ∪ c) := not_disjoint_iff.mpr ⟨i, mit, mem_union_left _ (hs mis)⟩
-    simp_rw [this, or_false] at ht
-    have : ¬t ⊆ c := not_subset.mpr ⟨i, mit, dj.notMem_of_mem_left_finset (hs mis)⟩
-    exact ht.resolve_right this
-  · refine .inr (.inl (union_subset hs ?_))
-    have : ¬Disjoint t (b ∪ c) := not_disjoint_iff.mpr ⟨i, mit, mem_union_right _ (hs mis)⟩
-    simp_rw [this, or_false] at ht
-    have : ¬t ⊆ b := not_subset.mpr ⟨i, mit, dj.notMem_of_mem_right_finset (hs mis)⟩
-    exact ht.resolve_left this
-  · refine .inr (.inr (disjoint_union_left.mpr ⟨hs, ?_⟩))
-    rw [disjoint_union_right] at hs
-    have : ¬t ⊆ b := not_subset.mpr ⟨i, mit, hs.1.notMem_of_mem_left_finset mis⟩
-    simp_rw [this, false_or] at ht
-    have : ¬t ⊆ c := not_subset.mpr ⟨i, mit, hs.2.notMem_of_mem_left_finset mis⟩
-    exact ht.resolve_left this
+    IsSubsumBlock a (s ∪ t) := fun b h ↦ by
+  obtain ⟨c, hc⟩ := hs b h
+  obtain ⟨c', hc'⟩ := ht b h
+  have e : c = c' := by
+    obtain ⟨i, hi₁, hi₂⟩ := not_disjoint_iff.mp hd
+    grind
+  exact ⟨c, fun i mi ↦ by grind⟩
 
-lemma pair_aux (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).natAbs)
-    {b c : Finset (Fin n)} (dj : Disjoint b c) (h : ∑ i ∈ b, a i = ∑ i ∈ c, a i)
-    (hprod : a i * a j ≤ 0) (mi : i ∈ b) : j ∈ b := by
-  rw [← insert_erase mi, sum_insert (notMem_erase _ _), ← eq_sub_iff_add_eq] at h
-  by_cases mj : j ∈ c
-  · rw [← insert_erase mj, sum_insert (notMem_erase _ _), add_sub_assoc, ← sub_eq_iff_eq_add'] at h
-    replace h := congrArg Int.natAbs h
-    contrapose! h
-    apply ne_of_gt
-    calc
-      _ ≤ _ := Int.natAbs_sub_le ..
-      _ ≤ ∑ k ∈ c.erase j, (a k).natAbs + ∑ k ∈ b.erase i, (a k).natAbs := by
-        zify
-        gcongr <;> exact abs_sum_le_sum_abs ..
-      _ ≤ _ := by
-        rw [← sum_union (dj.symm.mono (erase_subset _ _) (erase_subset _ _))]
-        apply sum_le_sum_of_subset
-        rw [subset_compl_comm]
-        simp [dj.notMem_of_mem_left_finset mi, h]
-      _ < _ := hi
-      _ ≤ _ := by
-        rw [Int.mul_nonpos_iff] at hprod
-        lia
-  · replace h := congrArg Int.natAbs h
-    contrapose! h
-    apply ne_of_gt
-    calc
-      _ ≤ _ := Int.natAbs_sub_le ..
-      _ ≤ ∑ i ∈ c, (a i).natAbs + ∑ i ∈ b.erase i, (a i).natAbs := by
-        zify
-        gcongr <;> exact abs_sum_le_sum_abs ..
-      _ ≤ _ := by
-        rw [← sum_union (dj.symm.mono_right (erase_subset _ _))]
-        apply sum_le_sum_of_subset
-        rw [subset_compl_comm]
-        simp [dj.notMem_of_mem_left_finset mi, h, mj]
-      _ < _ := hi
+theorem of_sum_natAbs_lt (f : Fin k ↪ Fin n)
+    (hf : ∀ b : Fin k → SignType, (¬∃ c, ∀ i, b i = c) →
+      ∑ i ∉ univ.map f, (a i).natAbs < (∑ i, b i * a (f i)).natAbs) :
+    IsSubsumBlock a (univ.map f) := fun b hs ↦ by
+  contrapose! hs
+  simp only [mem_map, mem_univ, true_and, ↓existsAndEq] at hs
+  specialize hf (b ∘ f)
+  simp only [Function.comp_apply, not_exists, not_forall] at hf
+  specialize hf hs
+  rw [← sum_add_sum_compl (univ.map f), Ne, add_eq_zero_iff_eq_neg', sum_map]
+  suffices (∑ i ∉ univ.map f, b i * a i).natAbs ≠ (∑ i, b (f i) * a (f i)).natAbs by
+    contrapose this
+    rw [this, Int.natAbs_neg]
+  refine Int.natAbs_sum_le .. |>.trans (sum_le_sum fun i _ ↦ ?_) |>.trans_lt hf |>.ne
+  cases b i <;> simp
 
 /-- If there are two elements of opposite signs, each dominating the remaining `n - 2` elements
 (in the sense of violating the triangle inequality), the two elements form a subsum block. -/
 theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).natAbs)
     (hj : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a j).natAbs) (hprod : a i * a j ≤ 0) :
-    IsSubsumBlock a {i, j} := fun b c dj hs ↦ by
-  have bpair : i ∈ b ↔ j ∈ b :=
-    ⟨pair_aux hi dj hs hprod,
-      pair_aux (by simpa [pair_comm] using hj) dj hs (by simpa [mul_comm] using hprod)⟩
-  have cpair : i ∈ c ↔ j ∈ c :=
-    ⟨pair_aux hi dj.symm hs.symm hprod,
-      pair_aux (by simpa [pair_comm] using hj) dj.symm hs.symm (by simpa [mul_comm] using hprod)⟩
-  by_cases mib : i ∈ b
-  · apply Or.inl
-    rwa [insert_subset_iff, singleton_subset_iff, ← bpair, and_self]
-  by_cases mic : i ∈ c
-  · refine .inr (.inl ?_)
-    rwa [insert_subset_iff, singleton_subset_iff, ← cpair, and_self]
-  refine .inr (.inr ?_)
-  simp_all
+    IsSubsumBlock a {i, j} := by
+  obtain rfl | hn := eq_or_ne i j
+  · simp [singleton]
+  let f : Fin 2 ↪ Fin n := ⟨fun | 0 => i | 1 => j, fun i₁ i₂ h ↦ by grind⟩
+  have mf : univ.map f = {i, j} := by ext k; simp [f]; grind
+  rw [← mf]
+  refine of_sum_natAbs_lt _ fun b ncb ↦ ?_
+  simp only [mf, Fin.sum_univ_two, f, Function.Embedding.coeFn_mk]
+  replace ncb : b 0 ≠ b 1 := by
+    contrapose ncb
+    refine ⟨b 1, fun k ↦ ?_⟩
+    obtain rfl | rfl : k = 0 ∨ k = 1 := by lia
+    · exact ncb
+    · rfl
+  cases e₀ : b 0 <;> cases e₁ : b 1 <;> simp [e₀, e₁] at ncb
+  case zero.neg => simpa using hj
+  case zero.pos => simpa using hj
+  case neg.zero => simpa using hi
+  case pos.zero => simpa using hi
+  all_goals
+    rw [Int.mul_nonpos_iff] at hprod
+    simp only [pos_eq_one, neg_eq_neg_one, coe_neg, coe_one]
+    grind
 
 /-- Reduce a subsum block to a single element when proving the strong subsum condition. -/
 theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (hk : k = n - #s)
     (h : StrongSSC (tupReduce a s hk)) : StrongSSC a := by
-  unfold StrongSSC at *
+  unfold StrongSSC IsSubsumBlock at *
   contrapose! h
-  obtain ⟨b, c, dj, n₁, n₂, hs⟩ := h
-  specialize p b c dj hs
-  rw [← or_rotate, disjoint_union_right] at p
-  obtain p | p := p
-  · let b' : Finset (Fin k) := {i | complRank s hk i ∈ b}
-    let c' : Finset (Fin k) := {i | complRank s hk i ∈ c}
-    have eqb : b = b'.map _ := eq_map_complRank p.1
-    have eqc : c = c'.map _ := eq_map_complRank p.2
-    refine ⟨b'.map (Fin.succEmb k), c'.map (Fin.succEmb k), by simp_all, by simp_all, ?_, ?_⟩
-    · exact ⟨0, by simp [b', c']⟩
-    · simp_all [tupReduce]
-  wlog q : s ⊆ b generalizing b c
-  · rw [union_comm] at n₁ n₂
-    exact this c b dj.symm n₁ n₂ hs.symm p.symm (p.resolve_left q)
-  replace p := dj.mono_left q
-  let b' : Finset (Fin k) := {i | complRank s hk i ∈ b \ s}
-  let c' : Finset (Fin k) := {i | complRank s hk i ∈ c}
-  have eqb : b \ s = b'.map _ := eq_map_complRank disjoint_sdiff
-  have eqc : c = c'.map _ := eq_map_complRank p
-  refine ⟨insert 0 (b'.map (Fin.succEmb k)), c'.map (Fin.succEmb k), ?_, by simp, ?_, ?_⟩
-  · have : Disjoint (b \ s) c := dj.mono_left sdiff_le
-    simp_all
-  · obtain ⟨i, mi⟩ := n₂
-    have ni : i ∉ s := by
-      contrapose! mi
-      rw [notMem_compl, mem_union]
-      exact .inl (q mi)
-    rw [← mem_compl, ← mem_coe, ← range_complRank (hk := hk), Set.mem_range] at ni
-    obtain ⟨j, rfl⟩ := ni
-    refine ⟨j.succ, ?_⟩
-    simp [b', c']
-    simp_all
-  · rw [← sum_sdiff q, add_comm] at hs
-    simp_all [tupReduce]
+  obtain ⟨b, hs, hc⟩ := h
+  obtain ⟨c₀, hc₀⟩ := p _ hs
+  refine ⟨Fin.cases c₀ (b ∘ complRank s hk), ?_, fun c ↦ ?_⟩
+  · simp_rw [Fin.sum_univ_succ, tupReduce, Fin.cases_zero, Fin.cases_succ, Function.comp_apply]
+    have io : (SetLike.coe univ).InjOn (complRank s hk) := by simp [injective_complRank]
+    rw [← sum_image (f := fun i ↦ (b i) * a i) io, image_complRank_univ, mul_sum]
+    have s_eq : ∑ i ∈ s, c₀ * a i = ∑ i ∈ s, b i * a i := sum_congr rfl fun i mi ↦ by rw [hc₀ _ mi]
+    rwa [s_eq, sum_add_sum_compl]
+  · obtain rfl | hn := eq_or_ne c₀ c
+    · obtain ⟨i, -, hi⟩ := hc c₀
+      have key : i ∈ sᶜ := by
+        contrapose! hi
+        exact hc₀ _ (notMem_compl.mp hi)
+      rw [← image_complRank_univ (hk := hk), mem_image_univ_iff_mem_range, Set.mem_range] at key
+      obtain ⟨j, rfl⟩ := key
+      exact ⟨j.succ, mem_univ _, by simp [hi]⟩
+    · exact ⟨0, mem_univ _, by simpa⟩
 
 end IsSubsumBlock
