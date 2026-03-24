@@ -85,19 +85,11 @@ lemma complRank_01 : complRank {0, 1} (n.add_sub_cancel 2).symm = (Fin.addNat ·
   (orderEmbOfFin_unique _ (by simp [Fin.ext_iff]) (Fin.strictMono_addNat 2)).symm
 
 variable (a) in
-/-- `tupReduce a s hk` is the tuple with `∑ i ∈ s, a i` at index 0
+/-- `tupReduce a s hk` is the tuple with `∑ i ∈ s, a i` at the last index
 and the remaining elements of `a` appended in order.
 `hk : k = n - #s` mitigates definitional equality problems. -/
 def tupReduce : Fin (k + 1) → ℤ :=
-  Fin.cases (∑ i ∈ s, a i) fun i ↦ a (complRank s hk i)
-
-lemma tupReduce_01_zero {a : Fin (n + 2) → ℤ} :
-    tupReduce a {0, 1} (n.add_sub_cancel 2).symm 0 = a 0 + a 1 := by
-  simp [tupReduce, complRank_01]
-
-lemma tupReduce_01_succ {a : Fin (n + 2) → ℤ} {i : Fin n} :
-    tupReduce a {0, 1} (n.add_sub_cancel 2).symm i.succ = a (i.addNat 2) := by
-  simp [tupReduce, complRank_01]
+  Fin.lastCases (∑ i ∈ s, a i) fun i ↦ a (complRank s hk i)
 
 variable {s hk}
 
@@ -158,14 +150,17 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
   have mf : univ.map f = {i, j} := by ext k; simp [f]; grind
   rw [← mf]
   refine of_sum_natAbs_lt _ fun b ncb ↦ ?_
-  simp only [mf, Fin.sum_univ_two, f, Function.Embedding.coeFn_mk]
-  replace ncb : b 0 ≠ b 1 := by
-    contrapose ncb
-    refine ⟨b 1, fun k ↦ ?_⟩
-    obtain rfl | rfl : k = 0 ∨ k = 1 := by lia
-    · exact ncb
+  simp_rw [Fin.sum_univ_two, mf, f, Function.Embedding.coeFn_mk]
+  suffices ∀ (b₁ b₂ : SignType),
+      b₁ ≠ b₂ → ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (b₁ * a i + b₂ * a j).natAbs by
+    apply this
+    contrapose! ncb
+    refine ⟨b 0, fun i ↦ ?_⟩
+    obtain rfl | rfl : i = 0 ∨ i = 1 := by lia
     · rfl
-  cases e₀ : b 0 <;> cases e₁ : b 1 <;> simp [e₀, e₁] at ncb
+    · exact ncb.symm
+  intro b₁ b₂ hb
+  cases b₁ <;> cases b₂ <;> simp at hb
   case zero.neg => simpa using hj
   case zero.pos => simpa using hj
   case neg.zero => simpa using hi
@@ -182,12 +177,13 @@ theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (hk : k = n - #s)
   contrapose! h
   obtain ⟨b, hs, hc⟩ := h
   obtain ⟨c₀, hc₀⟩ := p _ hs
-  refine ⟨Fin.cases c₀ (b ∘ complRank s hk), ?_, fun c ↦ ?_⟩
-  · simp_rw [Fin.sum_univ_succ, tupReduce, Fin.cases_zero, Fin.cases_succ, Function.comp_apply]
+  refine ⟨Fin.lastCases c₀ (b ∘ complRank s hk), ?_, fun c ↦ ?_⟩
+  · simp_rw [Fin.sum_univ_castSucc, tupReduce, Fin.lastCases_last, Fin.lastCases_castSucc,
+      Function.comp_apply]
     have io : (SetLike.coe univ).InjOn (complRank s hk) := by simp [injective_complRank]
     rw [← sum_image (f := fun i ↦ (b i) * a i) io, image_complRank_univ, mul_sum]
     have s_eq : ∑ i ∈ s, c₀ * a i = ∑ i ∈ s, b i * a i := sum_congr rfl fun i mi ↦ by rw [hc₀ _ mi]
-    rwa [s_eq, sum_add_sum_compl]
+    rwa [s_eq, sum_compl_add_sum]
   · obtain rfl | hn := eq_or_ne c₀ c
     · obtain ⟨i, -, hi⟩ := hc c₀
       have key : i ∈ sᶜ := by
@@ -195,7 +191,7 @@ theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (hk : k = n - #s)
         exact hc₀ _ (notMem_compl.mp hi)
       rw [← image_complRank_univ (hk := hk), mem_image_univ_iff_mem_range, Set.mem_range] at key
       obtain ⟨j, rfl⟩ := key
-      exact ⟨j.succ, mem_univ _, by simp [hi]⟩
-    · exact ⟨0, mem_univ _, by simpa⟩
+      exact ⟨j.castSucc, mem_univ _, by simp [hi]⟩
+    · exact ⟨Fin.last _, mem_univ _, by simpa⟩
 
 end IsSubsumBlock

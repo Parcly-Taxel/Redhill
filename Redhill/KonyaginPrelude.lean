@@ -233,14 +233,31 @@ lemma sum_tupReduced_lt_tupReduced_zero (hk : 10 ≤ k) :
 
 /-- `tupReduced` with the first two terms added together. -/
 def tupReduced2 : Fin 4 → ℤ
-  | 0 => 6 * k ^ 2 + 2
-  | 1 => -6 * k ^ 2
-  | 2 => -31
-  | 3 => 29
+  | 0 => -6 * k ^ 2
+  | 1 => -31
+  | 2 => 29
+  | 3 => 6 * k ^ 2 + 2
 
-lemma sum_tupReduced2_lt_tupReduced2_one (hk : 10 ≤ k) :
-    ∑ i ∈ {0, 1}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 1).natAbs := by
-  have se : ({0, 1}ᶜ : Finset (Fin 4)) = {2, 3} := by decide
+lemma tupReduce_tupReduced {c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card} :
+    tupReduce (tupReduced k) {0, 1} c₁ = tupReduced2 k := by
+  ext i
+  unfold tupReduce
+  cases i using Fin.lastCases with
+  | last =>
+    simp_rw [Fin.lastCases_last, Finset.sum_pair zero_ne_one, tupReduced, tupReduced2,
+      Fin.reduceLast]
+    ring
+  | cast i =>
+    have : complRank {0, 1} c₁ = (·.natAdd 2) := by
+      refine (Finset.orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
+      · fin_cases i <;> simp
+      · exact (Fin.natAddOrderEmb 2).strictMono
+    simp_rw [Fin.lastCases_castSucc, this, tupReduced, tupReduced2]
+    fin_cases i <;> simp
+
+lemma sum_tupReduced2_lt_tupReduced2_zero (hk : 10 ≤ k) :
+    ∑ i ∈ {0, 3}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 0).natAbs := by
+  have se : ({0, 3}ᶜ : Finset (Fin 4)) = {1, 2} := by decide
   simp only [se, Fin.reduceEq, Finset.mem_singleton, not_false_eq_true, Finset.sum_insert,
     Finset.sum_singleton]
   unfold tupReduced2
@@ -248,12 +265,28 @@ lemma sum_tupReduced2_lt_tupReduced2_one (hk : 10 ≤ k) :
     show 60 = 6 * 2 * 5 by lia]
   gcongr <;> lia
 
-lemma sum_tupReduced2_lt_tupReduced2_zero (hk : 10 ≤ k) :
-    ∑ i ∈ {0, 1}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 0).natAbs := by
-  apply (sum_tupReduced2_lt_tupReduced2_one _ hk).trans_le
+lemma sum_tupReduced2_lt_tupReduced2_three (hk : 10 ≤ k) :
+    ∑ i ∈ {0, 3}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 3).natAbs := by
+  apply (sum_tupReduced2_lt_tupReduced2_zero _ hk).trans_le
   simp_rw [tupReduced2, neg_mul, Int.natAbs_neg, ← Nat.cast_le (α := ℤ)]
   iterate 2 rw [Int.natAbs_of_nonneg (by positivity)]
   lia
+
+lemma tupReduce_tupReduced2 {c₂ : 2 = 4 - ({0, 3} : Finset (Fin 4)).card} :
+    tupReduce (tupReduced2 k) {0, 3} c₂ = ![-31, 29, 2] := by
+  ext i
+  unfold tupReduce
+  cases i using Fin.lastCases with
+  | last =>
+    rw [Fin.lastCases_last, Finset.sum_pair (by decide)]
+    simp [tupReduced2]
+  | cast i =>
+    have : complRank {0, 3} c₂ = ![1, 2] := by
+      refine (Finset.orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
+      · fin_cases i <;> simp
+      · decide
+    simp_rw [Fin.lastCases_castSucc, this, tupReduced2]
+    fin_cases i <;> simp
 
 lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
   have key : IsSubsumBlock (tupReduced k) {0, 1} := by
@@ -263,31 +296,15 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
     exact Int.pow_nonneg (mul_nonneg (by lia) (by lia))
   have c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card := by simp
   apply key.strongSSC_tupReduce c₁
-  have e₁ : tupReduce (tupReduced k) {0, 1} c₁ = tupReduced2 k := by
-    unfold tupReduced tupReduced2
-    ext i
-    cases i using Fin.cases with
-    | zero => rw [tupReduce_01_zero]; ring
-    | succ i => rw [tupReduce_01_succ]; fin_cases i <;> rfl
-  rw [e₁]
-  have key2 : IsSubsumBlock (tupReduced2 k) {0, 1} := by
+  rw [tupReduce_tupReduced]
+  have key2 : IsSubsumBlock (tupReduced2 k) {0, 3} := by
     apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced2_lt_tupReduced2_zero _ hk)
-      (sum_tupReduced2_lt_tupReduced2_one _ hk)
-    simp_rw [tupReduced2, neg_mul, mul_neg, Int.neg_nonpos_iff]
+      (sum_tupReduced2_lt_tupReduced2_three _ hk)
+    simp_rw [tupReduced2, neg_mul, Int.neg_nonpos_iff]
     positivity
-  have c₂ : 2 = 4 - ({0, 1} : Finset (Fin 4)).card := by simp
+  have c₂ : 2 = 4 - ({0, 3} : Finset (Fin 4)).card := by simp
   apply key2.strongSSC_tupReduce c₂
-  let f : Fin 3 → ℤ
-    | 0 => 2
-    | 1 => -31
-    | 2 => 29
-  have e₂ : tupReduce (tupReduced2 k) {0, 1} c₂ = f := by
-    unfold tupReduced2
-    ext i
-    cases i using Fin.cases with
-    | zero => rw [tupReduce_01_zero]; ring
-    | succ i => rw [tupReduce_01_succ]; fin_cases i <;> rfl
-  rw [e₂, StrongSSC, IsSubsumBlock]
+  rw [tupReduce_tupReduced2, StrongSSC, IsSubsumBlock]
   decide +kernel
 
 lemma strongSSC_tup : StrongSSC (tup k) := by
