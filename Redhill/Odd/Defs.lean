@@ -178,7 +178,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
     · rw [tup_natAdd_zero]
       obtain rfl | rfl | rfl | rfl : j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 := by lia
       · rw [tup_natAdd_one, IsCoprime.neg_right_iff, isCoprime_iff_coprime]
-        exact (VW n F).coprime_of_le (by grind [U]) (by grind [U])
+        exact (VW n F).coprime_of_le (by grind [U]) (le_max_left ..)
       · rw [tup_natAdd_two]
         exact (IsCoprime.sub_one_right_of_dvd dv).pow_right
       · rw [tup_natAdd_three, IsCoprime.mul_right_iff]
