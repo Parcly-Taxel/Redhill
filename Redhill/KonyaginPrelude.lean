@@ -253,7 +253,7 @@ lemma tupReduce_tupReduced {c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card} :
       · fin_cases i <;> simp
       · exact (Fin.natAddOrderEmb 2).strictMono
     simp_rw [Fin.lastCases_castSucc, this, tupReduced, tupReduced2]
-    fin_cases i <;> simp
+    fin_cases i <;> rfl
 
 lemma sum_tupReduced2_lt_tupReduced2_zero (hk : 10 ≤ k) :
     ∑ i ∈ {0, 3}ᶜ, (tupReduced2 k i).natAbs < (tupReduced2 k 0).natAbs := by
@@ -286,7 +286,7 @@ lemma tupReduce_tupReduced2 {c₂ : 2 = 4 - ({0, 3} : Finset (Fin 4)).card} :
       · fin_cases i <;> simp
       · decide
     simp_rw [Fin.lastCases_castSucc, this, tupReduced2]
-    fin_cases i <;> simp
+    fin_cases i <;> rfl
 
 lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
   have key : IsSubsumBlock (tupReduced k) {0, 1} := by
