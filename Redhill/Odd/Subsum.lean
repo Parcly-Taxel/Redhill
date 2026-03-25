@@ -19,7 +19,7 @@ def redEmb1 : Fin 3 ↪ Fin (n + 5) :=
 lemma U_lt_V : U n F < (VW n F).v :=
   calc
     _ ≤ max (U n F) (F.sup id) := le_max_left ..
-    _ ≤ _ := Nat.le_primorial_self
+    _ ≤ _ := le_primorial_self
     _ < _ := (VW n F).ineq_chain.1
 
 lemma U_lt_W : U n F < (VW n F).w :=
@@ -70,9 +70,68 @@ lemma sum_redEmb1_compl_lt : ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natA
           exact prod_pos (by grind)
         _ = _ := by ring
 
+include nF in
+lemma Y_lower_bound : 431 ≤ Y n F := by
+  apply (sum_redEmb1_compl_lt (x := 0) nF).trans_le'
+  rw [sum_redEmb1_compl]
+  calc
+    _ = 2 * (primorial 8 + 1) + 8 := by decide
+    _ ≤ 2 * (primorial (U n F) + 1) + 8 := by
+      gcongr
+      exact primorial_mono (by grind [U])
+    _ ≤ 2 * (VW n F).v + U n F := by
+      gcongr
+      · rw [Nat.add_one_le_iff]
+        exact (primorial_mono (le_max_left ..)).trans_lt (VW n F).ineq_chain.1
+      · grind [U]
+    _ ≤ _ := by grind [(VW n F).ineq_chain, (VW n F).u_eq_sub]
+
+section BoringInequalities
+
+lemma b₂_upper_bound (hx : 2 ≤ x.natAbs) : (10 * (x ^ 2 + 1) ^ 2).natAbs ≤ 20 * x.natAbs ^ 4 := by
+  wlog nnx : 0 ≤ x
+  · rw [← Int.natAbs_neg] at hx
+    specialize this hx (by lia)
+    rwa [Int.natAbs_neg, neg_sq] at this
+  lift x to ℕ using nnx
+  rw [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_add_of_nonneg (by positivity) zero_le_one,
+    Int.natAbs_natCast, Int.natAbs_pow]
+  simp only [Int.reduceAbs, Int.natAbs_natCast,
+    show 20 * x ^ 4 = 10 * (x ^ 4 + x ^ 4) by ring,
+    show (x ^ 2 + 1) ^ 2 = x ^ 4 + (2 * x ^ 2 + 1) by ring] at hx ⊢
+  gcongr
+  calc
+    _ ≤ x * x ^ 2 + x ^ 3 := by
+      gcongr
+      exact Nat.one_le_pow _ _ (by lia)
+    _ = 2 * x ^ 3 := by ring
+    _ ≤ _ := by
+      rw [pow_succ' _ 3]
+      gcongr
+
+lemma b₁_lower_bound (hx : 35 ≤ x.natAbs) : 30 * x.natAbs ^ 4 ≤ ((x - 1) ^ 5).natAbs := by
+  sorry
+
+end BoringInequalities
+
 include dx nzx nF in
 lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b₁ ≠ b₃) :
-    Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) - b₃ * (x + 1) ^ 5).natAbs := by
+    Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs := by
+  by_cases hb₁₃ : b₁ ≠ b₃
+  · clear h
+    wlog h : b₃ < b₁ generalizing b₁ b₂ b₃
+    · have negh : -b₃ < -b₁ := by
+        rw [SignType.neg_lt_neg_iff]
+        exact hb₁₃.lt_or_gt.resolve_right h
+      specialize this (b₂ := -b₂) (by simp_all) negh
+      simp_rw [SignType.coe_neg, neg_mul, ← neg_add, Int.natAbs_neg] at this
+      exact this
+    sorry
+  replace h := h.resolve_right hb₁₃
+  rw [not_ne_iff] at hb₁₃
+  subst hb₁₃
+  rw [show b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₁ * -(x + 1) ^ 5 =
+    (b₂ - b₁) * (10 * (x ^ 2 + 1) ^ 2) + b₁ * 8 by ring]
   sorry
 
 include dx nzx nF in
@@ -81,10 +140,10 @@ lemma isSubsumBlock_redEmb1 :
   refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
   conv_rhs => rw [redEmb1, sum_univ_three]
   simp only [Function.Embedding.coeFn_mk, reduceNatAdd,
-    tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, mul_neg, ← sub_eq_add_neg]
+    tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
   apply (sum_redEmb1_compl_lt nF).trans_le
   suffices ∀ {b₁ b₂ b₃ : SignType}, b₁ ≠ b₂ ∨ b₁ ≠ b₃ →
-      Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) - b₃ * (x + 1) ^ 5).natAbs by
+      Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs by
     apply this
     contrapose! ncb
     exact ⟨b 0, fun i ↦ by fin_cases i <;> tauto⟩
