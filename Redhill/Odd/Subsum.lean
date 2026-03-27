@@ -1,5 +1,6 @@
 module
 
+public import Redhill.Common.MaxAbs
 public import Redhill.Common.SubsumCondition
 public import Redhill.Odd.Defs
 public import Redhill.ToMathlib.NatSumProd
@@ -69,7 +70,7 @@ lemma sum_redEmb1_compl_lt : ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natA
         _ = _ := by ring
 
 include nF in
-lemma Y_lower_bound : 431 ≤ Y n F := by
+public lemma Y_lower_bound : 431 ≤ Y n F := by
   apply (sum_redEmb1_compl_lt (x := 0) nF).trans_le'
   rw [sum_redEmb1_compl]
   calc
@@ -84,7 +85,7 @@ lemma Y_lower_bound : 431 ≤ Y n F := by
       · grind [U]
     _ ≤ _ := by grind [(VW n F).ineq_chain, (VW n F).u_eq_sub]
 
-section BoringInequalities
+section Inequalities
 
 lemma b₂_upper_bound (hx : 2 ≤ x.natAbs) : (10 * (x ^ 2 + 1) ^ 2).natAbs ≤ 20 * x.natAbs ^ 4 := by
   wlog nnx : 0 ≤ x
@@ -114,8 +115,7 @@ lemma b₁_lower_bound (hx : 26 ≤ x.natAbs) : 21 * x.natAbs ^ 4 ≤ ((x - 1) ^
     rw [Int.natAbs_neg, show (-x - 1) ^ 5 = -(x + 1) ^ 5 by ring, Int.natAbs_neg] at this
     apply this.trans
     simp_rw [Int.natAbs_pow]
-    apply Nat.pow_le_pow_left
-    lia
+    exact Nat.pow_le_pow_left (by lia) _
   lift x to ℕ using nnx
   rw [Int.natAbs_pow, Int.natAbs_sub_of_nonneg_of_le zero_le_one (by lia)]
   simp only [Int.natAbs_natCast, Int.natAbs_one] at hx ⊢
@@ -205,7 +205,54 @@ lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b�
   apply (natAbs_le_redEmb1_reduced h (by lia)).trans'
   exact Nat.le_of_dvd (Int.natAbs_pos.mpr nzx) (Int.natCast_dvd.mp dx)
 
-end BoringInequalities
+include nF in
+/-- When `x` is a positive multiple of `Y n F`, the maximum absolute value is `(x + 1) ^ 5`. -/
+public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
+    maxAbs (tup n F (m * Y n F)) = (m * Y n F + 1) ^ 5 := by
+  rw [← Nat.cast_mul]
+  set x := m * Y n F
+  have na4 : (tup n F x (natAdd n 4)).natAbs = (x + 1) ^ 5 := by
+    rw [tup_natAdd_four, Int.natAbs_neg, Int.natAbs_pow]
+    lia
+  rw [← na4]
+  refine maxAbs_eq_of_forall_le fun i ↦ ?_
+  rw [tup_natAdd_four, Int.natAbs_neg]
+  have xb : Y n F ≤ (x : ℤ).natAbs := by
+    rw [← one_mul (Y n F), Int.natAbs_natCast]
+    exact mul_le_mul_left hm _
+  have Yb : 431 ≤ Y n F := Y_lower_bound nF
+  have key₁ : Y n F ≤ ((x + 1 : ℤ) ^ 5).natAbs := by
+    refine (xb.trans ?_).trans (b₃_lower_bound (by lia))
+    nth_rw 1 [Int.natAbs_natCast, Int.natAbs_natCast, show x = 1 * x ^ 1 by simp]
+    gcongr <;> lia
+  have key₂ :
+      (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i < Y n F := by
+    rw [← sum_redEmb1_compl (x := x)]
+    exact sum_redEmb1_compl_lt nF
+  cases i using addCases with
+  | left i =>
+    rw [tup_castAdd, Int.natAbs_natCast]
+    apply (key₂.le.trans key₁).trans'
+    calc
+      _ ≤ ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i := by
+        rw [← sum_univ_eq_sum_range]
+        exact single_le_sum_of_canonicallyOrdered
+          (f := fun i : Fin n ↦ primeChain (max 16 (F.sup id)) i) (mem_univ _)
+      _ ≤ _ := Nat.le_add_left ..
+  | right i =>
+    fin_cases i <;> simp only [reduceFinMk]
+    · rw [tup_natAdd_zero, Int.natAbs_natCast]
+      exact (key₂.le.trans key₁).trans' (by lia)
+    · rw [tup_natAdd_one, Int.natAbs_neg, Int.natAbs_natCast]
+      exact (key₂.le.trans key₁).trans' (by lia)
+    · simp_rw [tup_natAdd_two, Int.natAbs_pow]
+      exact Nat.pow_le_pow_left (by lia) _
+    · rw [tup_natAdd_three]
+      refine ((b₂_upper_bound (by lia)).trans ?_).trans (b₃_lower_bound (by lia))
+      exact mul_le_mul_left (by decide) _
+    · rw [tup_natAdd_four, Int.natAbs_neg]
+
+end Inequalities
 
 include dx nzx nF in
 lemma isSubsumBlock_redEmb1 : IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
