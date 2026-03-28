@@ -28,103 +28,6 @@ lemma injective_tup : tup.Injective := fun i j e ↦ by
   rwa [pow_left_inj₀ (by positivity) (by positivity) (by lia), add_right_cancel_iff,
     pow_right_inj₀ (by lia) (by lia), Nat.pow_right_inj one_lt_two] at e
 
-section Log
-
-open Real UniqueFactorizationMonoid UniqueFactorizationDomain
-
-lemma six_pow_pos {n : ℕ} (hn : n ≠ 0) : 0 < (6 : ℤ) ^ n - 1 := by
-  rw [sub_pos]
-  exact one_lt_pow₀ (by lia) hn
-
-lemma radical_tup_dvd : radical (∏ i, tup k i) ∣ (6 ^ (2 * 2 ^ k) - 1) * 5394 := by
-  simp_rw [show (5394 : ℤ) = 6 * 31 * 29 by lia, ← mul_assoc, tup, Fin.prod_univ_five]
-  iterate 3 refine radical_mul_dvd.trans (mul_dvd_mul ?_ ?_)
-  · rw [mul_neg, radical_neg, ← mul_pow, ← mul_self_sub_one, ← sq, pow_mul', radical_pow _ (by lia)]
-    exact radical_dvd_self
-  · rw [neg_mul, radical_neg, ← pow_mul, ← pow_succ', radical_pow _ (by lia)]
-    exact radical_dvd_self
-  · simp [radical_dvd_self]
-  · exact radical_dvd_self
-
-lemma one_lt_radical_tup : 1 < radical (∏ i, tup k i) := by
-  simp_rw [Int.one_lt_radical_iff, tup, Fin.prod_univ_five, Int.natAbs_mul, Int.natAbs_neg,
-    Int.natAbs_pow, Int.reduceAbs, ← mul_assoc]
-  rw [Nat.one_lt_mul_iff]
-  simp_rw [show 1 < 29 by lia, or_true, show 0 < 29 by lia, and_true]
-  suffices 0 < (6 ^ 2 ^ k - 1 : ℤ).natAbs by positivity
-  rw [Int.natAbs_pos]
-  exact (six_pow_pos (by positivity)).ne'
-
-lemma log_radical_tup_le : log (radical (∏ i, tup k i) : ℤ) ≤ 2 * 2 ^ k * log 6 + log 5394 := by
-  rw [log_le_iff_le_exp (by exact_mod_cast Int.radical_pos _),
-    exp_add, exp_log (by norm_num), mul_comm (_ * _), exp_mul, exp_log (by norm_num)]
-  norm_cast
-  push_cast
-  have : 0 < (6 : ℤ) ^ (2 * 2 ^ k) - 1 := six_pow_pos (by positivity)
-  apply (Int.le_of_dvd (by positivity) (radical_tup_dvd k)).trans
-  gcongr
-  lia
-
-lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
-  simp_rw [maxAbs_eq_foldr, List.ofFn_succ, List.ofFn_zero, Fin.reduceSucc, List.foldr_cons,
-    List.foldr_nil]
-  change max ((6 ^ 2 ^ k + 1) ^ 3) _ = _
-  have e1 : max (tup k 3).natAbs (max (tup k 4).natAbs 0) = 31 := by simp [tup]
-  simp_rw [e1, sup_eq_left, tup]
-  have e2 : max (-6 * (6 ^ 2 ^ k) ^ 2).natAbs 31 = 6 ^ (2 * 2 ^ k + 1) := by
-    rw [neg_mul, Int.natAbs_neg, ← pow_mul', ← pow_succ', Int.natAbs_pow]
-    simp_rw [Int.reduceAbs, sup_eq_left]
-    apply (show 31 ≤ 6 ^ (2 * 2 ^ 0 + 1) by lia).trans
-    gcongr <;> lia
-  rw [e2, sup_le_iff, Int.natAbs_neg, Int.natAbs_pow]
-  refine ⟨pow_le_pow_left₀ (zero_le _) (by lia) _, ?_⟩
-  calc
-    _ ≤ 6 ^ (3 * 2 ^ k) := by
-      rw [Nat.succ_mul 2]
-      gcongr
-      · lia
-      · exact Nat.one_le_two_pow
-    _ ≤ _ := by
-      rw [pow_mul']
-      gcongr
-      exact Nat.le_add_right ..
-
-lemma le_tupleQuality :
-    .ofReal ((3 * 2 ^ k * log 6) / (2 * 2 ^ k * log 6 + log 5394)) ≤ tupleQuality (tup k) := by
-  apply ENNReal.ofReal_le_ofReal
-  rw [maxAbs_tup]
-  apply div_le_div₀
-  · positivity
-  · push_cast
-    rw [log_pow, Nat.cast_ofNat, mul_assoc]
-    gcongr
-    calc
-      _ = log (6 ^ 2 ^ k) := by simp only [log_pow, Nat.cast_pow, Nat.cast_ofNat]
-      _ ≤ _ := by
-        gcongr
-        norm_num
-  · apply log_pos
-    exact_mod_cast one_lt_radical_tup k
-  · exact log_radical_tup_le k
-
-open Filter in
-lemma liminf_tupleQuality_tup : 3 / 2 ≤ liminf (tupleQuality ∘ tup) atTop := by
-  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall le_tupleQuality))
-  have e₁ : (3 / 2 : ENNReal) = ENNReal.ofReal (3 / 2) := by
-    simp [ENNReal.ofReal_div_of_pos zero_lt_two]
-  have e₂ (k : ℕ) : (2 ^ k : ℝ) = (2 ^ k : ℕ) := by norm_cast
-  simp_rw [e₁, e₂]
-  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
-  change Tendsto ((fun k : ℕ ↦ 3 * k * log 6 / (2 * k * log 6 + log 5394)) ∘ (2 ^ ·))
-    atTop (nhds (3 / 2))
-  refine Tendsto.comp ?_ (tendsto_pow_atTop_atTop_of_one_lt one_lt_two)
-  convert tendsto_add_mul_div_add_mul_atTop_nhds 0 (log 5394) (3 * log 6)
-    (show 2 * log 6 ≠ 0 by positivity) using 2 with k
-  · simp [mul_right_comm _ (k : ℝ), add_comm]
-  · exact (mul_div_mul_right _ _ (by positivity)).symm
-
-end Log
-
 section Coprime
 
 lemma six_pow_two_pow_mod_29_mem : (6 ^ 2 ^ k : ℤ) % 29 ∈ [6, 7, 20, 23] := by
@@ -316,6 +219,95 @@ lemma strongSSC_tup : StrongSSC (tup k) := by
   gcongr <;> lia
 
 end Subsum
+
+section Quality
+
+open Real UniqueFactorizationMonoid UniqueFactorizationDomain
+
+lemma six_pow_pos {n : ℕ} (hn : n ≠ 0) : 0 < (6 : ℤ) ^ n - 1 := by
+  rw [sub_pos]
+  exact one_lt_pow₀ (by lia) hn
+
+lemma radical_tup_dvd : radical (∏ i, tup k i) ∣ (6 ^ (2 * 2 ^ k) - 1) * 5394 := by
+  simp_rw [show (5394 : ℤ) = 6 * 31 * 29 by lia, ← mul_assoc, tup, Fin.prod_univ_five]
+  iterate 3 refine radical_mul_dvd.trans (mul_dvd_mul ?_ ?_)
+  · rw [mul_neg, radical_neg, ← mul_pow, ← mul_self_sub_one, ← sq, pow_mul', radical_pow _ (by lia)]
+    exact radical_dvd_self
+  · rw [neg_mul, radical_neg, ← pow_mul, ← pow_succ', radical_pow _ (by lia)]
+    exact radical_dvd_self
+  · simp [radical_dvd_self]
+  · exact radical_dvd_self
+
+lemma log_radical_tup_le : log (radical (∏ i, tup k i) : ℤ) ≤ 2 * 2 ^ k * log 6 + log 5394 := by
+  rw [log_le_iff_le_exp (by exact_mod_cast Int.radical_pos _),
+    exp_add, exp_log (by norm_num), mul_comm (_ * _), exp_mul, exp_log (by norm_num)]
+  norm_cast
+  push_cast
+  have : 0 < (6 : ℤ) ^ (2 * 2 ^ k) - 1 := six_pow_pos (by positivity)
+  apply (Int.le_of_dvd (by positivity) (radical_tup_dvd k)).trans
+  gcongr
+  lia
+
+lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
+  simp_rw [maxAbs_eq_foldr, List.ofFn_succ, List.ofFn_zero, Fin.reduceSucc, List.foldr_cons,
+    List.foldr_nil]
+  change max ((6 ^ 2 ^ k + 1) ^ 3) _ = _
+  have e1 : max (tup k 3).natAbs (max (tup k 4).natAbs 0) = 31 := by simp [tup]
+  simp_rw [e1, sup_eq_left, tup]
+  have e2 : max (-6 * (6 ^ 2 ^ k) ^ 2).natAbs 31 = 6 ^ (2 * 2 ^ k + 1) := by
+    rw [neg_mul, Int.natAbs_neg, ← pow_mul', ← pow_succ', Int.natAbs_pow]
+    simp_rw [Int.reduceAbs, sup_eq_left]
+    apply (show 31 ≤ 6 ^ (2 * 2 ^ 0 + 1) by lia).trans
+    gcongr <;> lia
+  rw [e2, sup_le_iff, Int.natAbs_neg, Int.natAbs_pow]
+  refine ⟨pow_le_pow_left₀ (zero_le _) (by lia) _, ?_⟩
+  calc
+    _ ≤ 6 ^ (3 * 2 ^ k) := by
+      rw [Nat.succ_mul 2]
+      gcongr
+      · lia
+      · exact Nat.one_le_two_pow
+    _ ≤ _ := by
+      rw [pow_mul']
+      gcongr
+      exact Nat.le_add_right ..
+
+lemma le_tupleQuality :
+    .ofReal ((3 * 2 ^ k * log 6) / (2 * 2 ^ k * log 6 + log 5394)) ≤ tupleQuality (tup k) := by
+  apply ENNReal.ofReal_le_ofReal
+  rw [maxAbs_tup]
+  apply div_le_div₀
+  · positivity
+  · push_cast
+    rw [log_pow, Nat.cast_ofNat, mul_assoc]
+    gcongr
+    calc
+      _ = log (6 ^ 2 ^ k) := by simp only [log_pow, Nat.cast_pow, Nat.cast_ofNat]
+      _ ≤ _ := by
+        gcongr
+        norm_num
+  · apply log_pos
+    rw [← Int.cast_one, Int.cast_lt, Int.one_lt_radical_iff]
+    exact one_lt_natAbs_prod_of_strongSSC (by lia) (strongSSC_tup _)
+  · exact log_radical_tup_le k
+
+open Filter in
+lemma liminf_tupleQuality_tup : 3 / 2 ≤ liminf (tupleQuality ∘ tup) atTop := by
+  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall le_tupleQuality))
+  have e₁ : (3 / 2 : ENNReal) = ENNReal.ofReal (3 / 2) := by
+    simp [ENNReal.ofReal_div_of_pos zero_lt_two]
+  have e₂ (k : ℕ) : (2 ^ k : ℝ) = (2 ^ k : ℕ) := by norm_cast
+  simp_rw [e₁, e₂]
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
+  change Tendsto ((fun k : ℕ ↦ 3 * k * log 6 / (2 * k * log 6 + log 5394)) ∘ (2 ^ ·))
+    atTop (nhds (3 / 2))
+  refine Tendsto.comp ?_ (tendsto_pow_atTop_atTop_of_one_lt one_lt_two)
+  convert tendsto_add_mul_div_add_mul_atTop_nhds 0 (log 5394) (3 * log 6)
+    (show 2 * log 6 ≠ 0 by positivity) using 2 with k
+  · simp [mul_right_comm _ (k : ℝ), add_comm]
+  · exact (mul_div_mul_right _ _ (by positivity)).symm
+
+end Quality
 
 lemma tup_mem_factorFreeTuples : tup k ∈ factorFreeTuples ∅ 5 := by
   simp [factorFreeTuples, sum_tup, strongSSC_tup, pairwiseCoprime_tup]
