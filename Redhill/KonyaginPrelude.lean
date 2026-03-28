@@ -332,6 +332,6 @@ theorem konyagin_prelude : 3 / 2 ≤ quality (factorFreeTuples ∅ 5) := by
 
 theorem not_ramaekersConjecture_five : ¬RamaekersConjecture 5 := by
   have := konyagin_prelude.trans quality_factorFreeTuples_le_ramaekersTuples
-  refine (lt_of_lt_of_le ?_ this).ne'
+  refine (this.trans_lt' ?_).ne'
   rw [ENNReal.lt_div_iff_mul_lt (by simp) (by simp)]
   norm_num

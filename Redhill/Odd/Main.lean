@@ -157,6 +157,6 @@ theorem not_ramaekersConjecture_odd_ge_five {n : ℕ} (hn : 5 ≤ n ∧ Odd n) :
     ¬RamaekersConjecture n := by
   have := quality_factorFreeTuples_ge_of_odd_of_disjoint hn (Finset.disjoint_empty_right _)
     |>.trans quality_factorFreeTuples_le_ramaekersTuples
-  refine (lt_of_lt_of_le ?_ this).ne'
+  refine (this.trans_lt' ?_).ne'
   rw [ENNReal.lt_div_iff_mul_lt (by simp) (by simp)]
   norm_num
