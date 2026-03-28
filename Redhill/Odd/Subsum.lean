@@ -9,7 +9,7 @@ namespace OddCase
 
 open Fin Finset
 
-variable {n : ℕ} {F : Finset ℕ} {x : ℤ} (dx : ↑(Y n F) ∣ x) (nzx : x ≠ 0) (nF : 0 ∉ F)
+variable {n : ℕ} {F : Finset ℕ} {x : ℤ}
 
 /-- The embedding for the first subsum block reduction. -/
 def redEmb1 : Fin 3 ↪ Fin (n + 5) :=
@@ -152,13 +152,8 @@ lemma natAbs_le_redEmb1_reduced {b₁ b₂ : SignType} (h : b₁ ≠ b₂) (hx :
         lia
   · cases b₁ <;> simp [hx]
 
-include dx nzx in
-lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b₁ ≠ b₃) :
+lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b₁ ≠ b₃) (hx : Y n F ≤ x.natAbs) :
     Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs := by
-  have xlb : 462090 ≤ x.natAbs := by
-    have := Int.natAbs_le_of_dvd_ne_zero dx nzx
-    rw [Int.natAbs_natCast] at this
-    exact Y_lower_bound.trans this
   by_cases hb₁₃ : b₁ ≠ b₃
   · clear h
     wlog h : b₃ < b₁ generalizing b₁ b₂ b₃
@@ -168,32 +163,25 @@ lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b�
       specialize this (b₂ := -b₂) (by simp_all) negh
       simp_rw [SignType.coe_neg, neg_mul, ← neg_add, Int.natAbs_neg] at this
       exact this
-    apply (natAbs_pow_le_redEmb1 h (by lia)).trans'
-    apply (Nat.le_self_pow four_ne_zero _).trans'
-    exact Nat.le_of_dvd (Int.natAbs_pos.mpr nzx) (Int.natCast_dvd.mp dx)
+    apply (natAbs_pow_le_redEmb1 h (by grind [Y_lower_bound])).trans'
+    exact hx.trans (Nat.le_self_pow four_ne_zero _)
   replace h := h.resolve_right hb₁₃
   rw [not_ne_iff] at hb₁₃
   subst hb₁₃
   rw [show b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₁ * -(x + 1) ^ 5 =
     (b₂ - b₁) * (10 * (x ^ 2 + 1) ^ 2) + b₁ * 8 by ring]
-  apply (natAbs_le_redEmb1_reduced h (by lia)).trans'
-  exact Nat.le_of_dvd (Int.natAbs_pos.mpr nzx) (Int.natCast_dvd.mp dx)
+  exact hx.trans (natAbs_le_redEmb1_reduced h (by grind [Y_lower_bound]))
 
-/-- When `x` is a positive multiple of `Y n F`, the maximum absolute value is `(x + 1) ^ 5`. -/
-public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
-    maxAbs (tup n F (m * Y n F)) = (m * Y n F + 1) ^ 5 := by
-  rw [← Nat.cast_mul]
-  set x := m * Y n F
+/-- When `Y n F ≤ x`, the maximum absolute value is `(x + 1) ^ 5`. -/
+public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x + 1) ^ 5 := by
   have na4 : (tup n F x (natAdd n 4)).natAbs = (x + 1) ^ 5 := by
     rw [tup_natAdd_four, Int.natAbs_neg, Int.natAbs_pow]
     lia
   rw [← na4]
   refine maxAbs_eq_of_forall_le fun i ↦ ?_
   rw [tup_natAdd_four, Int.natAbs_neg]
-  have xb : Y n F ≤ (x : ℤ).natAbs := by
-    rw [← one_mul (Y n F), Int.natAbs_natCast]
-    exact mul_le_mul_left hm _
-  have Yb : 462090 ≤ Y n F := Y_lower_bound
+  have y26 : 26 ≤ Y n F := by grind [Y_lower_bound]
+  have xb : Y n F ≤ (x : ℤ).natAbs := by rwa [Int.natAbs_natCast]
   have key₁ : Y n F ≤ ((x + 1 : ℤ) ^ 5).natAbs := by
     refine (xb.trans ?_).trans (b₃_lower_bound (by lia))
     nth_rw 1 [Int.natAbs_natCast, Int.natAbs_natCast, show x = 1 * x ^ 1 by simp]
@@ -227,8 +215,8 @@ public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
 
 end Inequalities
 
-include dx nzx in
-lemma isSubsumBlock_redEmb1 : IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
+lemma isSubsumBlock_redEmb1 (hx : Y n F ≤ x.natAbs) :
+    IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
   refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
   conv_rhs => rw [redEmb1, sum_univ_three]
   simp only [Function.Embedding.coeFn_mk, reduceNatAdd,
@@ -239,7 +227,7 @@ lemma isSubsumBlock_redEmb1 : IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
     apply this
     contrapose! ncb
     exact ⟨b 0, fun i ↦ by fin_cases i <;> tauto⟩
-  exact Y_le_natAbs_redEmb1 dx nzx
+  exact fun h ↦ Y_le_natAbs_redEmb1 h hx
 
 variable (n F) in
 /-- The `(n + 5)`-tuple after combining the indices involving `x`,
@@ -431,10 +419,9 @@ lemma strongSSC_redTup2 : StrongSSC (redTup2 n F) := by
     apply isSubsumBlock_redEmb3.strongSSC_tupReduce c
     rwa [tupReduce_redTup2]
 
-include dx nzx in
-public theorem strongSSC_tup : StrongSSC (tup n F x) := by
+public theorem strongSSC_tup (hx : Y n F ≤ x.natAbs) : StrongSSC (tup n F x) := by
   have c₁ : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
-  apply (isSubsumBlock_redEmb1 dx nzx).strongSSC_tupReduce c₁
+  apply (isSubsumBlock_redEmb1 hx).strongSSC_tupReduce c₁
   rw [tupReduce_tup]
   have c₂ : n + 1 = n + 3 - #{natAdd n (0 : Fin 3), natAdd n 1} := by simp
   apply isSubsumBlock_redEmb2.strongSSC_tupReduce c₂

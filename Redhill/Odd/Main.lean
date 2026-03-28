@@ -8,17 +8,11 @@ public import Redhill.Common.Conjectures
 
 namespace OddCase
 
-variable {n : ℕ} {F : Finset ℕ} {k : ℕ} (hn : Even n) (dF : Disjoint {0, 1, 2, 5, 10} F)
-
-include hn dF in
-lemma tup_mem_factorFreeTuples {x : ℤ} (dx : ↑(Y n F) ∣ x) (nzx : x ≠ 0) :
-    tup n F x ∈ factorFreeTuples F (n + 5) := by
-  simp only [factorFreeTuples, Set.mem_setOf_eq, sum_tup, pairwiseCoprime_tup hn dx, true_and]
-  exact ⟨strongSSC_tup dx nzx, not_dvd_tup dx dF⟩
+variable {n : ℕ} {F : Finset ℕ} {k : ℕ}
 
 variable (n F k) in
 /-- The sequence of `(n + 5)`-tuples **completely** contained in `factorFreeTuples F n`
-(for `n` odd and `0, 1, 2, 5, 10 ∉ F`) and having qualities tending to `5 / 3`. -/
+(for `n` even and `0, 1, 2, 5, 10 ∉ F`) and having qualities tending to `5 / 3`. -/
 def tupPell : Fin (n + 5) → ℤ :=
   tup n F ((pell (Y n F ^ 2) k).1 * Y n F)
 
@@ -30,20 +24,17 @@ lemma injective_tupPell : (tupPell n F).Injective := fun i j e ↦ by
   exact strictMono_pell_fst.injective e
 
 lemma strongSSC_tupPell : StrongSSC (tupPell n F k) := by
-  apply strongSSC_tup (dvd_mul_left ..)
-  have p₁ : 0 < (pell (Y n F ^ 2) k).1 := pell_fst_pos
-  have p₂ : 0 < Y n F := Y_pos
-  positivity
+  apply strongSSC_tup
+  simp_rw [Int.natAbs_mul, Int.natAbs_natCast]
+  exact Nat.le_mul_of_pos_left _ pell_fst_pos
 
-include hn dF in
-lemma tupPell_mem_factorFreeTuples : tupPell n F k ∈ factorFreeTuples F (n + 5) := by
-  refine tup_mem_factorFreeTuples hn dF (dvd_mul_left ..) ?_
-  have p₁ : 0 < (pell (Y n F ^ 2) k).1 := pell_fst_pos
-  have p₂ : 0 < Y n F := Y_pos
-  positivity
+lemma tupPell_mem_factorFreeTuples (hn : Even n) (dF : Disjoint {0, 1, 2, 5, 10} F) :
+    tupPell n F k ∈ factorFreeTuples F (n + 5) := by
+  simp_rw [factorFreeTuples, Set.mem_setOf_eq, strongSSC_tupPell, tupPell, sum_tup, true_and]
+  exact ⟨pairwiseCoprime_tup hn (dvd_mul_left ..), not_dvd_tup (dvd_mul_left ..) dF⟩
 
 lemma maxAbs_tupPell : maxAbs (tupPell n F k) = ((pell (Y n F ^ 2) k).1 * Y n F + 1) ^ 5 :=
-  maxAbs_tup pell_fst_pos
+  maxAbs_tup (Nat.le_mul_of_pos_left _ pell_fst_pos)
 
 section Quality
 
@@ -141,10 +132,9 @@ lemma liminf_tupleQuality_tupPell : 5 / 3 ≤ liminf (tupleQuality ∘ tupPell n
   refine Tendsto.comp ?_ ttf
   apply Tendsto.congr' (f₁ := fun x ↦ 5 / (C * x⁻¹ + 3))
   · exact (eventually_ne_atTop 0).mp (.of_forall fun _ _ ↦ by field)
-  · refine Tendsto.div (by simp) ?_ three_ne_zero
-    apply zero_add (_ : ℝ) ▸ Tendsto.add_const ..
-    apply mul_zero (_ : ℝ) ▸ Tendsto.const_mul ..
-    exact tendsto_inv_atTop_zero
+  · refine tendsto_const_nhds.div ?_ three_ne_zero
+    nth_rw 2 [show 3 = C * 0 + 3 by simp]
+    exact (tendsto_inv_atTop_zero.const_mul _).add_const _
 
 end Quality
 
