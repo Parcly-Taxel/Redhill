@@ -2,9 +2,11 @@ import Redhill.BB94
 import Redhill.Common.Conjectures
 import Redhill.Common.MaxAbs
 import Redhill.Common.PairwiseCoprime
+import Redhill.Common.PrimeChain
 import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
 import Redhill.Common.VWPair
+import Redhill.General.Defs
 import Redhill.KonyaginPrelude
 import Redhill.Odd.Defs
 import Redhill.Odd.Main

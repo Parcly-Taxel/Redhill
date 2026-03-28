@@ -74,7 +74,11 @@ lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
     all_goals grind
   exact (Set.Finite.pi' fun _ ↦ Set.finite_Icc ..).subset sE
 
-variable {n : ℕ} {F : Finset ℕ}
+variable {n : ℕ} {F F' : Finset ℕ}
+
+lemma quality_factorFreeTuples_anti (hF : F ⊆ F') :
+    quality (factorFreeTuples F' n) ≤ quality (factorFreeTuples F n) :=
+  quality_mono fun _ ⟨h₁, h₂, h₃, h₄⟩ ↦ ⟨h₁, h₂, h₃, fun f mf ↦ h₄ f (hF mf)⟩
 
 lemma quality_factorFreeTuples_le_nConjectureTuples (hn : 2 ≤ n) :
     quality (factorFreeTuples F n) ≤ quality (nConjectureTuples n) :=
