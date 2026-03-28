@@ -78,11 +78,11 @@ variable {n : ℕ} {F : Finset ℕ}
 
 lemma quality_factorFreeTuples_le_nConjectureTuples (hn : 2 ≤ n) :
     quality (factorFreeTuples F n) ≤ quality (nConjectureTuples n) :=
-  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, SSC_of_strongSSC h₂, gcd_one_of_pairwiseCoprime hn h₃⟩
+  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, h₂.SSC, gcd_one_of_pairwiseCoprime hn h₃⟩
 
 lemma quality_factorFreeTuples_le_ramaekersTuples :
     quality (factorFreeTuples F n) ≤ quality (ramaekersTuples n) :=
-  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, SSC_of_strongSSC h₂, h₃⟩
+  quality_mono fun _ ⟨h₁, h₂, h₃, _⟩ ↦ ⟨h₁, h₂.SSC, h₃⟩
 
 lemma quality_ramaekersTuples_le_strongNConjectureTuples :
     quality (ramaekersTuples n) ≤ quality (strongNConjectureTuples n) :=

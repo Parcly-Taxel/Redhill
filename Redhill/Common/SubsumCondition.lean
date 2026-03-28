@@ -27,21 +27,8 @@ def StrongSSC : Prop :=
 
 variable {a}
 
-lemma StrongSSC.injective (h : StrongSSC a) : a.Injective := fun i j e ↦ by
-  unfold StrongSSC IsSubsumBlock at h
-  contrapose! h
-  refine ⟨fun k ↦ if k = i then pos else if k = j then neg else zero, ?_, fun c ↦ ?_⟩
-  · simp only [apply_ite SignType.cast, ite_mul]
-    rw [← Fintype.sum_subset (s := {i, j}) (fun k hk ↦ by contrapose! hk; simp_all), sum_pair h]
-    simp [h.symm, e]
-  · simp_rw [mem_univ, true_and]
-    match c with
-    | zero => exact ⟨i, by simp⟩
-    | neg => exact ⟨i, by simp⟩
-    | pos => exact ⟨j, by simp [h.symm]⟩
-
-lemma SSC_of_strongSSC (h : StrongSSC a) : SSC a := by
-  unfold SSC StrongSSC IsSubsumBlock at *
+lemma StrongSSC.SSC (h : StrongSSC a) : SSC a := by
+  unfold _root_.SSC StrongSSC IsSubsumBlock at *
   contrapose! h
   obtain ⟨b, n₁, n₂, hs⟩ := h
   refine ⟨fun i ↦ if i ∈ b then pos else zero, ?_, fun c ↦ ?_⟩
@@ -55,7 +42,7 @@ lemma SSC_of_strongSSC (h : StrongSSC a) : SSC a := by
     | neg => exact ⟨i₁, by simp_all⟩
     | pos => exact ⟨i₂, by simp_all⟩
 
-lemma ne_zero_of_SSC (hn : 2 ≤ n) (ha : SSC a) {i : Fin n} : a i ≠ 0 := by
+lemma SSC.ne_zero (ha : SSC a) (hn : 2 ≤ n) {i : Fin n} : a i ≠ 0 := by
   unfold SSC at ha
   contrapose! ha
   refine ⟨{i}, by simp, ?_, ?_⟩
@@ -63,10 +50,10 @@ lemma ne_zero_of_SSC (hn : 2 ≤ n) (ha : SSC a) {i : Fin n} : a i ≠ 0 := by
     exact Nat.zero_lt_sub_of_lt hn
   · rwa [sum_singleton]
 
-lemma ne_zero_of_strongSSC (hn : 2 ≤ n) (ha : StrongSSC a) {i : Fin n} : a i ≠ 0 :=
-  ne_zero_of_SSC hn (SSC_of_strongSSC ha)
+lemma StrongSSC.ne_zero (ha : StrongSSC a) (hn : 2 ≤ n) {i : Fin n} : a i ≠ 0 :=
+  ha.SSC.ne_zero hn
 
-lemma strongSSC_perm (e : Equiv.Perm (Fin n)) (h : StrongSSC a) : StrongSSC (a ∘ e) := fun b hs ↦ by
+lemma StrongSSC.perm (h : StrongSSC a) (e : Equiv.Perm (Fin n)) : StrongSSC (a ∘ e) := fun b hs ↦ by
   have : b = (b ∘ e.symm) ∘ e := by simp [Function.comp_assoc]
   conv_lhs at hs =>
     enter [2, i]
@@ -81,8 +68,48 @@ lemma strongSSC_perm (e : Equiv.Perm (Fin n)) (h : StrongSSC a) : StrongSSC (a �
   simpa using hc
 
 lemma strongSSC_perm_iff (e : Equiv.Perm (Fin n)) : StrongSSC a ↔ StrongSSC (a ∘ e) where
-  mp h := strongSSC_perm e h
-  mpr h := by simpa [Function.comp_assoc] using strongSSC_perm e.symm h
+  mp h := h.perm e
+  mpr h := by simpa [Function.comp_assoc] using h.perm e.symm
+
+lemma StrongSSC.injective (h : StrongSSC a) : a.Injective := fun i j e ↦ by
+  unfold StrongSSC IsSubsumBlock at h
+  contrapose! h
+  refine ⟨fun k ↦ if k = i then pos else if k = j then neg else zero, ?_, fun c ↦ ?_⟩
+  · simp only [apply_ite SignType.cast, ite_mul]
+    rw [← Fintype.sum_subset (s := {i, j}) (fun k hk ↦ by contrapose! hk; simp_all), sum_pair h]
+    simp [h.symm, e]
+  · simp_rw [mem_univ, true_and]
+    match c with
+    | zero => exact ⟨i, by simp⟩
+    | neg => exact ⟨i, by simp⟩
+    | pos => exact ⟨j, by simp [h.symm]⟩
+
+/-- Upstreamable to mathlib! [Mathlib.Algebra.BigOperators.Group.Finset.Basic] -/
+lemma Finset.natAbs_prod {ι : Type*} {s : Finset ι} {f : ι → ℤ} :
+    (∏ i ∈ s, f i).natAbs = ∏ i ∈ s, (f i).natAbs := by
+  classical
+  induction s using Finset.induction with simp_all [Int.natAbs_mul]
+
+lemma StrongSSC.one_lt_natAbs_prod (ha : StrongSSC a) (hn : 3 ≤ n) : 1 < (∏ i, a i).natAbs := by
+  rw [Finset.natAbs_prod]
+  have g (i : Fin n) : 1 ≤ (a i).natAbs := by
+    rw [Nat.one_le_iff_ne_zero, Int.natAbs_ne_zero]
+    exact ha.ne_zero (by lia)
+  refine (one_lt_prod_iff_of_one_le fun i _ ↦ g i).mpr ?_
+  simp_rw [mem_univ, true_and]
+  contrapose! ha
+  replace ha (i : Fin n) : a i = 1 ∨ a i = -1 := by
+    rw [← Int.natAbs_eq_natAbs_iff]
+    exact le_antisymm (ha _) (g _)
+  let nzn : NeZero n := ⟨by lia⟩
+  obtain h | h | h : a 0 = a 1 ∨ a 1 = a 2 ∨ a 2 = a 0 := by grind [ha 0, ha 1, ha 2]
+  all_goals
+    apply StrongSSC.injective.mt
+    rw [Function.not_injective_iff]
+    refine ⟨_, _, h, ?_⟩
+    simp_rw [Fin.ne_iff_vne, Fin.coe_ofNat_eq_mod]
+    rw [Nat.mod_eq_of_lt (by lia), Nat.mod_eq_of_lt (by lia)]
+    decide
 
 section TupReduce
 
@@ -206,30 +233,3 @@ theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (hk : k = n - #s)
     · exact ⟨Fin.last _, mem_univ _, by simpa⟩
 
 end IsSubsumBlock
-
-/-- Upstreamable to mathlib! [Mathlib.Algebra.BigOperators.Group.Finset.Basic] -/
-lemma Finset.natAbs_prod {ι : Type*} {s : Finset ι} {f : ι → ℤ} :
-    (∏ i ∈ s, f i).natAbs = ∏ i ∈ s, (f i).natAbs := by
-  classical
-  induction s using Finset.induction with simp_all [Int.natAbs_mul]
-
-lemma one_lt_natAbs_prod_of_strongSSC (hn : 3 ≤ n) (ha : StrongSSC a) : 1 < (∏ i, a i).natAbs := by
-  rw [Finset.natAbs_prod]
-  have g (i : Fin n) : 1 ≤ (a i).natAbs := by
-    rw [Nat.one_le_iff_ne_zero, Int.natAbs_ne_zero]
-    exact ne_zero_of_strongSSC (by lia) ha
-  refine (one_lt_prod_iff_of_one_le fun i _ ↦ g i).mpr ?_
-  simp_rw [mem_univ, true_and]
-  contrapose! ha
-  replace ha (i : Fin n) : a i = 1 ∨ a i = -1 := by
-    rw [← Int.natAbs_eq_natAbs_iff]
-    exact le_antisymm (ha _) (g _)
-  let nzn : NeZero n := ⟨by lia⟩
-  obtain h | h | h : a 0 = a 1 ∨ a 1 = a 2 ∨ a 2 = a 0 := by grind [ha 0, ha 1, ha 2]
-  all_goals
-    apply StrongSSC.injective.mt
-    rw [Function.not_injective_iff]
-    refine ⟨_, _, h, ?_⟩
-    simp_rw [Fin.ne_iff_vne, Fin.coe_ofNat_eq_mod]
-    rw [Nat.mod_eq_of_lt (by lia), Nat.mod_eq_of_lt (by lia)]
-    decide

@@ -107,7 +107,7 @@ lemma le_tupleQuality :
     exact Real.log_le_log (by rwa [Nat.cast_pos]) (by rw [Nat.cast_le]; exact Nat.le_succ _)
   · apply Real.log_pos
     rw [← Int.cast_one, Int.cast_lt, Int.one_lt_radical_iff]
-    exact one_lt_natAbs_prod_of_strongSSC (by lia) (strongSSC_tupPell)
+    exact strongSSC_tupPell.one_lt_natAbs_prod (by lia)
   · have cubenz : (x ^ 3 : ℝ) ≠ 0 := by
       apply pow_ne_zero
       rw [Nat.cast_ne_zero]

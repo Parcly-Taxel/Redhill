@@ -288,7 +288,7 @@ lemma le_tupleQuality :
         norm_num
   · apply log_pos
     rw [← Int.cast_one, Int.cast_lt, Int.one_lt_radical_iff]
-    exact one_lt_natAbs_prod_of_strongSSC (by lia) (strongSSC_tup _)
+    exact (strongSSC_tup _).one_lt_natAbs_prod (by lia)
   · exact log_radical_tup_le k
 
 open Filter in
