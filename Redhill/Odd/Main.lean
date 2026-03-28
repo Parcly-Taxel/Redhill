@@ -152,3 +152,11 @@ theorem quality_factorFreeTuples_ge_of_odd_of_disjoint
   apply quality_ge_of_liminf ⟨_, injective_tupPell (F := F)⟩
   · simp [tupPell_mem_factorFreeTuples pn dF, Set.infinite_univ]
   · exact liminf_tupleQuality_tupPell
+
+theorem not_ramaekersConjecture_odd_ge_five {n : ℕ} (hn : 5 ≤ n ∧ Odd n) :
+    ¬RamaekersConjecture n := by
+  have := quality_factorFreeTuples_ge_of_odd_of_disjoint hn (Finset.disjoint_empty_right _)
+    |>.trans quality_factorFreeTuples_le_ramaekersTuples
+  refine (lt_of_lt_of_le ?_ this).ne'
+  rw [ENNReal.lt_div_iff_mul_lt (by simp) (by simp)]
+  norm_num
