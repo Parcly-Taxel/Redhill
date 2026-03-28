@@ -40,7 +40,8 @@ def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .ofUM _ _ (by grind [U]) (by
 /-- We require `x` in `tup` to be a multiple of this number,
 an optimised version of the paper's `y`. -/
 def Y : ℕ :=
-  10 * F.prod id * (∏ i ∈ range n, primeChain (max 16 (F.sup id)) i) * (VW n F).v * (VW n F).w
+  10 * (F.erase 0).prod id *
+  (∏ i ∈ range n, primeChain (max 16 (F.sup id)) i) * (VW n F).v * (VW n F).w
 
 /-- The `(n + 5)`-tuple for fixed `n, F` that for infinitely many `x`
 belongs to `factorFreeTuples F n` **and** has quality tending to `5 / 3`,
@@ -81,9 +82,9 @@ lemma sum_tup : ∑ i, tup n F x i = 0 := by
     ← (VW n F).u_eq_sub, sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
   norm_num [U]
 
-section Coprime
-
 variable {i : Fin n}
+
+section Bounds
 
 lemma primeChain_lt_U : primeChain (max 16 (F.sup id)) i.1 < U n F :=
   (single_le_sum_of_canonicallyOrdered (by simp_all)).trans_lt (lt_add_of_pos_left _ (by decide))
@@ -97,8 +98,41 @@ lemma sixteen_lt_primeChain : 16 < primeChain (max 16 (F.sup id)) n :=
 lemma primeChain_mem_Icc : primeChain (max 16 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
   mem_Icc.mpr ⟨sixteen_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩
 
+lemma U_lt_V : U n F < (VW n F).v :=
+  calc
+    _ ≤ max (U n F) (F.sup id) := le_max_left ..
+    _ ≤ _ := le_primorial_self
+    _ < _ := (VW n F).ineq_chain.1
+
+lemma U_lt_W : U n F < (VW n F).w :=
+  U_lt_V.trans_le (VW n F).ineq_chain.2.1
+
+lemma V_lower_bound : 211 ≤ (VW n F).v :=
+  calc
+    _ = primorial 8 := by decide
+    _ ≤ primorial (max (U n F) (F.sup id)) := primorial_mono (by grind [U])
+    _ < _ := (VW n F).ineq_chain.1
+
+lemma W_lower_bound : 219 ≤ (VW n F).w := by
+  rw [← (eq_tsub_iff_add_eq_of_le (VW n F).ineq_chain.2.1).mp (VW n F).u_eq_sub]
+  grind [U, V_lower_bound]
+
+lemma Y_lower_bound : 462090 ≤ Y n F := by
+  rw [show 462090 = 10 * 1 * 1 * 211 * 219 by rfl, Y]
+  gcongr
+  · exact one_le_prod (by grind)
+  · exact one_le_prod (by grind [sixteen_lt_primeChain])
+  · exact V_lower_bound
+  · exact W_lower_bound
+
+lemma Y_pos : 0 < Y n F := by grind [Y_lower_bound]
+
+end Bounds
+
+section Coprime
+
 lemma dvd_of_Y_dvd (dx : ↑(Y n F) ∣ x) :
-    10 ∣ x ∧ (∀ f ∈ F, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 16 (F.sup id)) i.1) ∣ x) ∧
+    10 ∣ x ∧ (∀ f ∈ F.erase 0, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 16 (F.sup id)) i.1) ∣ x) ∧
     ↑(VW n F).v ∣ x ∧ ↑(VW n F).w ∣ x := by
   simp_rw [Y, cast_mul, cast_ofNat, cast_prod, id_eq] at dx
   simp_rw [← and_assoc]
@@ -222,7 +256,7 @@ lemma not_dvd_tup (dx : ↑(Y n F) ∣ x) (dF : Disjoint {0, 1, 2, 5, 10} F) :
     rw [tup_castAdd]
     exact_mod_cast (prime_def_lt'.mp prime_primeChain).2 _ (by lia) (lt_primeChain_of_mem_F hf)
   | right i =>
-    replace dx := (dvd_of_Y_dvd dx).2.1 _ hf
+    replace dx := (dvd_of_Y_dvd dx).2.1 f (by grind)
     fin_cases i <;> simp only [reduceFinMk]
     · rw [tup_natAdd_zero]
       norm_cast

@@ -1,6 +1,5 @@
 module
 
-public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Redhill.Odd.Pell
 public import Redhill.Odd.Subsum
 public import Redhill.Common.Conjectures
@@ -15,7 +14,7 @@ include hn dF in
 lemma tup_mem_factorFreeTuples {x : ℤ} (dx : ↑(Y n F) ∣ x) (nzx : x ≠ 0) :
     tup n F x ∈ factorFreeTuples F (n + 5) := by
   simp only [factorFreeTuples, Set.mem_setOf_eq, sum_tup, pairwiseCoprime_tup hn dx, true_and]
-  exact ⟨strongSSC_tup dx nzx (by grind), not_dvd_tup dx dF⟩
+  exact ⟨strongSSC_tup dx nzx, not_dvd_tup dx dF⟩
 
 variable (n F k) in
 /-- The sequence of `(n + 5)`-tuples **completely** contained in `factorFreeTuples F n`
@@ -23,38 +22,33 @@ variable (n F k) in
 def tupPell : Fin (n + 5) → ℤ :=
   tup n F ((pell (Y n F ^ 2) k).1 * Y n F)
 
-include dF in
 lemma injective_tupPell : (tupPell n F).Injective := fun i j e ↦ by
   replace e := congr($e (Fin.natAdd n 4))
   simp only [tupPell, tup_natAdd_four, neg_inj] at e
   norm_cast at e
-  have Yb : 431 ≤ Y n F := Y_lower_bound (by grind)
-  rw [pow_left_inj (by decide), add_left_inj, Nat.mul_left_inj (by lia)] at e
+  rw [pow_left_inj (by decide), add_left_inj, Nat.mul_left_inj Y_pos.ne'] at e
   exact strictMono_pell_fst.injective e
 
-include dF in
 lemma strongSSC_tupPell : StrongSSC (tupPell n F k) := by
-  refine strongSSC_tup (dvd_mul_left ..) ?_ (by grind)
+  apply strongSSC_tup (dvd_mul_left ..)
   have p₁ : 0 < (pell (Y n F ^ 2) k).1 := pell_fst_pos
-  have p₂ : 431 ≤ Y n F := Y_lower_bound (by grind)
+  have p₂ : 0 < Y n F := Y_pos
   positivity
 
 include hn dF in
 lemma tupPell_mem_factorFreeTuples : tupPell n F k ∈ factorFreeTuples F (n + 5) := by
   refine tup_mem_factorFreeTuples hn dF (dvd_mul_left ..) ?_
   have p₁ : 0 < (pell (Y n F ^ 2) k).1 := pell_fst_pos
-  have p₂ : 431 ≤ Y n F := Y_lower_bound (by grind)
+  have p₂ : 0 < Y n F := Y_pos
   positivity
 
-include dF in
 lemma maxAbs_tupPell : maxAbs (tupPell n F k) = ((pell (Y n F ^ 2) k).1 * Y n F + 1) ^ 5 :=
-  maxAbs_tup (by grind) pell_fst_pos
+  maxAbs_tup pell_fst_pos
 
 section Quality
 
 open UniqueFactorizationMonoid
 
-include dF in
 lemma radical_tupPell_dvd :
     ∃ C > 0, ∀ k, radical (∏ i, tupPell n F k i) ∣
       C * (((pell (Y n F ^ 2) k).1 * Y n F) ^ 2 - 1) * (pell (Y n F ^ 2) k).2 := by
@@ -62,14 +56,13 @@ lemma radical_tupPell_dvd :
     tup_natAdd_one, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, ← mul_assoc,
     mul_neg, neg_mul, neg_neg]
   set S : ℕ := (∏ i : Fin n, primeChain (max 16 (F.sup id)) i.1) * (VW n F).v * (VW n F).w * 10
-  have lbY : 431 ≤ Y n F := Y_lower_bound (by grind)
   have dS : S ∣ Y n F := by
     unfold S Y
     conv_rhs => simp only [mul_assoc, ← Fin.prod_univ_eq_prod_range]
     simp_rw [mul_comm 10, ← mul_assoc]
     iterate 3 apply mul_dvd_mul_right
     exact dvd_mul_left ..
-  have pS : 0 < S := Nat.pos_of_dvd_of_pos dS (by lia)
+  have pS : 0 < S := Nat.pos_of_dvd_of_pos dS Y_pos
   refine ⟨S * (Y n F ^ 2 + 1), mul_pos (mod_cast pS) (by positivity), fun k ↦ ?_⟩
   set x : ℤ := (pell (Y n F ^ 2) k).1 * Y n F
   rw [mul_right_comm _ ((x - 1) ^ 5), show (10 : ℤ) = (10 : ℕ) by rfl, ← Nat.cast_prod,
@@ -91,43 +84,39 @@ lemma _root_.Nat.one_lt_mul_iff' {m n : ℕ} : 1 < m * n ↔ 0 < m ∧ 1 < n ∨
   rw [Nat.one_lt_mul_iff]
   lia
 
-include dF in
 lemma radical_tupPell_le :
     ∃ C > 0, ∀ k, radical (∏ i, tupPell n F k i) ≤ C * ((pell (Y n F ^ 2) k).1 * Y n F) ^ 3 := by
-  obtain ⟨C, Cpos, hC⟩ := radical_tupPell_dvd (n := n) dF
+  obtain ⟨C, Cpos, hC⟩ := radical_tupPell_dvd (n := n)
   refine ⟨C, Cpos, fun k ↦ ?_⟩
-  have lbY : 431 ≤ Y n F := Y_lower_bound (by grind)
   have p₁ : 0 < ((pell (Y n F ^ 2) k).1 * Y n F : ℤ) ^ 2 - 1 := by
     rw [sub_pos, one_lt_sq_iff₀ (by positivity), ← Nat.cast_mul, Nat.one_lt_cast,
       Nat.one_lt_mul_iff']
-    exact .inl ⟨pell_fst_pos, by lia⟩
+    exact .inl ⟨pell_fst_pos, by grind [Y_lower_bound]⟩
   have p₂ : 0 < C * (((pell (Y n F ^ 2) k).1 * Y n F) ^ 2 - 1) * (pell (Y n F ^ 2) k).2 :=
     mul_pos (mul_pos Cpos p₁) (by simp [pell_snd_pos])
   apply (Int.le_of_dvd p₂ (hC k)).trans
   rw [pow_succ _ 2, mul_assoc]
   refine mul_le_mul_of_nonneg_left (mul_le_mul (by lia) ?_ (by simp) (by simp [sq_nonneg])) Cpos.le
   rw [← Nat.cast_mul, Nat.cast_le]
-  exact pell_snd_le_pell_fst.trans (by nlinarith)
+  exact pell_snd_le_pell_fst.trans (by nlinarith [@Y_lower_bound n F])
 
-include dF in
 lemma le_tupleQuality :
     ∃ C, ∀ k, .ofReal (5 * Real.log ((pell (Y n F ^ 2) k).1 * Y n F : ℕ) /
       (C + 3 * Real.log ((pell (Y n F ^ 2) k).1 * Y n F : ℕ))) ≤
     tupleQuality (tupPell n F k) := by
-  obtain ⟨C, Cpos, hC⟩ := radical_tupPell_le (n := n) dF
+  obtain ⟨C, Cpos, hC⟩ := radical_tupPell_le (n := n)
   refine ⟨Real.log C, fun k ↦ ?_⟩
-  have lbY : 431 ≤ Y n F := Y_lower_bound (by grind)
   apply ENNReal.ofReal_le_ofReal
-  rw [maxAbs_tupPell dF]
+  rw [maxAbs_tupPell]
   set x : ℕ := (pell (Y n F ^ 2) k).1 * Y n F
-  have xpos : 0 < x := mul_pos pell_fst_pos (by lia)
+  have xpos : 0 < x := mul_pos pell_fst_pos Y_pos
   apply div_le_div₀
   · positivity
   · rw [Nat.cast_pow, Real.log_pow, Nat.cast_ofNat, mul_le_mul_iff_right₀ (by simp)]
     exact Real.log_le_log (by rwa [Nat.cast_pos]) (by rw [Nat.cast_le]; exact Nat.le_succ _)
   · apply Real.log_pos
     rw [← Int.cast_one, Int.cast_lt, Int.one_lt_radical_iff]
-    exact one_lt_natAbs_prod_of_strongSSC (by lia) (strongSSC_tupPell dF)
+    exact one_lt_natAbs_prod_of_strongSSC (by lia) (strongSSC_tupPell)
   · have cubenz : (x ^ 3 : ℝ) ≠ 0 := by
       apply pow_ne_zero
       rw [Nat.cast_ne_zero]
@@ -136,10 +125,9 @@ lemma le_tupleQuality :
       ← Real.log_mul (by rw [Int.cast_ne_zero]; lia) cubenz]
     exact Real.log_le_log (mod_cast Int.radical_pos _) (mod_cast hC k)
 
-include dF in
 open Filter in
 lemma liminf_tupleQuality_tupPell : 5 / 3 ≤ liminf (tupleQuality ∘ tupPell n F) atTop := by
-  obtain ⟨C, hC⟩ := le_tupleQuality (n := n) dF
+  obtain ⟨C, hC⟩ := le_tupleQuality (n := n)
   refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall hC))
   have e₁ : (5 / 3 : ENNReal) = ENNReal.ofReal (5 / 3) := by
     simp [ENNReal.ofReal_div_of_pos zero_lt_three]
@@ -149,9 +137,7 @@ lemma liminf_tupleQuality_tupPell : 5 / 3 ≤ liminf (tupleQuality ∘ tupPell n
   change Tendsto ((fun x ↦ 5 * x / (C + 3 * x)) ∘ f) atTop (nhds (5 / 3))
   have ttf : Tendsto f atTop atTop := by
     refine Real.tendsto_log_atTop.comp (tendsto_natCast_atTop_atTop.comp ?_)
-    refine (strictMono_pell_fst.mul_const ?_).tendsto_atTop
-    have lbY : 431 ≤ Y n F := Y_lower_bound (by grind)
-    lia
+    refine (strictMono_pell_fst.mul_const Y_pos).tendsto_atTop
   refine Tendsto.comp ?_ ttf
   apply Tendsto.congr' (f₁ := fun x ↦ 5 / (C * x⁻¹ + 3))
   · exact (eventually_ne_atTop 0).mp (.of_forall fun _ _ ↦ by field)
@@ -173,6 +159,6 @@ theorem quality_factorFreeTuples_ge_of_odd_of_disjoint
   rw [le_iff_exists_add'] at hn
   obtain ⟨⟨n, rfl⟩, pn⟩ := hn
   replace pn : Even n := by grind
-  apply quality_ge_of_liminf ⟨_, injective_tupPell dF⟩
+  apply quality_ge_of_liminf ⟨_, injective_tupPell (F := F)⟩
   · simp [tupPell_mem_factorFreeTuples pn dF, Set.infinite_univ]
-  · exact liminf_tupleQuality_tupPell dF
+  · exact liminf_tupleQuality_tupPell

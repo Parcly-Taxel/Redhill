@@ -15,15 +15,6 @@ variable {n : ℕ} {F : Finset ℕ} {x : ℤ} (dx : ↑(Y n F) ∣ x) (nzx : x �
 def redEmb1 : Fin 3 ↪ Fin (n + 5) :=
   ⟨fun i ↦ (i.natAdd 2).natAdd n, fun i j h ↦ by simpa [natAdd_inj 2] using h⟩
 
-lemma U_lt_V : U n F < (VW n F).v :=
-  calc
-    _ ≤ max (U n F) (F.sup id) := le_max_left ..
-    _ ≤ _ := le_primorial_self
-    _ < _ := (VW n F).ineq_chain.1
-
-lemma U_lt_W : U n F < (VW n F).w :=
-  U_lt_V.trans_le (VW n F).ineq_chain.2.1
-
 lemma sum_redEmb1_compl :
     ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natAbs =
     (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i := by
@@ -47,7 +38,6 @@ lemma sum_redEmb1_compl :
   rw [s₂, sum_pair (by grind), tup_natAdd_zero, tup_natAdd_one, Int.natAbs_natCast,
     Int.natAbs_neg, Int.natAbs_natCast, sum_univ_eq_sum_range]
 
-include nF in
 lemma sum_redEmb1_compl_lt : ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natAbs < Y n F := by
   rw [sum_redEmb1_compl]
   calc
@@ -63,27 +53,11 @@ lemma sum_redEmb1_compl_lt : ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natA
       set P := ∏ i ∈ range n, primeChain (max 16 (F.sup id)) i
       calc
         _ = 1 * (P * (VW n F).v * (VW n F).w) := by ring
-        _ ≤ 10 * F.prod id * (P * (VW n F).v * (VW n F).w) := by
+        _ ≤ 10 * (F.erase 0).prod id * (P * (VW n F).v * (VW n F).w) := by
           gcongr
-          suffices 0 < F.prod id by lia
+          suffices 0 < (F.erase 0).prod id by lia
           exact prod_pos (by grind)
         _ = _ := by ring
-
-include nF in
-public lemma Y_lower_bound : 431 ≤ Y n F := by
-  apply (sum_redEmb1_compl_lt (x := 0) nF).trans_le'
-  rw [sum_redEmb1_compl]
-  calc
-    _ = 2 * (primorial 8 + 1) + 8 := by decide
-    _ ≤ 2 * (primorial (U n F) + 1) + 8 := by
-      gcongr
-      exact primorial_mono (by grind [U])
-    _ ≤ 2 * (VW n F).v + U n F := by
-      gcongr
-      · rw [Nat.add_one_le_iff]
-        exact (primorial_mono (le_max_left ..)).trans_lt (VW n F).ineq_chain.1
-      · grind [U]
-    _ ≤ _ := by grind [(VW n F).ineq_chain, (VW n F).u_eq_sub]
 
 section Inequalities
 
@@ -178,13 +152,13 @@ lemma natAbs_le_redEmb1_reduced {b₁ b₂ : SignType} (h : b₁ ≠ b₂) (hx :
         lia
   · cases b₁ <;> simp [hx]
 
-include dx nzx nF in
+include dx nzx in
 lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b₁ ≠ b₃) :
     Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs := by
-  have xlb : 431 ≤ x.natAbs := by
+  have xlb : 462090 ≤ x.natAbs := by
     have := Int.natAbs_le_of_dvd_ne_zero dx nzx
     rw [Int.natAbs_natCast] at this
-    exact (Y_lower_bound nF).trans this
+    exact Y_lower_bound.trans this
   by_cases hb₁₃ : b₁ ≠ b₃
   · clear h
     wlog h : b₃ < b₁ generalizing b₁ b₂ b₃
@@ -205,7 +179,6 @@ lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b�
   apply (natAbs_le_redEmb1_reduced h (by lia)).trans'
   exact Nat.le_of_dvd (Int.natAbs_pos.mpr nzx) (Int.natCast_dvd.mp dx)
 
-include nF in
 /-- When `x` is a positive multiple of `Y n F`, the maximum absolute value is `(x + 1) ^ 5`. -/
 public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
     maxAbs (tup n F (m * Y n F)) = (m * Y n F + 1) ^ 5 := by
@@ -220,7 +193,7 @@ public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
   have xb : Y n F ≤ (x : ℤ).natAbs := by
     rw [← one_mul (Y n F), Int.natAbs_natCast]
     exact mul_le_mul_left hm _
-  have Yb : 431 ≤ Y n F := Y_lower_bound nF
+  have Yb : 462090 ≤ Y n F := Y_lower_bound
   have key₁ : Y n F ≤ ((x + 1 : ℤ) ^ 5).natAbs := by
     refine (xb.trans ?_).trans (b₃_lower_bound (by lia))
     nth_rw 1 [Int.natAbs_natCast, Int.natAbs_natCast, show x = 1 * x ^ 1 by simp]
@@ -228,7 +201,7 @@ public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
   have key₂ :
       (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i < Y n F := by
     rw [← sum_redEmb1_compl (x := x)]
-    exact sum_redEmb1_compl_lt nF
+    exact sum_redEmb1_compl_lt
   cases i using addCases with
   | left i =>
     rw [tup_castAdd, Int.natAbs_natCast]
@@ -254,19 +227,19 @@ public lemma maxAbs_tup {m : ℕ} (hm : 0 < m) :
 
 end Inequalities
 
-include dx nzx nF in
+include dx nzx in
 lemma isSubsumBlock_redEmb1 : IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
   refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
   conv_rhs => rw [redEmb1, sum_univ_three]
   simp only [Function.Embedding.coeFn_mk, reduceNatAdd,
     tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
-  apply (sum_redEmb1_compl_lt nF).trans_le
+  apply sum_redEmb1_compl_lt.trans_le
   suffices ∀ {b₁ b₂ b₃ : SignType}, b₁ ≠ b₂ ∨ b₁ ≠ b₃ →
       Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs by
     apply this
     contrapose! ncb
     exact ⟨b 0, fun i ↦ by fin_cases i <;> tauto⟩
-  exact Y_le_natAbs_redEmb1 dx nzx nF
+  exact Y_le_natAbs_redEmb1 dx nzx
 
 variable (n F) in
 /-- The `(n + 5)`-tuple after combining the indices involving `x`,
@@ -458,10 +431,10 @@ lemma strongSSC_redTup2 : StrongSSC (redTup2 n F) := by
     apply isSubsumBlock_redEmb3.strongSSC_tupReduce c
     rwa [tupReduce_redTup2]
 
-include dx nzx nF in
+include dx nzx in
 public theorem strongSSC_tup : StrongSSC (tup n F x) := by
   have c₁ : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
-  apply (isSubsumBlock_redEmb1 dx nzx nF).strongSSC_tupReduce c₁
+  apply (isSubsumBlock_redEmb1 dx nzx).strongSSC_tupReduce c₁
   rw [tupReduce_tup]
   have c₂ : n + 1 = n + 3 - #{natAdd n (0 : Fin 3), natAdd n 1} := by simp
   apply isSubsumBlock_redEmb2.strongSSC_tupReduce c₂
