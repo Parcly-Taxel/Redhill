@@ -1,14 +1,11 @@
 module
 
-public import Mathlib.Algebra.BigOperators.Ring.Nat
-public import Redhill.Common.PairwiseCoprime
+public import Mathlib.FieldTheory.Finite.Basic
 public import Redhill.Common.PrimeChain
 public import Redhill.Common.VWPair
-public import Redhill.ToMathlib.Coprime
 
 /-!
-In this section `l ≥ 11` is an upper bound on F, i.e. wlog `F = Icc 3 l`,
-while `h` is the variable such that `tup n l h ∈ factorFreeTuples F (n + 6)`
+In this section `h` is the variable such that `tup n F h ∈ factorFreeTuples F (n + 6)`
 for sufficiently large `h`.
 -/
 
@@ -18,23 +15,203 @@ namespace GeneralCase
 
 open Nat Fin Finset
 
-variable (n l h : ℕ)
+variable (n : ℕ) (F : Finset ℕ) (h : ℕ)
 
-/-- `y` in the paper, fixing `t = 102`. -/
-def Y : ℕ := 102 * l !
+/-- An optimised version of the paper's `y`. -/
+def Y : ℕ := 66 * (F.erase 0).prod id
 
-/-- `x` in the paper. -/
-def X : ℕ := (Y l + 1) ^ h !
+/-- `x` in the paper, but using the optimised `y`. -/
+def X : ℕ := (Y F + 1) ^ h !
 
-/-- Sufficient conditions for `tup n l h ∈ factorFreeTuples F (n + 6)`. -/
-structure Conditions : Prop where
-  /-- `l ≥ 11` -/
-  l_ge : 11 ≤ l
-  /-- `x ≡ 1` mod `10y+1` -/
-  X_modEq_succ : X l h ≡ 1 [MOD (10 * Y l + 1)]
-  /-- `x ≡ 1` mod `10y-1` -/
-  X_modEq_pred : X l h ≡ 1 [MOD (10 * Y l - 1)]
+lemma Y_lower_bound {F} : 66 ≤ Y F := by
+  rw [← mul_one 66]
+  exact _root_.mul_le_mul_right (one_le_prod (by grind)) _
 
-variable {n l h}
+lemma Y_pos {F} : 0 < Y F := by grind [Y_lower_bound]
+
+lemma Y_lt_X {F h} : Y F < X F h :=
+  (lt_add_one _).trans_le (le_self_pow (factorial_ne_zero h) _)
+
+/-- The sum of `tup` over all indices save `n` and `n + 1`, i.e. the input `u` to `VWPair`. -/
+def U : ℕ := (100 * Y F - 2) * Y F ^ 5 + ∑ i ∈ range n, primeChain (200 * Y F ^ 6) i
+
+lemma U_lower_bound {n F} : (100 * 66 - 2) * 66 ^ 5 ≤ U n F := by
+  apply (Nat.le_add_right ..).trans'
+  gcongr <;> exact Y_lower_bound
+
+lemma U_pos {n F} : 0 < U n F := by grind [U_lower_bound]
+
+/-- The `VWPair` generated from the inputs `u = m = U n F`. -/
+def VW : VWPair (U n F) (U n F) := .ofUM _ _ (by grind [U_pos]) (by grind [U_lower_bound])
+
+/-- The sequence of `(n + 6)`-tuples whose tail is in `factorFreeTuples`
+and has quality tending to `5 / 4`. -/
+def tup (i : Fin (n + 6)) : ℤ :=
+  i.addCases (primeChain (200 * Y F ^ 6) ·.1) fun
+    | 0 => (VW n F).v
+    | 1 => -(VW n F).w
+    | 2 => (X F h ^ 2 + 10 * Y F ^ 3) ^ 2
+    | 3 => (10 * Y F - 1) * X F h ^ 4
+    | 4 => (X F h - Y F) ^ 5
+    | 5 => -(X F h + Y F) ^ 5
+
+variable {n F h}
+
+@[simp] lemma tup_castAdd {i : Fin n} :
+    tup n F h (i.castAdd 6) = primeChain (200 * Y F ^ 6) i.1 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_zero : tup n F h (natAdd n 0) = (VW n F).v := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_one : tup n F h (natAdd n 1) = -(VW n F).w := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_two : tup n F h (natAdd n 2) = (X F h ^ 2 + 10 * Y F ^ 3) ^ 2 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_three : tup n F h (natAdd n 3) = (10 * Y F - 1) * X F h ^ 4 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_four : tup n F h (natAdd n 4) = (X F h - Y F) ^ 5 := by
+  simp [tup]
+
+@[simp] lemma tup_natAdd_five : tup n F h (natAdd n 5) = -(X F h + Y F) ^ 5 := by
+  simp [tup]
+
+lemma sum_tup : ∑ i, tup n F h i = 0 := by
+  simp only [tup, sum_univ_add, addCases_left, addCases_right, sum_univ_six, add_assoc]
+  set x := X F h
+  set y := Y F
+  rw [show (x ^ 2 + 10 * y ^ 3) ^ 2 + ((10 * y - 1 : ℤ) * x ^ 4 + ((x - y) ^ 5 + -(x + y) ^ 5)) =
+    (100 * y - 2) * y ^ 5 by ring, ← add_assoc _ _ (_ * _), ← sub_eq_add_neg, ← neg_sub,
+    ← cast_sub (VW n F).ineq_chain.2.1, ← (VW n F).u_eq_sub,
+    sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ)), ← cast_sum]
+  grind [U]
+
+lemma dvd_Y : (2 ∣ Y F ∧ 3 ∣ Y F) ∧ 11 ∣ Y F ∧ ∀ f ∈ F.erase 0, f ∣ Y F :=
+  ⟨⟨dvd_mul_of_dvd_left (by decide) _, dvd_mul_of_dvd_left (by decide) _⟩,
+    dvd_mul_of_dvd_left (by decide) _, fun f mf ↦ (dvd_prod_of_mem _ mf).mul_left _⟩
+
+lemma odd_X : Odd (X F h) :=
+  (even_iff_two_dvd.mpr dvd_Y.1.1).add_one.pow
+
+section Factors
+
+variable {f : ℕ} (mf : f ∈ F)
+
+include mf
+
+lemma X_modEq_one_of_mem_F (lf : 3 ≤ f) : X F h ≡ 1 [MOD f] := by
+  unfold X
+  nth_rw 2 [← one_pow (h !)]
+  apply ModEq.pow
+  rw [add_modEq_right_iff]
+  exact dvd_Y.2.2 f (by grind)
+
+lemma le_Y_of_mem_F : f ≤ Y F :=
+  calc
+    _ ≤ (F.erase 0).prod id := by
+      obtain rfl | f0 := eq_or_ne f 0
+      · simp
+      · exact single_le_prod' (f := id) (by grind) (by simp_all)
+    _ ≤ _ := by grind [Y]
+
+lemma lt_primeChain_of_mem_F : f < primeChain (200 * Y F ^ 6) n :=
+  calc
+    _ ≤ 1 * Y F := by simp [le_Y_of_mem_F mf]
+    _ ≤ 200 * Y F ^ 6 := mul_le_mul' (by decide) (le_self_pow (by decide) _)
+    _ < _ := primeChain_zero_gt
+    _ ≤ _ := strictMono_primeChain.monotone (Nat.zero_le _)
+
+lemma le_U_of_mem_F : f ≤ U n F :=
+  calc
+    _ ≤ 1 * Y F := by simp [le_Y_of_mem_F mf]
+    _ ≤ (100 * Y F - 2) * Y F ^ 5 := mul_le_mul' (by grind [Y_pos]) (le_self_pow (by decide) _)
+    _ ≤ _ := by grind [U]
+
+theorem not_dvd_tup (lf : 3 ≤ f) (i) : ¬↑f ∣ tup n F h i := by
+  cases i using Fin.addCases with
+  | left i =>
+    rw [tup_castAdd, Int.natCast_dvd_natCast]
+    exact (prime_def_lt'.mp prime_primeChain).2 _ (by lia) (lt_primeChain_of_mem_F mf)
+  | right i =>
+    have df : f ∣ Y F := dvd_Y.2.2 f (by grind)
+    have ndp4 : ¬f ∣ X F h ^ 4 := by
+      have : X F h ^ 4 % f = 1 := mod_eq_of_modEq ((X_modEq_one_of_mem_F mf lf).pow 4) (by lia)
+      rw [dvd_iff_mod_eq_zero, this]
+      decide
+    fin_cases i <;> simp only [reduceFinMk]
+    · rw [tup_natAdd_zero, Int.natCast_dvd_natCast]
+      exact ((VW n F).not_dvd _ (mem_Icc.mpr ⟨lf, le_U_of_mem_F mf⟩)).1
+    · rw [tup_natAdd_one, dvd_neg, Int.natCast_dvd_natCast]
+      exact ((VW n F).not_dvd _ (mem_Icc.mpr ⟨lf, le_U_of_mem_F mf⟩)).2
+    · rw [tup_natAdd_two]
+      norm_cast
+      rwa [show (X F h ^ 2 + 10 * Y F ^ 3) ^ 2 =
+        X F h ^ 4 + (20 * X F h ^ 2 * Y F ^ 2 + 100 * Y F ^ 5) * Y F by ring,
+        Nat.dvd_add_left (df.mul_left _)]
+    · rw [tup_natAdd_three, sub_one_mul, ← mul_rotate, dvd_sub_right (mod_cast df.mul_left _)]
+      exact_mod_cast ndp4
+    · rw [tup_natAdd_four]
+      have key := X_modEq_one_of_mem_F (h := h) mf lf
+      rw [← Int.natCast_modEq_iff] at key
+      replace key := (Int.add_modEq_left_iff (b := -Y F)).mpr
+        (by rwa [dvd_neg, Int.natCast_dvd_natCast]) |>.trans key
+      replace key := key.pow 5
+      rw [← sub_eq_add_neg, cast_one, one_pow] at key
+      rw [← Int.modEq_zero_iff_dvd]
+      by_contra hc
+      replace hc : 0 % (f : ℤ) = 1 % f := hc.symm.trans key
+      iterate 2 rw [Int.emod_eq_of_lt (by lia) (by lia)] at hc
+      simp at hc
+    · rw [tup_natAdd_five, dvd_neg]
+      norm_cast
+      have key := X_modEq_one_of_mem_F (h := h) mf lf
+      replace key := ((add_modEq_left_iff.mpr df).trans key).pow 5
+      rw [dvd_iff_mod_eq_zero, mod_eq_of_modEq key (by lia)]
+      decide
+
+end Factors
+
+lemma X_coprime_Y : (X F h).Coprime (Y F) := by
+  rw [X, coprime_pow_left_iff (factorial_pos _), coprime_self_add_left]
+  exact coprime_one_left _
+
+lemma Yp1_coprime_10Yp1 : (Y F + 1).Coprime (10 * Y F + 1) := by
+  rw [show 10 * Y F + 1 = Y F + 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
+  refine (Coprime.pow_right _ ?_).mul_right (by simp)
+  rw [coprime_comm, prime_three.coprime_iff_not_dvd]
+  grind [dvd_Y.1.2]
+
+lemma Yp1_coprime_10Ym1 : (Y F + 1).Coprime (10 * Y F - 1) := by
+  rw [← coprime_self_add_right, show Y F + 1 + (10 * Y F - 1) = 11 * Y F by grind [Y_pos]]
+  refine Coprime.mul_right ?_ (by simp)
+  rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
+  grind [dvd_Y.2.1]
+
+lemma Ym1_coprime_10Ym1 : (Y F - 1).Coprime (10 * Y F - 1) := by
+  rw [show 10 * Y F - 1 = Y F - 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
+  refine (Coprime.pow_right _ ?_).mul_right ?_
+  · rw [coprime_comm, prime_three.coprime_iff_not_dvd]
+    grind [Y_pos, dvd_Y.1.2]
+  · rw [← sub_one_add_one Y_pos.ne']
+    simp
+
+open Filter
+
+lemma eventually_X_modEq_10Yp1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F + 1] := by
+  refine eventually_atTop.mpr ⟨φ (10 * Y F + 1), fun k hk ↦ ?_⟩
+  have meq := ModEq.pow_totient (@Yp1_coprime_10Yp1 F)
+  obtain ⟨d, hd⟩ := dvd_factorial (by positivity) hk
+  replace meq := meq.pow d
+  rwa [← pow_mul, ← hd, one_pow] at meq
+
+lemma eventually_X_modEq_10Ym1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F - 1] := by
+  refine eventually_atTop.mpr ⟨φ (10 * Y F - 1), fun k hk ↦ ?_⟩
+  have meq := ModEq.pow_totient (@Yp1_coprime_10Ym1 F)
+  obtain ⟨d, hd⟩ := dvd_factorial (by grind [totient_pos, Y_pos]) hk
+  replace meq := meq.pow d
+  rwa [← pow_mul, ← hd, one_pow] at meq
 
 end GeneralCase

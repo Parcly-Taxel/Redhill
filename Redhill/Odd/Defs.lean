@@ -26,9 +26,8 @@ def Y : ℕ :=
   10 * (F.erase 0).prod id *
   (∏ i ∈ range n, primeChain (max 16 (F.sup id)) i) * (VW n F).v * (VW n F).w
 
-/-- The `(n + 5)`-tuple for fixed `n, F` that for infinitely many `x`
-belongs to `factorFreeTuples F n` **and** has quality tending to `5 / 3`,
-assuming `n` is odd and `0, 1, 2, 5, 10 ∉ F`. -/
+/-- The sequence of `(n + 5)`-tuples containing an infinite subsequence in `factorFreeTuples`
+whose qualities tend to `5 / 3`, assuming `n` is even and `0, 1, 2, 5, 10 ∉ F`. -/
 def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
   i.addCases (primeChain (max 16 (F.sup id)) ·.1) fun
     | 0 => (VW n F).v
