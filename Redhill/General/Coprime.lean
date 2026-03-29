@@ -10,10 +10,76 @@ namespace GeneralCase
 
 open Fin Filter IsCoprime
 
-variable {n : ℕ} {F : Finset ℕ}
+variable {n : ℕ} {F : Finset ℕ} {h : ℕ}
 
-lemma isCoprime_natAdd_four_five {h : ℕ} :
-    IsCoprime (tup n F h (natAdd n 4)) (tup n F h (natAdd n 5)) := by
+lemma even_Y : Even (Y F) := even_iff_two_dvd.mpr (dvd_mul_of_dvd_left (by decide) _)
+lemma three_dvd_Y : 3 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma ten_dvd_Y : 10 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma eleven_dvd_Y : 11 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma hundredone_dvd_Y : 101 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma odd_X : Odd (X F h) := even_Y.add_one.pow
+
+section Helpers
+
+open Nat
+
+lemma X_coprime_Y : (X F h).Coprime (Y F) := by
+  apply Coprime.pow_left
+  simp
+
+lemma Yp1_coprime_10Yp1 : (Y F + 1).Coprime (10 * Y F + 1) := by
+  rw [show 10 * Y F + 1 = Y F + 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
+  refine (Coprime.pow_right _ ?_).mul_right (by simp)
+  rw [coprime_comm, prime_three.coprime_iff_not_dvd]
+  grind [three_dvd_Y]
+
+lemma Yp1_coprime_10Ym1 : (Y F + 1).Coprime (10 * Y F - 1) := by
+  rw [← coprime_self_add_right, show Y F + 1 + (10 * Y F - 1) = 11 * Y F by grind [Y_pos]]
+  refine Coprime.mul_right ?_ (by simp)
+  rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
+  grind [eleven_dvd_Y]
+
+lemma Ym1_coprime_10Yp1 : (Y F - 1).Coprime (10 * Y F + 1) := by
+  rw [← coprime_self_add_right, show Y F - 1 + (10 * Y F + 1) = 11 * Y F by grind [Y_pos]]
+  refine Coprime.mul_right ?_ ?_
+  · rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
+    grind [Y_pos, eleven_dvd_Y]
+  · rw [← sub_one_add_one Y_pos.ne']
+    simp
+
+lemma Ym1_coprime_10Ym1 : (Y F - 1).Coprime (10 * Y F - 1) := by
+  rw [show 10 * Y F - 1 = Y F - 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
+  refine (Coprime.pow_right _ ?_).mul_right ?_
+  · rw [coprime_comm, prime_three.coprime_iff_not_dvd]
+    grind [Y_pos, three_dvd_Y]
+  · rw [← sub_one_add_one Y_pos.ne']
+    simp
+
+/-- Given `Q` independent of `h` with `Y F + 1` coprime to `Q F`,
+`X F h ≡ 1` mod `Q F` for sufficiently large `h`. -/
+lemma eventually_X_modEq_one_of_coprime (Q : Finset ℕ → ℕ) (hQ : (Y F + 1).Coprime (Q F)) :
+    ∀ᶠ h in atTop, X F h ≡ 1 [MOD Q F] := by
+  refine eventually_atTop.mpr ⟨φ (Q F), fun k hk ↦ ?_⟩
+  have meq := ModEq.pow_totient hQ
+  have tpos : 0 < φ (Q F) := by
+    rw [totient_pos]
+    contrapose! hQ
+    rw [le_zero] at hQ
+    rw [hQ, Nat.gcd_zero_right]
+    grind [Y_pos]
+  obtain ⟨d, hd⟩ := dvd_factorial tpos hk
+  replace meq := meq.pow d
+  rwa [← pow_mul, ← hd, one_pow] at meq
+
+lemma eventually_X_modEq_10Yp1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F + 1] :=
+  eventually_X_modEq_one_of_coprime (10 * Y · + 1) Yp1_coprime_10Yp1
+
+lemma eventually_X_modEq_10Ym1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F - 1] :=
+  eventually_X_modEq_one_of_coprime (10 * Y · - 1) Yp1_coprime_10Ym1
+
+end Helpers
+
+lemma isCoprime_natAdd_four_five : IsCoprime (tup n F h (natAdd n 4)) (tup n F h (natAdd n 5)) := by
   rw [tup_natAdd_four, tup_natAdd_five]
   apply (pow_left ?_).pow_right.neg_right
   rw [← add_mul_right_left_iff (z := -1)]
