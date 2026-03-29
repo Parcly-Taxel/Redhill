@@ -18,13 +18,13 @@ open Nat Fin Finset
 variable (n : ℕ) (F : Finset ℕ) (h : ℕ)
 
 /-- An optimised version of the paper's `y`. -/
-def Y : ℕ := 66 * (F.erase 0).prod id
+def Y : ℕ := 33330 * (F.erase 0).prod id
 
 /-- `x` in the paper, but using the optimised `y`. -/
 def X : ℕ := (Y F + 1) ^ h !
 
-lemma Y_lower_bound {F} : 66 ≤ Y F := by
-  rw [← mul_one 66]
+lemma Y_lower_bound {F} : 33330 ≤ Y F := by
+  rw [← mul_one 33330]
   exact _root_.mul_le_mul_right (one_le_prod (by grind)) _
 
 lemma Y_pos {F} : 0 < Y F := by grind [Y_lower_bound]
@@ -35,7 +35,7 @@ lemma Y_lt_X {F h} : Y F < X F h :=
 /-- The sum of `tup` over all indices save `n` and `n + 1`, i.e. the input `u` to `VWPair`. -/
 def U : ℕ := (100 * Y F - 2) * Y F ^ 5 + ∑ i ∈ range n, primeChain (200 * Y F ^ 6) i
 
-lemma U_lower_bound {n F} : (100 * 66 - 2) * 66 ^ 5 ≤ U n F := by
+lemma U_lower_bound {n F} : (100 * 33330 - 2) * 33330 ^ 5 ≤ U n F := by
   apply (Nat.le_add_right ..).trans'
   gcongr <;> exact Y_lower_bound
 
@@ -89,16 +89,12 @@ lemma sum_tup : ∑ i, tup n F h i = 0 := by
     sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ)), ← cast_sum]
   grind [U]
 
-lemma dvd_Y : (2 ∣ Y F ∧ 3 ∣ Y F) ∧ 11 ∣ Y F ∧ ∀ f ∈ F.erase 0, f ∣ Y F :=
-  ⟨⟨dvd_mul_of_dvd_left (by decide) _, dvd_mul_of_dvd_left (by decide) _⟩,
-    dvd_mul_of_dvd_left (by decide) _, fun f mf ↦ (dvd_prod_of_mem _ mf).mul_left _⟩
-
-lemma odd_X : Odd (X F h) :=
-  (even_iff_two_dvd.mpr dvd_Y.1.1).add_one.pow
-
 section Factors
 
 variable {f : ℕ} (mf : f ∈ F)
+
+lemma dvd_Y_of_mem_F (mf : f ∈ F.erase 0) : f ∣ Y F :=
+  (dvd_prod_of_mem _ mf).mul_left _
 
 include mf
 
@@ -107,7 +103,7 @@ lemma X_modEq_one_of_mem_F (lf : 3 ≤ f) : X F h ≡ 1 [MOD f] := by
   nth_rw 2 [← one_pow (h !)]
   apply ModEq.pow
   rw [add_modEq_right_iff]
-  exact dvd_Y.2.2 f (by grind)
+  exact dvd_Y_of_mem_F (by grind)
 
 lemma le_Y_of_mem_F : f ≤ Y F :=
   calc
@@ -136,7 +132,7 @@ theorem not_dvd_tup (lf : 3 ≤ f) (i) : ¬↑f ∣ tup n F h i := by
     rw [tup_castAdd, Int.natCast_dvd_natCast]
     exact (prime_def_lt'.mp prime_primeChain).2 _ (by lia) (lt_primeChain_of_mem_F mf)
   | right i =>
-    have df : f ∣ Y F := dvd_Y.2.2 f (by grind)
+    have df : f ∣ Y F := dvd_Y_of_mem_F (by grind)
     have ndp4 : ¬f ∣ X F h ^ 4 := by
       have : X F h ^ 4 % f = 1 := mod_eq_of_modEq ((X_modEq_one_of_mem_F mf lf).pow 4) (by lia)
       rw [dvd_iff_mod_eq_zero, this]
@@ -174,27 +170,42 @@ theorem not_dvd_tup (lf : 3 ≤ f) (i) : ¬↑f ∣ tup n F h i := by
 
 end Factors
 
+lemma even_Y : Even (Y F) := even_iff_two_dvd.mpr (dvd_mul_of_dvd_left (by decide) _)
+lemma three_dvd_Y : 3 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma ten_dvd_Y : 10 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma eleven_dvd_Y : 11 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma hundredone_dvd_Y : 101 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
+lemma odd_X : Odd (X F h) := even_Y.add_one.pow
+
 lemma X_coprime_Y : (X F h).Coprime (Y F) := by
-  rw [X, coprime_pow_left_iff (factorial_pos _), coprime_self_add_left]
-  exact coprime_one_left _
+  apply Coprime.pow_left
+  simp
 
 lemma Yp1_coprime_10Yp1 : (Y F + 1).Coprime (10 * Y F + 1) := by
   rw [show 10 * Y F + 1 = Y F + 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
   refine (Coprime.pow_right _ ?_).mul_right (by simp)
   rw [coprime_comm, prime_three.coprime_iff_not_dvd]
-  grind [dvd_Y.1.2]
+  grind [three_dvd_Y]
 
 lemma Yp1_coprime_10Ym1 : (Y F + 1).Coprime (10 * Y F - 1) := by
   rw [← coprime_self_add_right, show Y F + 1 + (10 * Y F - 1) = 11 * Y F by grind [Y_pos]]
   refine Coprime.mul_right ?_ (by simp)
   rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
-  grind [dvd_Y.2.1]
+  grind [eleven_dvd_Y]
+
+lemma Ym1_coprime_10Yp1 : (Y F - 1).Coprime (10 * Y F + 1) := by
+  rw [← coprime_self_add_right, show Y F - 1 + (10 * Y F + 1) = 11 * Y F by grind [Y_pos]]
+  refine Coprime.mul_right ?_ ?_
+  · rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
+    grind [Y_pos, eleven_dvd_Y]
+  · rw [← sub_one_add_one Y_pos.ne']
+    simp
 
 lemma Ym1_coprime_10Ym1 : (Y F - 1).Coprime (10 * Y F - 1) := by
   rw [show 10 * Y F - 1 = Y F - 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
   refine (Coprime.pow_right _ ?_).mul_right ?_
   · rw [coprime_comm, prime_three.coprime_iff_not_dvd]
-    grind [Y_pos, dvd_Y.1.2]
+    grind [Y_pos, three_dvd_Y]
   · rw [← sub_one_add_one Y_pos.ne']
     simp
 
