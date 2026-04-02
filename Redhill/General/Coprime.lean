@@ -4,26 +4,33 @@ public import Redhill.Common.PairwiseCoprime
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.Coprime
 
+/-!
+In the paper it is claimed in the proof of coprimality of `a₃` and `a₄` over there –
+`isCoprime_natAdd_two_three` here – that "as 101 is prime and `10y - 1 > 101`,
+they have no common factor". This is not always true even with the paper's definition of `y`,
+but can be made so by adding 101 to the factors of `y`.
+-/
+
 @[expose] public section
 
 namespace GeneralCase
 
 open Fin Filter IsCoprime
 
-variable {n : ℕ} {F : Finset ℕ} {h : ℕ}
+variable {n : ℕ} {F : Finset ℕ}
 
 lemma even_Y : Even (Y F) := even_iff_two_dvd.mpr (dvd_mul_of_dvd_left (by decide) _)
 lemma three_dvd_Y : 3 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
 lemma ten_dvd_Y : 10 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
 lemma eleven_dvd_Y : 11 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
 lemma hundredone_dvd_Y : 101 ∣ Y F := dvd_mul_of_dvd_left (by decide) _
-lemma odd_X : Odd (X F h) := even_Y.add_one.pow
+lemma odd_X {h : ℕ} : Odd (X F h) := even_Y.add_one.pow
 
 section Helpers
 
 open Nat
 
-lemma X_coprime_Y : (X F h).Coprime (Y F) := by
+lemma X_coprime_Y {h : ℕ} : (X F h).Coprime (Y F) := by
   apply Coprime.pow_left
   simp
 
@@ -79,7 +86,8 @@ lemma eventually_X_modEq_10Ym1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F - 
 
 end Helpers
 
-lemma isCoprime_natAdd_four_five : IsCoprime (tup n F h (natAdd n 4)) (tup n F h (natAdd n 5)) := by
+lemma isCoprime_natAdd_four_five {h : ℕ} :
+    IsCoprime (tup n F h (natAdd n 4)) (tup n F h (natAdd n 5)) := by
   rw [tup_natAdd_four, tup_natAdd_five]
   apply (pow_left ?_).pow_right.neg_right
   rw [← add_mul_right_left_iff (z := -1)]

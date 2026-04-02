@@ -52,7 +52,7 @@ lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
   set E := {a : Fin 3 → ℤ | ¬SSC a ∧ ∑ i, a i = 0 ∧ univ.gcd a = 1}
   have r₀ {a} (ma : a ∈ E) : 0 ∈ Set.range a := by
     simp_rw [E, Set.mem_setOf, SSC] at ma
-    push_neg at ma
+    push Not at ma
     obtain ⟨⟨q, nq, nqc, sq⟩, sqc, -⟩ := ma
     rw [← sum_add_sum_compl q, sq, zero_add] at sqc
     have cacq : #q + #qᶜ = 3 := by simp
