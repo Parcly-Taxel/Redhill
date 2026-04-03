@@ -24,3 +24,6 @@ lemma primeChain_succ_gt {s n : ℕ} : 2 * primeChain s n < primeChain s (n + 1)
 
 lemma strictMono_primeChain {s : ℕ} : StrictMono (primeChain s) :=
   strictMono_nat_of_lt_succ (by grind [primeChain_succ_gt])
+
+lemma primeChain_gt {s n : ℕ} : s < primeChain s n :=
+  primeChain_zero_gt.trans_le (strictMono_primeChain.monotone (Nat.zero_le _))

@@ -42,7 +42,7 @@ lemma U_lower_bound {n F} : (100 * 33330 - 2) * 33330 ^ 5 ≤ U n F := by
 lemma U_pos {n F} : 0 < U n F := by grind [U_lower_bound]
 
 /-- The `VWPair` generated from the inputs `u = m = U n F`. -/
-def VW : VWPair (U n F) (U n F) := .ofUM _ _ (by grind [U_pos]) (by grind [U_lower_bound])
+def VW : VWPair (U n F) (U n F) := .ofUM _ _ U_pos (by grind [U_lower_bound])
 
 /-- The sequence of `(n + 6)`-tuples whose tail is in `factorFreeTuples`
 and has quality tending to `5 / 4`. -/
@@ -117,8 +117,7 @@ lemma lt_primeChain_of_mem_F : f < primeChain (200 * Y F ^ 6) n :=
   calc
     _ ≤ 1 * Y F := by simp [le_Y_of_mem_F mf]
     _ ≤ 200 * Y F ^ 6 := mul_le_mul' (by decide) (le_self_pow (by decide) _)
-    _ < _ := primeChain_zero_gt
-    _ ≤ _ := strictMono_primeChain.monotone (Nat.zero_le _)
+    _ < _ := primeChain_gt
 
 lemma le_U_of_mem_F : f ≤ U n F :=
   calc

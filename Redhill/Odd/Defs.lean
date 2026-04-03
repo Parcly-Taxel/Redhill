@@ -71,11 +71,8 @@ section Bounds
 lemma primeChain_lt_U : primeChain (max 16 (F.sup id)) i.1 < U n F :=
   (single_le_sum_of_canonicallyOrdered (by simp_all)).trans_lt (lt_add_of_pos_left _ (by decide))
 
-lemma sixteen_lt_primeChain : 16 < primeChain (max 16 (F.sup id)) n :=
-  calc
-    _ ≤ _ := le_max_left ..
-    _ < _ := primeChain_zero_gt
-    _ ≤ _ := strictMono_primeChain.monotone (Nat.zero_le _)
+lemma sixteen_lt_primeChain : 16 < primeChain (max 16 (F.sup id)) n := by
+  grind [primeChain_gt]
 
 lemma primeChain_mem_Icc : primeChain (max 16 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
   mem_Icc.mpr ⟨sixteen_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩
@@ -225,9 +222,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
 lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (max 16 (F.sup id)) n :=
   calc
     _ ≤ F.sup id := le_sup hf
-    _ ≤ _ := le_max_right ..
-    _ < _ := primeChain_zero_gt
-    _ ≤ _ := strictMono_primeChain.monotone (Nat.zero_le _)
+    _ < _ := by grind [primeChain_gt]
 
 lemma not_dvd_tup (dx : ↑(Y n F) ∣ x) (dF : Disjoint {0, 1, 2, 5, 10} F) :
     ∀ f ∈ F, ∀ i, ¬↑f ∣ tup n F x i := fun f hf i ↦ by
