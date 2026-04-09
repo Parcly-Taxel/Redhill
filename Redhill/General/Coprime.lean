@@ -82,6 +82,9 @@ lemma eventually_X_modEq_10Yp1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F + 
 lemma eventually_X_modEq_10Ym1 : ∀ᶠ h in atTop, X F h ≡ 1 [MOD 10 * Y F - 1] :=
   eventually_X_modEq_one_of_coprime (10 * Y · - 1) Yp1_coprime_10Ym1
 
+/-- In this file's context "rough" means "having only large ODD prime factors".
+All elements of `tup n F h` are odd by construction, except `natAdd n 0` when `n` is odd,
+so the factor 2 is not an obstacle to pairwise coprimality. -/
 lemma coprime_of_rough (Q K L : Finset ℕ → ℕ) (hQ : ∀ {d}, 3 ≤ d → d ∣ Q F → L F < d)
     (hK : Odd (K F)) (hL : K F ≤ L F) : (K F).Coprime (Q F) := by
   by_contra h
