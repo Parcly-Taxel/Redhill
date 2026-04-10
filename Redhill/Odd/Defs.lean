@@ -2,7 +2,6 @@ module
 
 public import Mathlib.Algebra.BigOperators.Ring.Nat
 public import Redhill.Common.PairwiseCoprime
-public import Redhill.Common.PrimeChain
 public import Redhill.Common.VWPair
 public import Redhill.ToMathlib.Coprime
 

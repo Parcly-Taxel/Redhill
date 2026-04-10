@@ -1,7 +1,6 @@
 module
 
 public import Mathlib.FieldTheory.Finite.Basic
-public import Redhill.Common.PrimeChain
 public import Redhill.Common.VWPair
 
 /-!

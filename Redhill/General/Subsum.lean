@@ -1,6 +1,5 @@
 module
 
-public import Redhill.Common.SubsumCondition
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.NatAbs
 
@@ -277,7 +276,7 @@ def redTup (i : Fin (n + 3)) : ℤ :=
     | 2 => (100 * Y F - 2) * Y F ^ 5
 
 lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
-    tupReduce (tup n F h) (univ.map redEmb1) c₁ = redTup n F := by
+    tupReduce (tup n F h) (univ.map redEmb1) c₁ = vwTup (VW n F) := by
   ext i
   unfold tupReduce
   cases i using lastCases with
@@ -285,7 +284,8 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
     simp_rw [lastCases_last, sum_map, redEmb1, Function.Embedding.coeFn_mk, sum_univ_four]
     simp only [reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, tup_natAdd_five]
     have : last (n + 2) = natAdd n (2 : Fin 3) := by ext; simp
-    simp_rw [this, redTup, addCases_right]
+    simp_rw [this, vwTup, addCases_right, cast_mul, cast_pow,
+      show (100 * Y F - 2 : ℕ) = (100 * Y F - 2 : ℤ) by grind [Y_pos]]
     ring
   | cast i =>
     have : complRank (univ.map redEmb1) c₁ = castAdd 4 := by
@@ -294,7 +294,7 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
           not_exists, natAdd_natAdd, cast_eq_self, ← Fin.val_inj]
         grind
       · exact (castAddOrderEmb _).strictMono
-    simp_rw [lastCases_castSucc, this, tup, redTup]
+    simp_rw [lastCases_castSucc, this, tup, vwTup]
     cases i using addCases with
     | left i => rw [castAdd_castAdd, cast_eq_self, addCases_left, castSucc_castAdd, addCases_left]
     | right i =>
@@ -303,9 +303,15 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
 
 public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) := by
   refine isSubsumBlock_redEmb1 (n := n) (F := F).mono fun h hh ↦ ?_
-  have c₁ : n + 2 = n + 6 - #(univ.map (redEmb1 (n := n))) := by simp
-  apply hh.strongSSC_tupReduce c₁
+  have c : n + 2 = n + 6 - #(univ.map (redEmb1 (n := n))) := by simp
+  apply hh.strongSSC_tupReduce c
   rw [tupReduce_tup]
-  sorry
+  refine strongSSC_vwTup ?_ ?_ le_rfl
+  · exact mul_pos (by grind [Y_pos]) (pow_pos Y_pos _)
+  · calc
+      _ ≤ 100 * Y F * Y F ^ 5 := by gcongr; lia
+      _ ≤ _ := by
+        rw [mul_assoc, ← Nat.pow_add_one']
+        exact Nat.mul_le_mul_right _ (by decide)
 
 end GeneralCase

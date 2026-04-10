@@ -229,7 +229,7 @@ def redTup (i : Fin (n + 3)) : ℤ :=
     | 2 => 8
 
 lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
-    tupReduce (tup n F x) (univ.map redEmb1) c₁ = redTup n F := by
+    tupReduce (tup n F x) (univ.map redEmb1) c₁ = vwTup (VW n F) := by
   ext i
   unfold tupReduce
   cases i using lastCases with
@@ -237,7 +237,7 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
     simp_rw [lastCases_last, sum_map, redEmb1, Function.Embedding.coeFn_mk, sum_univ_three]
     simp only [reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
     have : last (n + 2) = natAdd n (2 : Fin 3) := by ext; simp
-    simp_rw [this, redTup, addCases_right]
+    simp_rw [this, vwTup, addCases_right]
     ring
   | cast i =>
     have : complRank (univ.map redEmb1) c₁ = castAdd 3 := by
@@ -246,79 +246,17 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
           not_exists, natAdd_natAdd, cast_eq_self, ← Fin.val_inj]
         grind
       · exact (castAddOrderEmb _).strictMono
-    simp_rw [lastCases_castSucc, this, tup, redTup]
+    simp_rw [lastCases_castSucc, this, tup, vwTup]
     cases i using addCases with
     | left i => rw [castAdd_castAdd, cast_eq_self, addCases_left, castSucc_castAdd, addCases_left]
     | right i =>
       rw [castAdd_natAdd, cast_eq_self, addCases_right, castSucc_natAdd, addCases_right]
       fin_cases i <;> rfl
 
-variable (n F) in
-/-- The `(n + 2)`-tuple obtained by combining `v` and `w` in `redTup`. -/
-def redTup2 (i : Fin (n + 2)) : ℤ :=
-  i.addCases (primeChain (max 16 (F.sup id)) ·.1) fun | 0 => 8 | 1 => -U n F
-
-lemma redEmb2_compl :
-    {natAdd n 0, natAdd n 1}ᶜ = insert (natAdd n 2) (univ.map (castAddEmb 3)) := by
-  ext i
-  simp_rw [mem_compl, mem_insert, mem_singleton, mem_map, mem_univ, true_and, coe_castAddEmb]
-  cases i using addCases <;> grind
-
-lemma isSubsumBlock_redEmb2 : IsSubsumBlock (redTup n F) {natAdd n 0, natAdd n 1} := by
-  have nmem : natAdd n 2 ∉ univ.map (castAddEmb 3) := by
-    simp_rw [mem_map, mem_univ, true_and, not_exists, coe_castAddEmb, ← Fin.val_inj]
-    grind
-  have : ∑ i ∈ {natAdd n 0, natAdd n 1}ᶜ, (redTup n F i).natAbs = U n F := by
-    simp_rw [redEmb2_compl, sum_insert nmem, sum_map, coe_castAddEmb, redTup, addCases_left,
-      addCases_right, Int.reduceAbs, Int.natAbs_natCast, sum_univ_eq_sum_range, U]
-  apply IsSubsumBlock.pair_of_sum_natAbs_lt
-  · simp_rw [this, redTup, addCases_right, Int.natAbs_natCast, U_lt_V]
-  · simp_rw [this, redTup, addCases_right, Int.natAbs_neg, Int.natAbs_natCast, U_lt_W]
-  · simp_rw [redTup, addCases_right, mul_neg, Left.neg_nonpos_iff]
-    positivity
-
-lemma tupReduce_redTup {c₂ : n + 1 = n + 3 - #{natAdd n 0, natAdd n 1}} :
-    tupReduce (redTup n F) {natAdd n 0, natAdd n 1} c₂ = chainTup n 8 (max 16 (F.sup id)) := by
-  ext i
-  unfold tupReduce
-  cases i using lastCases with
-  | last =>
-    rw [lastCases_last, sum_pair (by simp)]
-    have : last (n + 1) = natAdd n (1 : Fin 2) := rfl
-    simp_rw [redTup, addCases_right, ← sub_eq_add_neg, chainTup, this, addCases_right,
-      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub (VW n F).ineq_chain.2.1, ← (VW n F).u_eq_sub,
-      ← Nat.cast_add, U]
-  | cast i =>
-    have prel : #{natAdd n (0 : Fin 3), natAdd n 1}ᶜ = n + 1 := by simp [card_compl]
-    have : complRank {natAdd n 0, natAdd n 1} c₂ = lastCases (natAdd n 2) (castAdd 3) := by
-      refine (orderEmbOfFin_unique prel (fun i ↦ ?_) (fun i j h ↦ ?_)).symm
-      · rw [redEmb2_compl]
-        cases i using lastCases <;> simp
-      · cases i using lastCases with
-        | last => exact absurd (le_last _) (not_le.mpr h)
-        | cast i =>
-          rw [lastCases_castSucc]
-          cases j using lastCases with
-          | last => grind
-          | cast j =>
-            rw [lastCases_castSucc]
-            exact (castAddOrderEmb _).strictMono h
-    simp_rw [lastCases_castSucc, this, redTup, chainTup]
-    cases i using lastCases with
-    | last =>
-      have last_eq : (last n).castSucc = natAdd n (0 : Fin 2) := rfl
-      rw [lastCases_last, addCases_right, last_eq, addCases_right, Nat.cast_ofNat]
-    | cast i =>
-      have cast_eq : i.castSucc.castSucc = castAdd 2 i := rfl
-      rw [lastCases_castSucc, addCases_left, cast_eq, addCases_left]
-
 public theorem strongSSC_tup (hx : Y n F ≤ x.natAbs) : StrongSSC (tup n F x) := by
-  have c₁ : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
-  apply (isSubsumBlock_redEmb1 hx).strongSSC_tupReduce c₁
+  have c : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
+  apply (isSubsumBlock_redEmb1 hx).strongSSC_tupReduce c
   rw [tupReduce_tup]
-  have c₂ : n + 1 = n + 3 - #{natAdd n (0 : Fin 3), natAdd n 1} := by simp
-  apply isSubsumBlock_redEmb2.strongSSC_tupReduce c₂
-  rw [tupReduce_redTup]
-  exact strongSSC_chainTup (by decide) (by grind)
+  exact strongSSC_vwTup (by decide) (by grind) (le_max_left ..)
 
 end OddCase

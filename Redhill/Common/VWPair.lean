@@ -2,6 +2,7 @@ module
 
 public import Mathlib.Data.Nat.ChineseRemainder
 public import Mathlib.NumberTheory.Bertrand
+public import Redhill.Common.PrimeChain
 
 /-!
 The paper stipulates `u < 0 < m` and `w ≤ 0 < v`.
@@ -203,3 +204,80 @@ lemma ofUM_coprime (hu : 0 < u) (hm : max 2 u ≤ m) :
   (ofUM u m hu hm).coprime_of_le hu (by simp_all)
 
 end VWPair
+
+open Fin Finset
+
+variable {n m s B : ℕ} {vw : VWPair (m + ∑ i ∈ range n, primeChain s i) B}
+
+variable (vw) in
+/-- An `(n + 3)`-tuple reducing to `chainTup n m s`. -/
+def vwTup (i : Fin (n + 3)) : ℤ :=
+  i.addCases (primeChain s ·.1) fun
+    | 0 => vw.v
+    | 1 => -vw.w
+    | 2 => m
+
+lemma vwTup_compl : {natAdd n 0, natAdd n 1}ᶜ = insert (natAdd n 2) (univ.map (castAddEmb 3)) := by
+  ext i
+  simp_rw [mem_compl, mem_insert, mem_singleton, mem_map, mem_univ, true_and, coe_castAddEmb]
+  cases i using addCases <;> grind
+
+lemma isSubsumBlock_vwTup (hB : m + ∑ i ∈ range n, primeChain s i ≤ B) :
+    IsSubsumBlock (vwTup vw) {natAdd n 0, natAdd n 1} := by
+  have nmem : natAdd n 2 ∉ univ.map (castAddEmb 3) := by
+    simp_rw [mem_map, mem_univ, true_and, not_exists, coe_castAddEmb, ← Fin.val_inj]
+    grind
+  have : ∑ i ∈ {natAdd n 0, natAdd n 1}ᶜ, (vwTup vw i).natAbs =
+      m + ∑ i ∈ range n, primeChain s i := by
+    simp_rw [vwTup_compl, sum_insert nmem, sum_map, coe_castAddEmb, vwTup, addCases_left,
+      addCases_right, Int.natAbs_natCast, sum_univ_eq_sum_range]
+  have vlb : m + ∑ i ∈ range n, primeChain s i < vw.v :=
+    (hB.trans le_primorial_self).trans_lt vw.ineq_chain.1
+  apply IsSubsumBlock.pair_of_sum_natAbs_lt
+  · simp_rw [this, vwTup, addCases_right, Int.natAbs_natCast, vlb]
+  · simp_rw [this, vwTup, addCases_right, Int.natAbs_neg, Int.natAbs_natCast,
+      vlb.trans_le vw.ineq_chain.2.1]
+  · simp_rw [vwTup, addCases_right, mul_neg, Left.neg_nonpos_iff]
+    positivity
+
+lemma tupReduce_vwTup {c₂ : n + 1 = n + 3 - #{natAdd n 0, natAdd n 1}} :
+    tupReduce (vwTup vw) {natAdd n 0, natAdd n 1} c₂ = chainTup n m s := by
+  ext i
+  unfold tupReduce
+  cases i using lastCases with
+  | last =>
+    rw [lastCases_last, sum_pair (by simp)]
+    have : last (n + 1) = natAdd n (1 : Fin 2) := rfl
+    simp_rw [vwTup, addCases_right, ← sub_eq_add_neg, chainTup, this, addCases_right,
+      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub vw.ineq_chain.2.1, ← vw.u_eq_sub,
+      ← Nat.cast_add]
+  | cast i =>
+    have prel : #{natAdd n (0 : Fin 3), natAdd n 1}ᶜ = n + 1 := by simp [card_compl]
+    have : complRank {natAdd n 0, natAdd n 1} c₂ = lastCases (natAdd n 2) (castAdd 3) := by
+      refine (orderEmbOfFin_unique prel (fun i ↦ ?_) (fun i j h ↦ ?_)).symm
+      · rw [vwTup_compl]
+        cases i using lastCases <;> simp
+      · cases i using lastCases with
+        | last => exact absurd (le_last _) (not_le.mpr h)
+        | cast i =>
+          rw [lastCases_castSucc]
+          cases j using lastCases with
+          | last => grind
+          | cast j =>
+            rw [lastCases_castSucc]
+            exact (castAddOrderEmb _).strictMono h
+    simp_rw [lastCases_castSucc, this, vwTup, chainTup]
+    cases i using lastCases with
+    | last =>
+      have last_eq : (last n).castSucc = natAdd n (0 : Fin 2) := rfl
+      rw [lastCases_last, addCases_right, last_eq, addCases_right]
+    | cast i =>
+      have cast_eq : i.castSucc.castSucc = castAdd 2 i := rfl
+      rw [lastCases_castSucc, addCases_left, cast_eq, addCases_left]
+
+lemma strongSSC_vwTup (hm : 0 < m) (hs : m ≤ s) (hB : m + ∑ i ∈ range n, primeChain s i ≤ B) :
+    StrongSSC (vwTup vw) := by
+  have c : n + 1 = n + 3 - #{natAdd n (0 : Fin 3), natAdd n 1} := by simp
+  apply (isSubsumBlock_vwTup hB).strongSSC_tupReduce c
+  rw [tupReduce_vwTup]
+  exact strongSSC_chainTup hm hs
