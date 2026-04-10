@@ -1,5 +1,6 @@
 module
 
+public import Redhill.Common.MaxAbs
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.NatAbs
 
@@ -178,10 +179,7 @@ lemma X4_le_natAbs_b3 {b₁ b₂ b₃ : SignType} (hl : b₃ < b₂) :
       rw [add_rotate ((b₁ : ℤ) * _)]
       exact Int.sub_le_add_natAbs
 
-end Inequalities
-
-lemma X_le_natAbs_redEmb1
-    {b₁ b₂ b₃ b₄ : SignType} (hb : b₁ ≠ b₂ ∨ b₂ ≠ b₃ ∨ b₃ ≠ b₄) (hh : tailK n F < X F h) :
+lemma X_le_natAbs_redEmb1 {b₁ b₂ b₃ b₄ : SignType} (hb : b₁ ≠ b₂ ∨ b₂ ≠ b₃ ∨ b₃ ≠ b₄) :
     X F h ≤ (b₁ * (X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2 + b₂ * ((10 * Y F - 1) * X F h ^ 4) +
       b₃ * (X F h - Y F) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs := by
   by_cases hb₃₄ : b₃ ≠ b₄
@@ -244,6 +242,8 @@ lemma X_le_natAbs_redEmb1
         _ ≤ _ := by lia
     _ ≤ _ := Int.sub_le_add_natAbs
 
+end Inequalities
+
 lemma eventually_X_gt (K : Finset ℕ → ℕ) : ∀ᶠ h in Filter.atTop, K F < X F h := by
   rw [Filter.eventually_atTop]
   obtain ⟨n, hn⟩ : ∃ n, K F < (Y F + 1) ^ n := add_one_pow_unbounded_of_pos _ (by grind [Y_pos])
@@ -264,16 +264,7 @@ lemma isSubsumBlock_redEmb1 :
     apply this
     contrapose! ncb
     exact ⟨b 0, fun i ↦ by fin_cases i <;> lia⟩
-  exact fun hb ↦ X_le_natAbs_redEmb1 hb hh
-
-variable (n F) in
-/-- The `(n + 6)`-tuple after combining the indices involving `x`,
-i.e. an `(n + 3)`-tuple not depending on `x`. -/
-def redTup (i : Fin (n + 3)) : ℤ :=
-  i.addCases (primeChain (200 * Y F ^ 6) ·.1) fun
-    | 0 => (VW n F).v
-    | 1 => -(VW n F).w
-    | 2 => (100 * Y F - 2) * Y F ^ 5
+  exact fun hb ↦ X_le_natAbs_redEmb1 hh hb
 
 lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
     tupReduce (tup n F h) (univ.map redEmb1) c₁ = vwTup (VW n F) := by
@@ -313,5 +304,52 @@ public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) :
       _ ≤ _ := by
         rw [mul_assoc, ← Nat.pow_add_one']
         exact Nat.mul_le_mul_right _ (by decide)
+
+public lemma maxAbs_tup : ∀ᶠ h in Filter.atTop, maxAbs (tup n F h) = (X F h + Y F) ^ 5 := by
+  refine (eventually_X_gt (F := F) (tailK n)).mono fun h hh ↦ ?_
+  have na5 : (tup n F h (natAdd n 5)).natAbs = (X F h + Y F) ^ 5 := by
+    rw [tup_natAdd_five, Int.natAbs_neg, Int.natAbs_pow]
+    lia
+  rw [← na5]
+  refine maxAbs_eq_of_forall_le fun i ↦ ?_
+  rw [na5]
+  cases i using addCases with
+  | left i =>
+    rw [tup_castAdd, Int.natAbs_natCast]
+    calc
+      _ ≤ ∑ i ∈ range n, primeChain (200 * Y F ^ 6) i := by
+        rw [← sum_univ_eq_sum_range]
+        exact single_le_sum_of_canonicallyOrdered
+          (f := fun i : Fin n ↦ primeChain (200 * Y F ^ 6) i) (mem_univ _)
+      _ ≤ X F h + Y F := by grind [tailK]
+      _ ≤ _ := le_pow (by decide)
+  | right i =>
+    fin_cases i <;> simp only [reduceFinMk]
+    · rw [tup_natAdd_zero, Int.natAbs_natCast]
+      calc
+        _ ≤ X F h + Y F := by grind [tailK]
+        _ ≤ _ := le_pow (by decide)
+    · rw [tup_natAdd_one, Int.natAbs_neg, Int.natAbs_natCast]
+      calc
+        _ ≤ X F h + Y F := by grind [tailK]
+        _ ≤ _ := le_pow (by decide)
+    · rw [tup_natAdd_two]
+      apply (b₁_upper_bound hh).trans
+      rw [pow_succ' _ 4]
+      gcongr
+      · grind [Y_lower_bound]
+      · exact Nat.le_add_right ..
+    · rw [tup_natAdd_three, show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos]]
+      simp_rw [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast, pow_succ' _ 4]
+      gcongr
+      · calc
+          _ ≤ 196 * Y F := by lia
+          _ ≤ 196 * Y F ^ 6 := Nat.mul_le_mul_left _ (le_pow (by decide))
+          _ ≤ _ := (Y6_le_X hh).trans (Nat.le_add_right ..)
+      · exact Nat.le_add_right ..
+    · rw [tup_natAdd_four, Int.natAbs_pow, ← cast_sub (by grind [Y_lt_X]), Int.natAbs_natCast]
+      exact Nat.pow_le_pow_left (by lia) _
+    · rw [tup_natAdd_five, Int.natAbs_neg]
+      norm_cast
 
 end GeneralCase

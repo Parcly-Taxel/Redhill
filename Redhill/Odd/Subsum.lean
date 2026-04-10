@@ -162,6 +162,53 @@ lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b�
     (b₂ - b₁) * (10 * (x ^ 2 + 1) ^ 2) + b₁ * 8 by ring]
   exact hx.trans (natAbs_le_redEmb1_reduced h (by grind [Y_lower_bound]))
 
+end Inequalities
+
+lemma isSubsumBlock_redEmb1 (hx : Y n F ≤ x.natAbs) :
+    IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
+  refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
+  conv_rhs => rw [redEmb1, sum_univ_three]
+  simp only [Function.Embedding.coeFn_mk, reduceNatAdd,
+    tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
+  apply sum_redEmb1_compl_lt.trans_le
+  suffices ∀ {b₁ b₂ b₃ : SignType}, b₁ ≠ b₂ ∨ b₁ ≠ b₃ →
+      Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs by
+    apply this
+    contrapose! ncb
+    exact ⟨b 0, fun i ↦ by fin_cases i <;> tauto⟩
+  exact fun h ↦ Y_le_natAbs_redEmb1 h hx
+
+lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
+    tupReduce (tup n F x) (univ.map redEmb1) c₁ = vwTup (VW n F) := by
+  ext i
+  unfold tupReduce
+  cases i using lastCases with
+  | last =>
+    simp_rw [lastCases_last, sum_map, redEmb1, Function.Embedding.coeFn_mk, sum_univ_three]
+    simp only [reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
+    have : last (n + 2) = natAdd n (2 : Fin 3) := by ext; simp
+    simp_rw [this, vwTup, addCases_right]
+    ring
+  | cast i =>
+    have : complRank (univ.map redEmb1) c₁ = castAdd 3 := by
+      refine (orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
+      · simp_rw [mem_compl, mem_map, mem_univ, true_and, redEmb1, Function.Embedding.coeFn_mk,
+          not_exists, natAdd_natAdd, cast_eq_self, ← Fin.val_inj]
+        grind
+      · exact (castAddOrderEmb _).strictMono
+    simp_rw [lastCases_castSucc, this, tup, vwTup]
+    cases i using addCases with
+    | left i => rw [castAdd_castAdd, cast_eq_self, addCases_left, castSucc_castAdd, addCases_left]
+    | right i =>
+      rw [castAdd_natAdd, cast_eq_self, addCases_right, castSucc_natAdd, addCases_right]
+      fin_cases i <;> rfl
+
+public theorem strongSSC_tup (hx : Y n F ≤ x.natAbs) : StrongSSC (tup n F x) := by
+  have c : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
+  apply (isSubsumBlock_redEmb1 hx).strongSSC_tupReduce c
+  rw [tupReduce_tup]
+  exact strongSSC_vwTup (by decide) (by grind) (le_max_left ..)
+
 /-- When `Y n F ≤ x`, the maximum absolute value is `(x + 1) ^ 5`. -/
 public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x + 1) ^ 5 := by
   have na4 : (tup n F x (natAdd n 4)).natAbs = (x + 1) ^ 5 := by
@@ -202,61 +249,5 @@ public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x +
       refine ((b₂_upper_bound (by lia)).trans ?_).trans (b₃_lower_bound (by lia))
       exact mul_le_mul_left (by decide) _
     · rw [tup_natAdd_four, Int.natAbs_neg]
-
-end Inequalities
-
-lemma isSubsumBlock_redEmb1 (hx : Y n F ≤ x.natAbs) :
-    IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
-  refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
-  conv_rhs => rw [redEmb1, sum_univ_three]
-  simp only [Function.Embedding.coeFn_mk, reduceNatAdd,
-    tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
-  apply sum_redEmb1_compl_lt.trans_le
-  suffices ∀ {b₁ b₂ b₃ : SignType}, b₁ ≠ b₂ ∨ b₁ ≠ b₃ →
-      Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs by
-    apply this
-    contrapose! ncb
-    exact ⟨b 0, fun i ↦ by fin_cases i <;> tauto⟩
-  exact fun h ↦ Y_le_natAbs_redEmb1 h hx
-
-variable (n F) in
-/-- The `(n + 5)`-tuple after combining the indices involving `x`,
-i.e. an `(n + 3)`-tuple not depending on `x`. -/
-def redTup (i : Fin (n + 3)) : ℤ :=
-  i.addCases (primeChain (max 16 (F.sup id)) ·.1) fun
-    | 0 => (VW n F).v
-    | 1 => -(VW n F).w
-    | 2 => 8
-
-lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
-    tupReduce (tup n F x) (univ.map redEmb1) c₁ = vwTup (VW n F) := by
-  ext i
-  unfold tupReduce
-  cases i using lastCases with
-  | last =>
-    simp_rw [lastCases_last, sum_map, redEmb1, Function.Embedding.coeFn_mk, sum_univ_three]
-    simp only [reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
-    have : last (n + 2) = natAdd n (2 : Fin 3) := by ext; simp
-    simp_rw [this, vwTup, addCases_right]
-    ring
-  | cast i =>
-    have : complRank (univ.map redEmb1) c₁ = castAdd 3 := by
-      refine (orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
-      · simp_rw [mem_compl, mem_map, mem_univ, true_and, redEmb1, Function.Embedding.coeFn_mk,
-          not_exists, natAdd_natAdd, cast_eq_self, ← Fin.val_inj]
-        grind
-      · exact (castAddOrderEmb _).strictMono
-    simp_rw [lastCases_castSucc, this, tup, vwTup]
-    cases i using addCases with
-    | left i => rw [castAdd_castAdd, cast_eq_self, addCases_left, castSucc_castAdd, addCases_left]
-    | right i =>
-      rw [castAdd_natAdd, cast_eq_self, addCases_right, castSucc_natAdd, addCases_right]
-      fin_cases i <;> rfl
-
-public theorem strongSSC_tup (hx : Y n F ≤ x.natAbs) : StrongSSC (tup n F x) := by
-  have c : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
-  apply (isSubsumBlock_redEmb1 hx).strongSSC_tupReduce c
-  rw [tupReduce_tup]
-  exact strongSSC_vwTup (by decide) (by grind) (le_max_left ..)
 
 end OddCase
