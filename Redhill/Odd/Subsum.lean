@@ -3,6 +3,7 @@ module
 public import Redhill.Common.MaxAbs
 public import Redhill.Common.SubsumCondition
 public import Redhill.Odd.Defs
+public import Redhill.ToMathlib.NatAbs
 public import Redhill.ToMathlib.NatSumProd
 
 namespace OddCase
@@ -102,16 +103,6 @@ lemma b₃_lower_bound (hx : 26 ≤ x.natAbs) : 21 * x.natAbs ^ 4 ≤ ((x + 1) ^
   rw [← Int.natAbs_neg] at hx
   have := b₁_lower_bound hx
   rwa [Int.natAbs_neg, ← neg_add', Odd.neg_pow (by decide), Int.natAbs_neg] at this
-
-/-- Upstreamable to mathlib! -/
-lemma _root_.Int.sub_le_add_natAbs {a b : ℤ} : a.natAbs - b.natAbs ≤ (a + b).natAbs := by lia
-
-/-- Upstreamable to mathlib! -/
-lemma _root_.Int.natAbs_add_of_mul_nonneg {a b : ℤ} (h : 0 ≤ a * b) :
-    (a + b).natAbs = a.natAbs + b.natAbs := by
-  obtain h | h := Int.mul_nonneg_iff.mp h
-  · exact Int.natAbs_add_of_nonneg h.1 h.2
-  · exact Int.natAbs_add_of_nonpos h.1 h.2
 
 lemma natAbs_pow_le_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₃ < b₁) (hx : 26 ≤ x.natAbs) :
     x.natAbs ^ 4 ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs := by

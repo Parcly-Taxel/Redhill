@@ -9,10 +9,12 @@ import Redhill.Common.VWPair
 import Redhill.General.Coprime
 import Redhill.General.Defs
 import Redhill.General.Main
+import Redhill.General.Subsum
 import Redhill.KonyaginPrelude
 import Redhill.Odd.Defs
 import Redhill.Odd.Main
 import Redhill.Odd.Pell
 import Redhill.Odd.Subsum
 import Redhill.ToMathlib.Coprime
+import Redhill.ToMathlib.NatAbs
 import Redhill.ToMathlib.NatSumProd

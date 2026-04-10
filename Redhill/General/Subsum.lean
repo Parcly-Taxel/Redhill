@@ -2,6 +2,9 @@ module
 
 public import Redhill.Common.SubsumCondition
 public import Redhill.General.Defs
+public import Redhill.ToMathlib.NatAbs
+
+@[expose] public section
 
 namespace GeneralCase
 
@@ -38,10 +41,122 @@ lemma sum_redEmb1_compl : ∑ i ∉ univ.map redEmb1, (tup n F h i).natAbs = tai
   rw [s₂, sum_pair (by grind), tup_natAdd_zero, tup_natAdd_one, Int.natAbs_natCast,
     Int.natAbs_neg, Int.natAbs_natCast, sum_univ_eq_sum_range, tailK]
 
+section Inequalities
+
+lemma tailK_lower_bound : 196 * Y F ^ 6 ≤ tailK n F :=
+  calc
+    _ = 2 * (98 * Y F * Y F ^ 5) := by ring
+    _ ≤ 2 * ((100 * Y F - 2) * Y F ^ 5) := by gcongr; grind [Y_pos]
+    _ ≤ 2 * U n F := by grind [U]
+    _ ≤ 2 * (VW n F).v := mul_le_mul_right (le_primorial_self.trans (VW n F).ineq_chain.1.le) _
+    _ ≤ (VW n F).v + (VW n F).w := by
+      rw [two_mul]
+      exact add_le_add_right (VW n F).ineq_chain.2.1 _
+    _ ≤ _ := by grind [tailK]
+
+variable (hh : tailK n F < X F h)
+
+include hh
+
+lemma Y_pow_six_le_X : 196 * Y F ^ 6 ≤ X F h :=
+  tailK_lower_bound.trans hh.le
+
+lemma b₁_upper_bound : ((X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2).natAbs ≤ 4 * X F h ^ 4 := by
+  norm_cast
+  calc
+    _ ≤ (X F h ^ 2 + X F h) ^ 2 := by
+      gcongr
+      apply (Y_pow_six_le_X hh).trans'
+      gcongr
+      · decide
+      · exact Y_pos
+      · decide
+    _ ≤ _ := by
+      rw [show 4 * X F h ^ 4 = (X F h ^ 2 + X F h ^ 2) ^ 2 by ring]
+      gcongr
+      exact le_pow zero_lt_two
+
+lemma b₃_lower_bound : 12 * Y F * X F h ^ 4 ≤ ((X F h - Y F : ℤ) ^ 5).natAbs := by
+  rw [Int.natAbs_pow, ← cast_sub (by grind [Y_lt_X]), Int.natAbs_natCast,
+    ← Nat.mul_le_mul_left_iff (show 0 < 16 by decide),
+    show 16 * (12 * Y F * X F h ^ 4) = 192 * Y F * X F h ^ 4 by ring,
+    show 16 * (X F h - Y F) ^ 5 = (X F h - Y F) * (2 * (X F h - Y F)) ^ 4 by ring]
+  have : 193 * Y F ≤ X F h := by
+    apply (Y_pow_six_le_X hh).trans'
+    gcongr
+    · decide
+    · exact le_pow (by decide)
+  gcongr <;> lia
+
+lemma b₄_lower_bound : 12 * Y F * X F h ^ 4 ≤ (-(X F h + Y F : ℤ) ^ 5).natAbs := by
+  apply (b₃_lower_bound hh).trans
+  rw [← cast_sub (by grind [Y_lt_X]), ← cast_add]
+  simp_rw [Int.natAbs_neg, Int.natAbs_pow, Int.natAbs_natCast]
+  gcongr
+  lia
+
+lemma X4_le_natAbs_redEmb1 {b₁ b₂ b₃ b₄ : SignType} (hl : b₄ < b₃) :
+    X F h ^ 4 ≤ (b₁ * (X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2 + b₂ * ((10 * Y F - 1) * X F h ^ 4) +
+      b₃ * (X F h - Y F) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs :=
+  calc
+    _ ≤ (12 * Y F - (4 + (10 * Y F - 1))) * X F h ^ 4 := by
+      nth_rw 1 [← one_mul (_ ^ 4)]
+      gcongr
+      grind [Y_lower_bound]
+    _ ≤ (b₃ * (X F h - Y F : ℤ) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs -
+        (4 + (10 * Y F - 1)) * X F h ^ 4 := by
+      rw [tsub_mul]
+      refine Nat.sub_le_sub_right ?_ _
+      obtain rfl | rfl | rfl := b₃.trichotomy
+      · simp at hl
+      · obtain rfl : b₄ = -1 := by decide +revert
+        simpa using b₄_lower_bound hh
+      · obtain rfl | rfl : b₄ = 0 ∨ b₄ = -1 := by decide +revert
+        · simpa using b₃_lower_bound hh
+        · simp_rw [SignType.coe_neg, SignType.coe_one, neg_one_mul, neg_neg, one_mul]
+          have nn₁ : 0 ≤ (X F h - Y F : ℤ) ^ 5 := by
+            rw [← cast_sub (by grind [Y_lt_X])]
+            exact Int.zero_le_ofNat _
+          have nn₂ : 0 ≤ (X F h + Y F : ℤ) ^ 5 := by
+            rw [← cast_add]
+            exact Int.zero_le_ofNat _
+          rw [Int.natAbs_add_of_nonneg nn₁ nn₂]
+          grind [b₃_lower_bound hh]
+    _ ≤ (b₃ * (X F h - Y F : ℤ) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs -
+        (b₁ * (X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2 + b₂ * ((10 * Y F - 1) * X F h ^ 4)).natAbs := by
+      refine Nat.sub_le_sub_left ?_ _
+      rw [add_mul]
+      refine (Int.natAbs_add_le _ _).trans (Nat.add_le_add ?_ ?_)
+      · rw [Int.natAbs_mul, ← one_mul (4 * _)]
+        exact mul_le_mul' (by decide +revert) (b₁_upper_bound hh)
+      · rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos], ← mul_assoc]
+        simp_rw [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast]
+        apply Nat.mul_le_mul_right
+        cases b₂ <;> simp
+    _ ≤ _ := by
+      rw [add_assoc (_ + _), add_comm (_ + _)]
+      exact Int.sub_le_add_natAbs
+
+end Inequalities
+
 lemma X_le_natAbs_redEmb1
     {b₁ b₂ b₃ b₄ : SignType} (hb : b₁ ≠ b₂ ∨ b₂ ≠ b₃ ∨ b₃ ≠ b₄) (hh : tailK n F < X F h) :
     X F h ≤ (b₁ * (X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2 + b₂ * ((10 * Y F - 1) * X F h ^ 4) +
       b₃ * (X F h - Y F) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs := by
+  by_cases hb₃₄ : b₃ ≠ b₄
+  · clear hb
+    wlog hl : b₄ < b₃ generalizing b₁ b₂ b₃ b₄
+    · have negh : -b₄ < -b₃ := by
+        rw [SignType.neg_lt_neg_iff]
+        exact hb₃₄.lt_or_gt.resolve_right hl
+      specialize this (b₁ := -b₁) (b₂ := -b₂) (by simp_all) negh
+      simp_rw [SignType.coe_neg, neg_mul, ← neg_add, Int.natAbs_neg] at this
+      exact this
+    exact (le_pow zero_lt_four).trans (X4_le_natAbs_redEmb1 hh hl)
+  rw [← or_assoc] at hb
+  replace hb := hb.resolve_right hb₃₄
+  rw [not_ne_iff] at hb₃₄
+  subst hb₃₄
   sorry
 
 lemma eventually_X_gt (K : Finset ℕ → ℕ) : ∀ᶠ h in Filter.atTop, K F < X F h := by
@@ -66,7 +181,16 @@ lemma isSubsumBlock_redEmb1 :
     exact ⟨b 0, fun i ↦ by fin_cases i <;> lia⟩
   exact fun hb ↦ X_le_natAbs_redEmb1 hb hh
 
-public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) := by
+variable (n F) in
+/-- The `(n + 6)`-tuple after combining the indices involving `x`,
+i.e. an `(n + 3)`-tuple not depending on `x`. -/
+def redTup (i : Fin (n + 3)) : ℤ :=
+  i.addCases (primeChain (200 * Y F ^ 6) ·.1) fun
+    | 0 => (VW n F).v
+    | 1 => -(VW n F).w
+    | 2 => (100 * Y F - 2) * Y F ^ 5
+
+theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) := by
   sorry
 
 end GeneralCase
