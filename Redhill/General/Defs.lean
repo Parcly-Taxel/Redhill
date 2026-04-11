@@ -84,7 +84,7 @@ lemma sum_tup : ∑ i, tup n F h i = 0 := by
   set y := Y F
   rw [show (x ^ 2 + 10 * y ^ 3) ^ 2 + ((10 * y - 1 : ℤ) * x ^ 4 + ((x - y) ^ 5 + -(x + y) ^ 5)) =
     (100 * y - 2) * y ^ 5 by ring, ← add_assoc _ _ (_ * _), ← sub_eq_add_neg, ← neg_sub,
-    ← cast_sub (VW n F).ineq_chain.2, ← (VW n F).u_eq_sub,
+    ← cast_sub (VW n F).v_le_w, ← (VW n F).u_eq_sub,
     sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ)), ← cast_sum]
   grind [U]
 

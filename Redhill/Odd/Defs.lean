@@ -1,6 +1,9 @@
 module
 
 public import Mathlib.Algebra.BigOperators.Ring.Nat
+public import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
+public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.IntervalCases
 public import Redhill.Common.PairwiseCoprime
 public import Redhill.Common.VWPair
 public import Redhill.ToMathlib.Coprime
@@ -59,7 +62,7 @@ variable {n F} {x : ℤ}
 lemma sum_tup : ∑ i, tup n F x i = 0 := by
   simp only [tup, sum_univ_add, addCases_left, addCases_right, sum_univ_five,
     add_assoc, show (x - 1) ^ 5 + (10 * (x ^ 2 + 1) ^ 2 + -(x + 1) ^ 5) = 8 by ring]
-  rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).ineq_chain.2,
+  rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).v_le_w,
     ← (VW n F).u_eq_sub, sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
   norm_num [U]
 
@@ -79,24 +82,22 @@ lemma primeChain_mem_Icc : primeChain (max 16 (F.sup id)) i.1 ∈ Icc 3 (max (U 
 lemma U_lt_V : U n F < (VW n F).v :=
   calc
     _ ≤ max (U n F) (F.sup id) := le_max_left ..
-    _ ≤ _ := le_primorial_self
-    _ < _ := (VW n F).ineq_chain.1
+    _ < _ := (VW n F).m_lt_v
 
 lemma U_lt_W : U n F < (VW n F).w :=
-  U_lt_V.trans_le (VW n F).ineq_chain.2
+  U_lt_V.trans_le (VW n F).v_le_w
 
-lemma V_lower_bound : 211 ≤ (VW n F).v :=
+lemma V_lower_bound : 9 ≤ (VW n F).v :=
   calc
-    _ = primorial 8 := by decide
-    _ ≤ primorial (max (U n F) (F.sup id)) := primorial_mono (by grind [U])
-    _ < _ := (VW n F).ineq_chain.1
+    _ ≤ max (U n F) (F.sup id) := by grind [U]
+    _ < _ := (VW n F).m_lt_v
 
-lemma W_lower_bound : 219 ≤ (VW n F).w := by
-  rw [← (eq_tsub_iff_add_eq_of_le (VW n F).ineq_chain.2).mp (VW n F).u_eq_sub]
+lemma W_lower_bound : 17 ≤ (VW n F).w := by
+  rw [← (eq_tsub_iff_add_eq_of_le (VW n F).v_le_w).mp (VW n F).u_eq_sub]
   grind [U, V_lower_bound]
 
-lemma Y_lower_bound : 462090 ≤ Y n F := by
-  rw [show 462090 = 10 * 1 * 1 * 211 * 219 by rfl, Y]
+lemma Y_lower_bound : 1530 ≤ Y n F := by
+  rw [show 1530 = 10 * 1 * 1 * 9 * 17 by rfl, Y]
   gcongr
   · exact one_le_prod (by grind)
   · exact one_le_prod (by grind [sixteen_lt_primeChain])
@@ -156,7 +157,7 @@ lemma V_coprime_ten (hn : Even n) : (VW n F).v.Coprime 10 := by
       have (i : ℕ) : 3 ≤ primeChain (max 16 (F.sup id)) i :=
         sixteen_lt_primeChain.le.trans' (by decide)
       simpa [this]
-    rw [(VW n F).u_eq_sub, even_sub (VW n F).ineq_chain.2, ← not_iff_not, not_even_iff_odd,
+    rw [(VW n F).u_eq_sub, even_sub (VW n F).v_le_w, ← not_iff_not, not_even_iff_odd,
       not_even_iff_odd] at key
     rw [← key]
     exact (VW n F).w_odd

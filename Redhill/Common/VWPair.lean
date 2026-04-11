@@ -1,7 +1,8 @@
 module
 
 public import Mathlib.Data.Nat.ChineseRemainder
-public import Mathlib.NumberTheory.Bertrand
+public import Mathlib.Data.Nat.Factors
+public import Mathlib.Data.ZMod.Defs
 public import Redhill.Common.PrimeChain
 
 /-!
@@ -9,8 +10,8 @@ The paper stipulates `u < 0 < m` and `w ≤ 0 < v`.
 These bounds are formalised by typing all four variables as natural numbers,
 negating `u` and `w` as needed.
 
-The bound `w ≤ (m + 1) * primorial m` in the paper can also be sharpened to `w ≤ 4 * primorial m`
-by applying the Chinese remainder theorem.
+The bound `w ≤ (m + 1) * primorial m` is not used in any proof and has been removed.
+The bound `primorial m < v` has been simplified to `m < v`.
 
 Note that the paper's algorithm does not necessarily guarantee `q < v` (without the negations
 performed in this file). For example, take `m = 5, q = 30, u = -2`, then step 1 sets
@@ -34,8 +35,10 @@ structure VWPair (u m : ℕ) where
   w : ℕ
   /-- `u = v + w` in the paper -/
   u_eq_sub : u = w - v
-  /-- The inequality chain bounding `v` and `w` -/
-  ineq_chain : primorial m < v ∧ v ≤ w
+  /-- `m < v` -/
+  m_lt_v : m < v
+  /-- `v ≤ w` -/
+  v_le_w : v ≤ w
   /-- No number in `[3,m]` divides `v` or `w` -/
   not_dvd (k) (hk : k ∈ Icc 3 m) : ¬k ∣ v ∧ ¬k ∣ w
   /-- `w` is odd -/
@@ -91,19 +94,6 @@ def fourAndOddPrimes (m : ℕ) : Finset ℕ :=
 lemma zero_notMem_fourAndOddPrimes : 0 ∉ fourAndOddPrimes m := by
   simp [fourAndOddPrimes]
 
-lemma prod_fourAndOddPrimes_eq (hm : 2 ≤ m) : ∏ p ∈ fourAndOddPrimes m, p = 2 * primorial m := by
-  have np4 : ¬Nat.Prime 4 := by decide
-  rw [fourAndOddPrimes, prod_insert (by simp [np4]), show 4 = 2 * 2 by rfl, mul_assoc]
-  congr
-  let f := fun p ↦ if p.Prime then p else 1
-  rw [prod_filter]
-  change f 2 * ∏ p ∈ Icc 3 m, f p = _
-  rw [← prod_insert (by simp), primorial]
-  simp_rw [f, prod_filter]
-  refine prod_subset (by grind) fun p mp np ↦ ?_
-  obtain rfl | rfl : p = 0 ∨ p = 1 := by grind
-  all_goals decide
-
 lemma fourAndOddPrimes_pairwise_coprime : Set.Pairwise (fourAndOddPrimes m) Coprime := by
   rw [fourAndOddPrimes, coe_insert, coe_filter, Set.pairwise_insert_of_symmetric Coprime.symmetric]
   refine ⟨fun p mp q mq hn ↦ (coprime_primes mp.2 mq.2).mpr hn, fun p ⟨bp, pp⟩ _ ↦ ?_⟩
@@ -129,7 +119,7 @@ lemma not_dvd_nonDividingShift_of_three_le (hp : 3 ≤ p) :
     exact (show 2 ∣ 4 by decide).trans dw
   simpa using min'_mem _ (nonempty_double_not_dvd v w p hp)
 
-/-- `crtShift v w m` is a number less than `2 * primorial m` that can be added to `v, w` such that
+/-- `crtShift v w m` is a number that can be added to `v, w` such that
 * no number in `[3,m]` divides the resulting `v` or `w`
 * the resulting `w` is odd.
 
@@ -141,10 +131,6 @@ def crtShift (v w m : ℕ) : ℕ :=
 lemma crtShift_modEq (mi : p ∈ fourAndOddPrimes m) :
     crtShift v w m ≡ nonDividingShift v w p [MOD p] :=
   (chineseRemainderOfFinset ..).2 _ mi
-
-lemma crtShift_lt (hm : 2 ≤ m) : crtShift v w m < 2 * primorial m := by
-  rw [← prod_fourAndOddPrimes_eq hm]
-  exact chineseRemainderOfFinset_lt_prod ..
 
 lemma crtShift_not_dvd {k : ℕ} (hk : k ∈ Icc 3 m) :
     ¬k ∣ v + crtShift v w m ∧ ¬k ∣ w + crtShift v w m := by
@@ -189,10 +175,11 @@ lemma odd_add_crtShift : Odd (w + crtShift v w m) := by
 
 /-- Lemma 2.2. When `0 < u`, we can construct a `VWPair u m`. -/
 def ofUM (u m : ℕ) (hu : 0 < u) : VWPair u m where
-  v := primorial m + 1 + crtShift (primorial m + 1) (primorial m + 1 + u) m
-  w := primorial m + 1 + u + crtShift (primorial m + 1) (primorial m + 1 + u) m
+  v := m + 1 + crtShift (m + 1) (m + 1 + u) m
+  w := m + 1 + u + crtShift (m + 1) (m + 1 + u) m
   u_eq_sub := by lia
-  ineq_chain := by lia
+  m_lt_v := by lia
+  v_le_w := by lia
   not_dvd k hk := crtShift_not_dvd hk
   w_odd := odd_add_crtShift
 
@@ -227,14 +214,13 @@ lemma isSubsumBlock_vwTup (hB : m + ∑ i ∈ range n, primeChain s i ≤ B) :
       m + ∑ i ∈ range n, primeChain s i := by
     simp_rw [vwTup_compl, sum_insert nmem, sum_map, coe_castAddEmb, vwTup, addCases_left,
       addCases_right, Int.natAbs_natCast, sum_univ_eq_sum_range]
-  have vlb : m + ∑ i ∈ range n, primeChain s i < vw.v :=
-    (hB.trans le_primorial_self).trans_lt vw.ineq_chain.1
+  have vlb : m + ∑ i ∈ range n, primeChain s i < vw.v := hB.trans_lt vw.m_lt_v
   apply IsSubsumBlock.pair_of_sum_natAbs_lt
   · simp_rw [this, vwTup, addCases_right, Int.natAbs_natCast, vlb]
   · simp_rw [this, vwTup, addCases_right, Int.natAbs_neg, Int.natAbs_natCast,
-      vlb.trans_le vw.ineq_chain.2]
-  · simp_rw [vwTup, addCases_right, mul_neg, Left.neg_nonpos_iff]
-    positivity
+      vlb.trans_le vw.v_le_w]
+  · simp_rw [vwTup, addCases_right, mul_neg, Left.neg_nonpos_iff, ← Nat.cast_mul]
+    exact Int.natCast_nonneg _
 
 lemma tupReduce_vwTup {c₂ : n + 1 = n + 3 - #{natAdd n 0, natAdd n 1}} :
     tupReduce (vwTup vw) {natAdd n 0, natAdd n 1} c₂ = chainTup n m s := by
@@ -245,7 +231,7 @@ lemma tupReduce_vwTup {c₂ : n + 1 = n + 3 - #{natAdd n 0, natAdd n 1}} :
     rw [lastCases_last, sum_pair (by simp)]
     have : last (n + 1) = natAdd n (1 : Fin 2) := rfl
     simp_rw [vwTup, addCases_right, ← sub_eq_add_neg, chainTup, this, addCases_right,
-      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub vw.ineq_chain.2, ← vw.u_eq_sub,
+      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub vw.v_le_w, ← vw.u_eq_sub,
       ← Nat.cast_add]
   | cast i =>
     have prel : #{natAdd n (0 : Fin 3), natAdd n 1}ᶜ = n + 1 := by simp [card_compl]

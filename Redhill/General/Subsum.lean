@@ -1,5 +1,6 @@
 module
 
+import Mathlib.Algebra.Order.Archimedean.Basic
 public import Redhill.Common.MaxAbs
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.NatAbs
@@ -46,10 +47,10 @@ lemma tailK_lower_bound : 196 * Y F ^ 6 ≤ tailK n F :=
     _ = 2 * (98 * Y F * Y F ^ 5) := by ring
     _ ≤ 2 * ((100 * Y F - 2) * Y F ^ 5) := by gcongr; grind [Y_pos]
     _ ≤ 2 * U n F := by grind [U]
-    _ ≤ 2 * (VW n F).v := mul_le_mul_right (le_primorial_self.trans (VW n F).ineq_chain.1.le) _
+    _ ≤ 2 * (VW n F).v := mul_le_mul_right (VW n F).m_lt_v.le _
     _ ≤ (VW n F).v + (VW n F).w := by
       rw [two_mul]
-      exact add_le_add_right (VW n F).ineq_chain.2 _
+      exact add_le_add_right (VW n F).v_le_w _
     _ ≤ _ := by grind [tailK]
 
 variable (hh : tailK n F < X F h)

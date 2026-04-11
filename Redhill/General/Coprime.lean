@@ -1,5 +1,6 @@
 module
 
+import Mathlib.Order.Filter.Finite
 public import Redhill.Common.PairwiseCoprime
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.Coprime
