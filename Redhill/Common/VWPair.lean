@@ -35,7 +35,7 @@ structure VWPair (u m : ℕ) where
   /-- `u = v + w` in the paper -/
   u_eq_sub : u = w - v
   /-- The inequality chain bounding `v` and `w` -/
-  ineq_chain : primorial m < v ∧ v ≤ w ∧ w ≤ 4 * primorial m
+  ineq_chain : primorial m < v ∧ v ≤ w
   /-- No number in `[3,m]` divides `v` or `w` -/
   not_dvd (k) (hk : k ∈ Icc 3 m) : ¬k ∣ v ∧ ¬k ∣ w
   /-- `w` is odd -/
@@ -187,21 +187,17 @@ lemma odd_add_crtShift : Odd (w + crtShift v w m) := by
   have key := min'_mem _ (nonempty_double_not_dvd_four v w)
   simp_all
 
-/-- Lemma 2.2. When `0 < u` and `max 2 u ≤ m`, we can construct a `VWPair u m`. -/
-def ofUM (u m : ℕ) (hu : 0 < u) (hm : max 2 u ≤ m) : VWPair u m where
+/-- Lemma 2.2. When `0 < u`, we can construct a `VWPair u m`. -/
+def ofUM (u m : ℕ) (hu : 0 < u) : VWPair u m where
   v := primorial m + 1 + crtShift (primorial m + 1) (primorial m + 1 + u) m
   w := primorial m + 1 + u + crtShift (primorial m + 1) (primorial m + 1 + u) m
   u_eq_sub := by lia
-  ineq_chain := by
-    refine ⟨by lia, by lia, ?_⟩
-    rw [max_le_iff] at hm
-    grind [le_primorial_self, @crtShift_lt (primorial m + 1) (primorial m + 1 + u) _ hm.1]
+  ineq_chain := by lia
   not_dvd k hk := crtShift_not_dvd hk
   w_odd := odd_add_crtShift
 
-lemma ofUM_coprime (hu : 0 < u) (hm : max 2 u ≤ m) :
-    (ofUM u m hu hm).v.Coprime (ofUM u m hu hm).w :=
-  (ofUM u m hu hm).coprime_of_le hu (by simp_all)
+lemma ofUM_coprime (hu : 0 < u) (hm : u ≤ m) : (ofUM u m hu).v.Coprime (ofUM u m hu).w :=
+  (ofUM u m hu).coprime_of_le hu hm
 
 end VWPair
 
@@ -236,7 +232,7 @@ lemma isSubsumBlock_vwTup (hB : m + ∑ i ∈ range n, primeChain s i ≤ B) :
   apply IsSubsumBlock.pair_of_sum_natAbs_lt
   · simp_rw [this, vwTup, addCases_right, Int.natAbs_natCast, vlb]
   · simp_rw [this, vwTup, addCases_right, Int.natAbs_neg, Int.natAbs_natCast,
-      vlb.trans_le vw.ineq_chain.2.1]
+      vlb.trans_le vw.ineq_chain.2]
   · simp_rw [vwTup, addCases_right, mul_neg, Left.neg_nonpos_iff]
     positivity
 
@@ -249,7 +245,7 @@ lemma tupReduce_vwTup {c₂ : n + 1 = n + 3 - #{natAdd n 0, natAdd n 1}} :
     rw [lastCases_last, sum_pair (by simp)]
     have : last (n + 1) = natAdd n (1 : Fin 2) := rfl
     simp_rw [vwTup, addCases_right, ← sub_eq_add_neg, chainTup, this, addCases_right,
-      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub vw.ineq_chain.2.1, ← vw.u_eq_sub,
+      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub vw.ineq_chain.2, ← vw.u_eq_sub,
       ← Nat.cast_add]
   | cast i =>
     have prel : #{natAdd n (0 : Fin 3), natAdd n 1}ᶜ = n + 1 := by simp [card_compl]

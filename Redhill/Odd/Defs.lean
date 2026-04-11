@@ -17,7 +17,7 @@ variable (n : ℕ) (F : Finset ℕ)
 def U : ℕ := 8 + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i
 
 /-- The `VWPair` generated from the inputs `u = U n F, m = max (U n F) (F.sup id)`. -/
-def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .ofUM _ _ (by grind [U]) (by grind [U])
+def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .ofUM _ _ (by grind [U])
 
 /-- We require `x` in `tup` to be a multiple of this number,
 an optimised version of the paper's `y`. -/
@@ -59,7 +59,7 @@ variable {n F} {x : ℤ}
 lemma sum_tup : ∑ i, tup n F x i = 0 := by
   simp only [tup, sum_univ_add, addCases_left, addCases_right, sum_univ_five,
     add_assoc, show (x - 1) ^ 5 + (10 * (x ^ 2 + 1) ^ 2 + -(x + 1) ^ 5) = 8 by ring]
-  rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).ineq_chain.2.1,
+  rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).ineq_chain.2,
     ← (VW n F).u_eq_sub, sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
   norm_num [U]
 
@@ -83,7 +83,7 @@ lemma U_lt_V : U n F < (VW n F).v :=
     _ < _ := (VW n F).ineq_chain.1
 
 lemma U_lt_W : U n F < (VW n F).w :=
-  U_lt_V.trans_le (VW n F).ineq_chain.2.1
+  U_lt_V.trans_le (VW n F).ineq_chain.2
 
 lemma V_lower_bound : 211 ≤ (VW n F).v :=
   calc
@@ -92,7 +92,7 @@ lemma V_lower_bound : 211 ≤ (VW n F).v :=
     _ < _ := (VW n F).ineq_chain.1
 
 lemma W_lower_bound : 219 ≤ (VW n F).w := by
-  rw [← (eq_tsub_iff_add_eq_of_le (VW n F).ineq_chain.2.1).mp (VW n F).u_eq_sub]
+  rw [← (eq_tsub_iff_add_eq_of_le (VW n F).ineq_chain.2).mp (VW n F).u_eq_sub]
   grind [U, V_lower_bound]
 
 lemma Y_lower_bound : 462090 ≤ Y n F := by
@@ -156,7 +156,7 @@ lemma V_coprime_ten (hn : Even n) : (VW n F).v.Coprime 10 := by
       have (i : ℕ) : 3 ≤ primeChain (max 16 (F.sup id)) i :=
         sixteen_lt_primeChain.le.trans' (by decide)
       simpa [this]
-    rw [(VW n F).u_eq_sub, even_sub (VW n F).ineq_chain.2.1, ← not_iff_not, not_even_iff_odd,
+    rw [(VW n F).u_eq_sub, even_sub (VW n F).ineq_chain.2, ← not_iff_not, not_even_iff_odd,
       not_even_iff_odd] at key
     rw [← key]
     exact (VW n F).w_odd

@@ -49,7 +49,7 @@ lemma tailK_lower_bound : 196 * Y F ^ 6 ≤ tailK n F :=
     _ ≤ 2 * (VW n F).v := mul_le_mul_right (le_primorial_self.trans (VW n F).ineq_chain.1.le) _
     _ ≤ (VW n F).v + (VW n F).w := by
       rw [two_mul]
-      exact add_le_add_right (VW n F).ineq_chain.2.1 _
+      exact add_le_add_right (VW n F).ineq_chain.2 _
     _ ≤ _ := by grind [tailK]
 
 variable (hh : tailK n F < X F h)
