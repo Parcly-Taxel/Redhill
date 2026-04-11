@@ -95,7 +95,7 @@ lemma le_tupleQuality :
     ∃ C, ∀ k, .ofReal (5 * Real.log ((pell (Y n F ^ 2) k).1 * Y n F : ℕ) /
       (C + 3 * Real.log ((pell (Y n F ^ 2) k).1 * Y n F : ℕ))) ≤
     tupleQuality (tupPell n F k) := by
-  obtain ⟨C, Cpos, hC⟩ := radical_tupPell_le (n := n)
+  obtain ⟨C, Cpos, hC⟩ := @radical_tupPell_le n F
   refine ⟨Real.log C, fun k ↦ ?_⟩
   apply ENNReal.ofReal_le_ofReal
   rw [maxAbs_tupPell]
@@ -118,7 +118,7 @@ lemma le_tupleQuality :
 
 open Filter in
 lemma liminf_tupleQuality_tupPell : 5 / 3 ≤ liminf (tupleQuality ∘ tupPell n F) atTop := by
-  obtain ⟨C, hC⟩ := le_tupleQuality (n := n)
+  obtain ⟨C, hC⟩ := @le_tupleQuality n F
   refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall hC))
   have e₁ : (5 / 3 : ENNReal) = ENNReal.ofReal (5 / 3) := by
     simp [ENNReal.ofReal_div_of_pos zero_lt_three]
