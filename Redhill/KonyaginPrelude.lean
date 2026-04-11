@@ -318,9 +318,8 @@ open KonyaginPrelude
 
 /-- Theorem 2.1. -/
 theorem konyagin_prelude : 3 / 2 ≤ quality (factorFreeTuples ∅ 5) := by
-  apply quality_ge_of_liminf ⟨_, injective_tup⟩
-  · simp [tup_mem_factorFreeTuples, Set.infinite_univ]
-  · exact liminf_tupleQuality_tup
+  refine quality_ge_of_liminf_univ ⟨_, injective_tup⟩ ?_ liminf_tupleQuality_tup
+  simp [tup_mem_factorFreeTuples]
 
 theorem not_ramaekersConjecture_five : ¬RamaekersConjecture 5 := by
   have := konyagin_prelude.trans quality_factorFreeTuples_le_ramaekersTuples

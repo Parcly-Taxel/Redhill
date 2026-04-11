@@ -127,13 +127,27 @@ end GeneralCase
 
 open GeneralCase
 
+/-- Upstreamable to mathlib! -/
+lemma Nat.factorial_injOn : (Set.Ici 1).InjOn factorial := fun m (hm : 1 ≤ m) n (hn : 1 ≤ n) e ↦ by
+  obtain rfl | hm := hm.eq_or_lt
+  · obtain rfl | hn := hn.eq_or_lt
+    · rfl
+    · rwa [factorial_inj' (.inr hn)] at e
+  · rwa [factorial_inj' (.inl hm)] at e
+
 /-- Theorem 1.14. -/
 theorem quality_factorFreeTuples_ge {n : ℕ} {F : Finset ℕ} (hn : 6 ≤ n) (hF : ∀ f ∈ F, 3 ≤ f) :
     5 / 4 ≤ quality (factorFreeTuples F n) := by
   rw [le_iff_exists_add'] at hn
   obtain ⟨n, rfl⟩ := hn
-  apply quality_ge_of_liminf ⟨tup n F, sorry⟩ ?_ liminf_tupleQuality_tup
-  sorry -- tup_mem_factorFreeTuples hF
+  obtain ⟨N₀, hN₀⟩ := Filter.eventually_atTop.mp (tup_mem_factorFreeTuples (n := n) hF)
+  refine quality_ge_of_liminf _ _ (Set.Ici_infinite (N₀ + 1))
+    (fun i mi j mj e ↦ ?_) (fun h (hh : N₀ < h) ↦ hN₀ h hh.le) liminf_tupleQuality_tup
+  replace e := congr($e (Fin.natAdd n 5))
+  simp_rw [tup_natAdd_five, neg_inj] at e
+  norm_cast at e
+  rw [pow_left_inj (by decide), add_left_inj, X, X, Nat.pow_right_inj (by grind [Y_pos])] at e
+  exact Nat.factorial_injOn (by grind) (by grind) e
 
 theorem not_ramaekersConjecture_ge_six {n : ℕ} (hn : 6 ≤ n) : ¬RamaekersConjecture n := by
   have := quality_factorFreeTuples_ge (F := ∅) hn (by simp)

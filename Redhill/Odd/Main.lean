@@ -149,9 +149,8 @@ theorem quality_factorFreeTuples_ge_of_odd_of_disjoint
   rw [le_iff_exists_add'] at hn
   obtain ⟨⟨n, rfl⟩, pn⟩ := hn
   replace pn : Even n := by grind
-  apply quality_ge_of_liminf ⟨_, injective_tupPell (F := F)⟩
-  · simp [tupPell_mem_factorFreeTuples pn dF, Set.infinite_univ]
-  · exact liminf_tupleQuality_tupPell
+  exact quality_ge_of_liminf_univ ⟨_, injective_tupPell⟩
+    (fun k ↦ tupPell_mem_factorFreeTuples pn dF) liminf_tupleQuality_tupPell
 
 theorem not_ramaekersConjecture_odd_ge_five {n : ℕ} (hn : 5 ≤ n ∧ Odd n) :
     ¬RamaekersConjecture n := by

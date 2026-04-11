@@ -44,19 +44,26 @@ lemma quality_union_finite (h : B.Finite) : quality (A ∪ B) = quality A := by
   refine ⟨mq, h.subset (Set.sep_subset ..)⟩
 
 open Filter in
-lemma quality_ge_of_liminf (f : ℕ ↪ Fin n → ℤ) (rf : {i | f i ∈ A}.Infinite)
+lemma quality_ge_of_liminf (f : ℕ → Fin n → ℤ) (s : Set ℕ)
+    (infs : s.Infinite) (injs : s.InjOn f) (ms : ∀ i ∈ s, f i ∈ A)
     (qf : q ≤ liminf (tupleQuality ∘ f) atTop) : q ≤ quality A := by
   rw [quality, le_sInf_iff]
   intro k lk
   contrapose! lk
   rw [le_liminf_iff] at qf
-  replace qf := qf _ lk
+  specialize qf _ lk
   rw [eventually_atTop] at qf
   obtain ⟨N₀, hN₀⟩ := qf
-  replace rf : {i | N₀ ≤ i ∧ f i ∈ A}.Infinite := by
-    convert rf.diff (Set.finite_lt_nat N₀) using 1
+  have key : {i | N₀ ≤ i ∧ i ∈ s}.Infinite := by
+    convert infs.diff (Set.finite_lt_nat N₀) using 1
     ext
     simp [and_comm]
-  refine rf.image f.injective.injOn |>.mono fun a ma ↦ ?_
+  refine key.image (injs.mono fun _ m ↦ m.2) |>.mono fun a ma ↦ ?_
   obtain ⟨i, li, rfl⟩ := ma
-  exact ⟨li.2, hN₀ _ li.1⟩
+  exact ⟨ms _ li.2, hN₀ _ li.1⟩
+
+open Filter in
+/-- A specialisation of `quality_ge_of_liminf` to `s = univ`. -/
+lemma quality_ge_of_liminf_univ (f : ℕ ↪ Fin n → ℤ) (ms : ∀ i, f i ∈ A)
+    (qf : q ≤ liminf (tupleQuality ∘ f) atTop) : q ≤ quality A :=
+  quality_ge_of_liminf _ _ Set.infinite_univ (Set.injOn_univ.mpr f.injective) (by simpa using ms) qf

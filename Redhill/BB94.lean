@@ -281,8 +281,5 @@ theorem le_quality_nConjectureTuples {n : ℕ} (hn : 3 ≤ n) :
     (2 * n - 5 : ℕ) ≤ quality (nConjectureTuples n) := by
   rw [le_iff_exists_add'] at hn
   obtain ⟨n, rfl⟩ := hn
-  apply quality_ge_of_liminf ⟨_, injective_tup⟩
-  · refine (Set.Ici_infinite 1).mono fun i mi ↦ ?_
-    rw [Set.mem_Ici, Nat.one_le_iff_ne_zero] at mi
-    simp [tup_mem_nConjectureTuples mi]
-  · exact liminf_tupleQuality_tup
+  exact quality_ge_of_liminf _ _ (Set.Ici_infinite 1) injective_tup.injOn
+    (fun i (mi : 1 ≤ i) ↦ tup_mem_nConjectureTuples (by lia)) liminf_tupleQuality_tup
