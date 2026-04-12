@@ -208,7 +208,7 @@ public theorem strongSSC_tup (hx : Y n F ≤ x.natAbs) : StrongSSC (tup n F x) :
   have c : n + 2 = n + 5 - #(univ.map (redEmb1 (n := n))) := by simp
   apply (isSubsumBlock_redEmb1 hx).strongSSC_tupReduce c
   rw [tupReduce_tup]
-  exact strongSSC_vwTup (by decide) (by grind) (le_max_left ..)
+  exact strongSSC_vwTup (by decide) (le_max_left ..) (le_max_left ..)
 
 /-- When `Y n F ≤ x`, the maximum absolute value is `(x + 1) ^ 5`. -/
 public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x + 1) ^ 5 := by

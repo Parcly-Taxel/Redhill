@@ -8,6 +8,11 @@ public import Redhill.Common.PairwiseCoprime
 public import Redhill.Common.VWPair
 public import Redhill.ToMathlib.Coprime
 
+/-!
+The lower bound `s` for `primeChain` in `U` was originally `max 16 (F.sup id)`.
+This could be lowered because `strongSSC_vwTup` only requires `m ≤ s`, not `2m ≤ s`.
+-/
+
 @[expose] public section
 
 namespace OddCase
@@ -74,7 +79,7 @@ lemma primeChain_lt_U : primeChain (max 8 (F.sup id)) i.1 < U n F :=
   (single_le_sum_of_canonicallyOrdered (by simp_all)).trans_lt (lt_add_of_pos_left _ (by decide))
 
 lemma ten_lt_primeChain : 10 < primeChain (max 8 (F.sup id)) n := by
-  grind [primeChain_gt, prime_primeChain, show ¬Nat.Prime 9 by decide, show ¬Nat.Prime 10 by decide]
+  grind [primeChain_gt, prime_primeChain, show ¬Nat.Prime 9 ∧ ¬Nat.Prime 10 by decide]
 
 lemma primeChain_mem_Icc : primeChain (max 8 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
   mem_Icc.mpr ⟨ten_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩

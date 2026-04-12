@@ -6,6 +6,8 @@ public import Redhill.Common.VWPair
 /-!
 In this section `h` is the variable such that `tup n F h ∈ factorFreeTuples F (n + 6)`
 for sufficiently large `h`.
+
+The lower bound `s` for `primeChain` in `U` was originally `200 * Y F ^ 6`.
 -/
 
 @[expose] public section
