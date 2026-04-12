@@ -46,7 +46,7 @@ lemma radical_tupPell_dvd :
   simp_rw [Fin.prod_univ_add, Fin.prod_univ_five, tupPell, tup_castAdd, tup_natAdd_zero,
     tup_natAdd_one, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, ← mul_assoc,
     mul_neg, neg_mul, neg_neg]
-  set S : ℕ := (∏ i : Fin n, primeChain (max 16 (F.sup id)) i.1) * (VW n F).v * (VW n F).w * 10
+  set S : ℕ := (∏ i : Fin n, primeChain (max 8 (F.sup id)) i.1) * (VW n F).v * (VW n F).w * 10
   have dS : S ∣ Y n F := by
     unfold S Y
     conv_rhs => simp only [mul_assoc, ← Fin.prod_univ_eq_prod_range]

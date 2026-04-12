@@ -17,7 +17,7 @@ def redEmb1 : Fin 4 ↪ Fin (n + 6) :=
 
 variable (n F) in
 /-- The sum of `tup n F h`'s first `n + 2` elements, not depending on `h`. -/
-def tailK : ℕ := (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (200 * Y F ^ 6) i
+def tailK : ℕ := (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (100 * Y F ^ 6) i
 
 lemma sum_redEmb1_compl : ∑ i ∉ univ.map redEmb1, (tup n F h i).natAbs = tailK n F := by
   have cnn (i : Fin n) (j : Fin 6) : castAdd 6 i ≠ natAdd n j := ne_of_lt (by grind)
@@ -295,11 +295,8 @@ public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) :
   rw [tupReduce_tup]
   refine strongSSC_vwTup ?_ ?_ le_rfl
   · exact mul_pos (by grind [Y_pos]) (pow_pos Y_pos _)
-  · calc
-      _ ≤ 100 * Y F * Y F ^ 5 := by gcongr; lia
-      _ ≤ _ := by
-        rw [mul_assoc, ← Nat.pow_add_one']
-        exact Nat.mul_le_mul_right _ (by decide)
+  · rw [pow_succ' _ 5, ← mul_assoc]
+    exact Nat.mul_le_mul_right _ (by lia)
 
 public lemma maxAbs_tup : ∀ᶠ h in Filter.atTop, maxAbs (tup n F h) = (X F h + Y F) ^ 5 := by
   refine (eventually_X_gt (F := F) (tailK n)).mono fun h hh ↦ ?_
@@ -313,10 +310,10 @@ public lemma maxAbs_tup : ∀ᶠ h in Filter.atTop, maxAbs (tup n F h) = (X F h 
   | left i =>
     rw [tup_castAdd, Int.natAbs_natCast]
     calc
-      _ ≤ ∑ i ∈ range n, primeChain (200 * Y F ^ 6) i := by
+      _ ≤ ∑ i ∈ range n, primeChain (100 * Y F ^ 6) i := by
         rw [← sum_univ_eq_sum_range]
         exact single_le_sum_of_canonicallyOrdered
-          (f := fun i : Fin n ↦ primeChain (200 * Y F ^ 6) i) (mem_univ _)
+          (f := fun i : Fin n ↦ primeChain (100 * Y F ^ 6) i) (mem_univ _)
       _ ≤ X F h + Y F := by grind [tailK]
       _ ≤ _ := le_pow (by decide)
   | right i =>

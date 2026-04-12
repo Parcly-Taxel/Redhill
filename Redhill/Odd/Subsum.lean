@@ -18,7 +18,7 @@ def redEmb1 : Fin 3 ↪ Fin (n + 5) :=
 
 lemma sum_redEmb1_compl :
     ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natAbs =
-    (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i := by
+    (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 8 (F.sup id)) i := by
   have cnn (i : Fin n) (j : Fin 5) : castAdd 5 i ≠ natAdd n j := ne_of_lt (by grind)
   have s₁ : univ.map (@castAddEmb n 5) ⊆ (univ.map redEmb1)ᶜ := fun i mi ↦ by
     simp_rw [mem_map, mem_univ, true_and, coe_castAddEmb] at mi
@@ -42,16 +42,16 @@ lemma sum_redEmb1_compl :
 lemma sum_redEmb1_compl_lt : ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natAbs < Y n F := by
   rw [sum_redEmb1_compl]
   calc
-    _ ≤ (VW n F).v + (VW n F).w + ∏ i ∈ range n, primeChain (max 16 (F.sup id)) i :=
-      add_le_add_right (Nat.sum_le_prod (by grind [sixteen_lt_primeChain])) _
-    _ < (VW n F).v * (VW n F).w * ∏ i ∈ range n, primeChain (max 16 (F.sup id)) i := by
+    _ ≤ (VW n F).v + (VW n F).w + ∏ i ∈ range n, primeChain (max 8 (F.sup id)) i :=
+      add_le_add_right (Nat.sum_le_prod (by grind [ten_lt_primeChain])) _
+    _ < (VW n F).v * (VW n F).w * ∏ i ∈ range n, primeChain (max 8 (F.sup id)) i := by
       apply Nat.add3_lt_mul3
       · grind [U, U_lt_V]
       · grind [U, U_lt_W]
-      · exact one_le_prod (by grind [sixteen_lt_primeChain])
+      · exact one_le_prod (by grind [ten_lt_primeChain])
     _ ≤ _ := by
       unfold Y
-      set P := ∏ i ∈ range n, primeChain (max 16 (F.sup id)) i
+      set P := ∏ i ∈ range n, primeChain (max 8 (F.sup id)) i
       calc
         _ = 1 * (P * (VW n F).v * (VW n F).w) := by ring
         _ ≤ 10 * (F.erase 0).prod id * (P * (VW n F).v * (VW n F).w) := by
@@ -225,7 +225,7 @@ public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x +
     nth_rw 1 [Int.natAbs_natCast, Int.natAbs_natCast, show x = 1 * x ^ 1 by simp]
     gcongr <;> lia
   have key₂ :
-      (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i < Y n F := by
+      (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 8 (F.sup id)) i < Y n F := by
     rw [← sum_redEmb1_compl (x := x)]
     exact sum_redEmb1_compl_lt
   cases i using addCases with
@@ -233,10 +233,10 @@ public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x +
     rw [tup_castAdd, Int.natAbs_natCast]
     apply (key₂.le.trans key₁).trans'
     calc
-      _ ≤ ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i := by
+      _ ≤ ∑ i ∈ range n, primeChain (max 8 (F.sup id)) i := by
         rw [← sum_univ_eq_sum_range]
         exact single_le_sum_of_canonicallyOrdered
-          (f := fun i : Fin n ↦ primeChain (max 16 (F.sup id)) i) (mem_univ _)
+          (f := fun i : Fin n ↦ primeChain (max 8 (F.sup id)) i) (mem_univ _)
       _ ≤ _ := Nat.le_add_left ..
   | right i =>
     fin_cases i <;> simp only [reduceFinMk]

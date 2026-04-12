@@ -32,7 +32,7 @@ lemma Y_lt_X {F h} : Y F < X F h :=
   (lt_add_one _).trans_le (le_self_pow (factorial_ne_zero h) _)
 
 /-- The sum of `tup` over all indices save `n` and `n + 1`, i.e. the input `u` to `VWPair`. -/
-def U : ℕ := (100 * Y F - 2) * Y F ^ 5 + ∑ i ∈ range n, primeChain (200 * Y F ^ 6) i
+def U : ℕ := (100 * Y F - 2) * Y F ^ 5 + ∑ i ∈ range n, primeChain (100 * Y F ^ 6) i
 
 lemma U_lower_bound {n F} : (100 * 33330 - 2) * 33330 ^ 5 ≤ U n F := by
   apply (Nat.le_add_right ..).trans'
@@ -46,7 +46,7 @@ def VW : VWPair (U n F) (U n F) := .of ..
 /-- The sequence of `(n + 6)`-tuples whose tail is in `factorFreeTuples`
 and has quality tending to `5 / 4`. -/
 def tup (i : Fin (n + 6)) : ℤ :=
-  i.addCases (primeChain (200 * Y F ^ 6) ·.1) fun
+  i.addCases (primeChain (100 * Y F ^ 6) ·.1) fun
     | 0 => (VW n F).v
     | 1 => -(VW n F).w
     | 2 => (X F h ^ 2 + 10 * Y F ^ 3) ^ 2
@@ -57,7 +57,7 @@ def tup (i : Fin (n + 6)) : ℤ :=
 variable {n F h}
 
 @[simp] lemma tup_castAdd {i : Fin n} :
-    tup n F h (i.castAdd 6) = primeChain (200 * Y F ^ 6) i.1 := by
+    tup n F h (i.castAdd 6) = primeChain (100 * Y F ^ 6) i.1 := by
   simp [tup]
 
 @[simp] lemma tup_natAdd_zero : tup n F h (natAdd n 0) = (VW n F).v := by
@@ -111,10 +111,10 @@ lemma le_Y_of_mem_F : f ≤ Y F :=
       · exact single_le_prod' (f := id) (by grind) (by simp_all)
     _ ≤ _ := by grind [Y]
 
-lemma lt_primeChain_of_mem_F : f < primeChain (200 * Y F ^ 6) n :=
+lemma lt_primeChain_of_mem_F : f < primeChain (100 * Y F ^ 6) n :=
   calc
     _ ≤ 1 * Y F := by simp [le_Y_of_mem_F mf]
-    _ ≤ 200 * Y F ^ 6 := mul_le_mul' (by decide) (le_self_pow (by decide) _)
+    _ ≤ 100 * Y F ^ 6 := mul_le_mul' (by decide) (le_self_pow (by decide) _)
     _ < _ := primeChain_gt
 
 lemma le_U_of_mem_F : f ≤ U n F :=

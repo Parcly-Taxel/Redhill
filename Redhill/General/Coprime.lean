@@ -342,10 +342,10 @@ lemma isCoprime_natAdd_natAdd {i j : Fin 6} (hij : i < j) :
     exact .of_forall fun _ ↦ isCoprime_natAdd_four_five
   · lia
 
-lemma primeChain_mem_Icc {i : Fin n} : primeChain (200 * Y F ^ 6) i.1 ∈ Finset.Icc 3 (U n F) := by
+lemma primeChain_mem_Icc {i : Fin n} : primeChain (100 * Y F ^ 6) i.1 ∈ Finset.Icc 3 (U n F) := by
   refine Finset.mem_Icc.mpr ⟨primeChain_gt.le.trans' ?_, le_add_self.trans' ?_⟩
   · calc
-      _ ≤ 200 * 1 := by decide
+      _ ≤ 100 * 1 := by decide
       _ ≤ _ := by gcongr; exact Nat.one_le_pow _ _ Y_pos
   · exact Finset.single_le_sum_of_canonicallyOrdered (by simp_all)
 
@@ -361,7 +361,7 @@ lemma isCoprime_castAdd_natAdd {i : Fin n} {j : Fin 6} :
       prime_primeChain.coprime_iff_not_dvd]
     exact ((VW n F).not_dvd _ primeChain_mem_Icc).2
   · refine isCoprime_natAdd_two_of_rough
-      (Q := fun F ↦ primeChain (200 * Y F ^ 6) _) fun {f} lf df ↦ ?_
+      (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'
@@ -371,7 +371,7 @@ lemma isCoprime_castAdd_natAdd {i : Fin n} {j : Fin 6} :
         exact add_le_add_right (Nat.one_le_pow _ _ Y_pos) _
       _ ≤ _ := by gcongr <;> grind [Y_pos]
   · refine isCoprime_natAdd_three_of_rough
-      (Q := fun F ↦ primeChain (200 * Y F ^ 6) _) fun {f} lf df ↦ ?_
+      (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'
@@ -379,7 +379,7 @@ lemma isCoprime_castAdd_natAdd {i : Fin n} {j : Fin 6} :
       _ ≤ 11 * Y F ^ 1 := by grind [Y_pos]
       _ ≤ _ := by gcongr <;> grind [Y_pos]
   · refine isCoprime_natAdd_four_of_rough
-      (Q := fun F ↦ primeChain (200 * Y F ^ 6) _) fun {f} lf df ↦ ?_
+      (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'
@@ -387,7 +387,7 @@ lemma isCoprime_castAdd_natAdd {i : Fin n} {j : Fin 6} :
       _ ≤ 2 * Y F ^ 1 := by grind [Y_pos]
       _ ≤ _ := by gcongr <;> grind [Y_pos]
   · refine isCoprime_natAdd_five_of_rough
-      (Q := fun F ↦ primeChain (200 * Y F ^ 6) _) fun {f} lf df ↦ ?_
+      (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'

@@ -17,7 +17,7 @@ open Nat Fin Finset
 variable (n : ℕ) (F : Finset ℕ)
 
 /-- The sum of `tup` over all indices save `n` and `n + 1`, i.e. the input `u` to `VWPair`. -/
-def U : ℕ := 8 + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i
+def U : ℕ := 8 + ∑ i ∈ range n, primeChain (max 8 (F.sup id)) i
 
 /-- The `VWPair` generated from the inputs `u = U n F, m = max (U n F) (F.sup id)`. -/
 def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .of ..
@@ -26,12 +26,12 @@ def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .of ..
 an optimised version of the paper's `y`. -/
 def Y : ℕ :=
   10 * (F.erase 0).prod id *
-  (∏ i ∈ range n, primeChain (max 16 (F.sup id)) i) * (VW n F).v * (VW n F).w
+  (∏ i ∈ range n, primeChain (max 8 (F.sup id)) i) * (VW n F).v * (VW n F).w
 
 /-- The sequence of `(n + 5)`-tuples containing an infinite subsequence in `factorFreeTuples`
 whose qualities tend to `5 / 3`, assuming `n` is even and `0, 1, 2, 5, 10 ∉ F`. -/
 def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
-  i.addCases (primeChain (max 16 (F.sup id)) ·.1) fun
+  i.addCases (primeChain (max 8 (F.sup id)) ·.1) fun
     | 0 => (VW n F).v
     | 1 => -(VW n F).w
     | 2 => (x - 1) ^ 5
@@ -41,7 +41,7 @@ def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
 variable {n F} {x : ℤ}
 
 @[simp] lemma tup_castAdd {i : Fin n} :
-    tup n F x (i.castAdd 5) = primeChain (max 16 (F.sup id)) i.1 := by
+    tup n F x (i.castAdd 5) = primeChain (max 8 (F.sup id)) i.1 := by
   simp [tup]
 
 @[simp] lemma tup_natAdd_zero : tup n F x (natAdd n 0) = (VW n F).v := by
@@ -70,14 +70,14 @@ variable {i : Fin n}
 
 section Bounds
 
-lemma primeChain_lt_U : primeChain (max 16 (F.sup id)) i.1 < U n F :=
+lemma primeChain_lt_U : primeChain (max 8 (F.sup id)) i.1 < U n F :=
   (single_le_sum_of_canonicallyOrdered (by simp_all)).trans_lt (lt_add_of_pos_left _ (by decide))
 
-lemma sixteen_lt_primeChain : 16 < primeChain (max 16 (F.sup id)) n := by
-  grind [primeChain_gt]
+lemma ten_lt_primeChain : 10 < primeChain (max 8 (F.sup id)) n := by
+  grind [primeChain_gt, prime_primeChain, show ¬Nat.Prime 9 by decide, show ¬Nat.Prime 10 by decide]
 
-lemma primeChain_mem_Icc : primeChain (max 16 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
-  mem_Icc.mpr ⟨sixteen_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩
+lemma primeChain_mem_Icc : primeChain (max 8 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
+  mem_Icc.mpr ⟨ten_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩
 
 lemma U_lt_V : U n F < (VW n F).v :=
   calc
@@ -99,7 +99,7 @@ lemma Y_lower_bound : 1530 ≤ Y n F := by
   rw [show 1530 = 10 * 1 * 1 * 9 * 17 by rfl, Y]
   gcongr
   · exact one_le_prod (by grind)
-  · exact one_le_prod (by grind [sixteen_lt_primeChain])
+  · exact one_le_prod (by grind [ten_lt_primeChain])
   · exact V_lower_bound
   · exact W_lower_bound
 
@@ -110,7 +110,7 @@ end Bounds
 section Coprime
 
 lemma dvd_of_Y_dvd (dx : ↑(Y n F) ∣ x) :
-    10 ∣ x ∧ (∀ f ∈ F.erase 0, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 16 (F.sup id)) i.1) ∣ x) ∧
+    10 ∣ x ∧ (∀ f ∈ F.erase 0, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 8 (F.sup id)) i.1) ∣ x) ∧
     ↑(VW n F).v ∣ x ∧ ↑(VW n F).w ∣ x := by
   simp_rw [Y, cast_mul, cast_ofNat, cast_prod, id_eq] at dx
   simp_rw [← and_assoc]
@@ -140,7 +140,7 @@ lemma isCoprime_tup_castAdd_natAdd {j : Fin 5} (dx : ↑(Y n F) ∣ x) :
   · rw [tup_natAdd_three, IsCoprime.mul_right_iff, IsCoprime.pow_right_iff zero_lt_two]
     constructor
     · norm_cast
-      exact coprime_of_lt_prime (by decide) (by grind [sixteen_lt_primeChain]) prime_primeChain
+      exact coprime_of_lt_prime (by decide) (by grind [ten_lt_primeChain]) prime_primeChain
     · exact IsCoprime.add_one_right_of_dvd (dvd_pow (dx i) two_ne_zero)
   · rw [tup_natAdd_four, IsCoprime.neg_right_iff, IsCoprime.pow_right_iff (by decide)]
     exact IsCoprime.add_one_right_of_dvd (dx _)
@@ -153,8 +153,8 @@ lemma V_coprime_ten (hn : Even n) : (VW n F).v.Coprime 10 := by
     have key : Even (U n F) := by
       apply Even.add (by decide)
       simp_rw [even_sum_iff_even_card_odd, prime_primeChain.odd_iff]
-      have (i : ℕ) : 3 ≤ primeChain (max 16 (F.sup id)) i :=
-        sixteen_lt_primeChain.le.trans' (by decide)
+      have (i : ℕ) : 3 ≤ primeChain (max 8 (F.sup id)) i :=
+        ten_lt_primeChain.le.trans' (by decide)
       simpa [this]
     grind [(VW n F).w_odd, (VW n F).eq_add]
   · rw [coprime_comm, prime_five.coprime_iff_not_dvd]
@@ -215,7 +215,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
         IsCoprime.pow_right_iff (by decide), IsCoprime.mul_left_iff]
       exact ⟨IsCoprime.add_one_right_of_dvd d10, cp2.1.pow_left⟩
 
-lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (max 16 (F.sup id)) n :=
+lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (max 8 (F.sup id)) n :=
   calc
     _ ≤ F.sup id := le_sup hf
     _ < _ := by grind [primeChain_gt]
