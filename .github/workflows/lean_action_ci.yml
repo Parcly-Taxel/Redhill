@@ -23,4 +23,4 @@ jobs:
         uses: leanprover/lean-action@f807b338d95de7813c5c50d018f1c23c9b93b4ec # v1.2.0
       - name: Documentation
         id: build-docgen
-        uses: leanprover-community/docgen-action@main
+        uses: marcelolynch/docgen-action@79882c846b08d86d4d877631198260d3340dc4f5
