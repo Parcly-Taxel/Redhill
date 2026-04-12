@@ -41,7 +41,7 @@ lemma U_lower_bound {n F} : (100 * 33330 - 2) * 33330 ^ 5 ≤ U n F := by
 lemma U_pos {n F} : 0 < U n F := by grind [U_lower_bound]
 
 /-- The `VWPair` generated from the inputs `u = m = U n F`. -/
-def VW : VWPair (U n F) (U n F) := .ofUM _ _ U_pos
+def VW : VWPair (U n F) (U n F) := .of ..
 
 /-- The sequence of `(n + 6)`-tuples whose tail is in `factorFreeTuples`
 and has quality tending to `5 / 4`. -/
@@ -83,9 +83,8 @@ lemma sum_tup : ∑ i, tup n F h i = 0 := by
   set x := X F h
   set y := Y F
   rw [show (x ^ 2 + 10 * y ^ 3) ^ 2 + ((10 * y - 1 : ℤ) * x ^ 4 + ((x - y) ^ 5 + -(x + y) ^ 5)) =
-    (100 * y - 2) * y ^ 5 by ring, ← add_assoc _ _ (_ * _), ← sub_eq_add_neg, ← neg_sub,
-    ← cast_sub (VW n F).v_le_w, ← (VW n F).u_eq_sub,
-    sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ)), ← cast_sum]
+    (100 * y - 2) * y ^ 5 by ring, ← add_assoc _ _ (_ * _), (VW n F).eq_add, cast_add, neg_add,
+    add_add_neg_cancel'_right, sum_univ_eq_sum_range fun i ↦ (primeChain _ i : ℤ), ← cast_sum]
   grind [U]
 
 section Factors

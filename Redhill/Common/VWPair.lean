@@ -18,8 +18,7 @@ performed in this file). For example, take `m = 5, q = 30, u = -2`, then step 1 
 `v = 29, w = -31` and both numbers are unchanged in the rest of the algorithm
 because 29 and 31 are big primes.
 
-The coprimality condition is derived from the preconditions on `u, m`, not defined as a field
-of `VWPair`, since said preconditions are light.
+The coprimality condition only requires `0 < u ≤ m` and is proved separately.
 -/
 
 @[expose] public section
@@ -34,32 +33,17 @@ structure VWPair (u m : ℕ) where
   /-- `w` in the paper, **negated** -/
   w : ℕ
   /-- `u = v + w` in the paper -/
-  u_eq_sub : u = w - v
+  eq_add : w = u + v
   /-- `m < v` -/
   m_lt_v : m < v
-  /-- `v ≤ w` -/
-  v_le_w : v ≤ w
-  /-- No number in `[3,m]` divides `v` or `w` -/
-  not_dvd (k) (hk : k ∈ Icc 3 m) : ¬k ∣ v ∧ ¬k ∣ w
   /-- `w` is odd -/
   w_odd : Odd w
+  /-- No number in `[3,m]` divides `v` or `w` -/
+  not_dvd (k) (hk : k ∈ Icc 3 m) : ¬k ∣ v ∧ ¬k ∣ w
 
 namespace VWPair
 
 variable {v w u m p : ℕ}
-
-/-- When the preconditions on `u` and `m` in Lemma 2.2 are satisfied, `v` and `w` are coprime. -/
-lemma coprime_of_le (pair : VWPair u m) (hu : 0 < u) (hm : u ≤ m) :
-    pair.v.Coprime pair.w := by
-  by_contra h
-  rw [Prime.not_coprime_iff_dvd] at h
-  obtain ⟨p, pp, dv, dw⟩ := h
-  obtain rfl | op := pp.eq_two_or_odd'
-  · grind [pair.w_odd]
-  rw [pp.odd_iff] at op
-  obtain hp | hp := le_or_gt p m
-  · exact (pair.not_dvd p (mem_Icc.mpr ⟨op, hp⟩)).1 dv
-  grind [le_of_dvd hu (pair.u_eq_sub.symm ▸ dvd_sub dw dv)]
 
 variable (v w p) in
 lemma nonempty_double_not_dvd (hp : 3 ≤ p) :
@@ -173,18 +157,27 @@ lemma odd_add_crtShift : Odd (w + crtShift v w m) := by
   have key := min'_mem _ (nonempty_double_not_dvd_four v w)
   simp_all
 
-/-- Lemma 2.2. When `0 < u`, we can construct a `VWPair u m`. -/
-def ofUM (u m : ℕ) (hu : 0 < u) : VWPair u m where
+/-- Lemma 2.2. A `VWPair u m` always exists. -/
+def of (u m : ℕ) : VWPair u m where
   v := m + 1 + crtShift (m + 1) (m + 1 + u) m
   w := m + 1 + u + crtShift (m + 1) (m + 1 + u) m
-  u_eq_sub := by lia
+  eq_add := by lia
   m_lt_v := by lia
-  v_le_w := by lia
-  not_dvd k hk := crtShift_not_dvd hk
   w_odd := odd_add_crtShift
+  not_dvd _ := crtShift_not_dvd
 
-lemma ofUM_coprime (hu : 0 < u) (hm : u ≤ m) : (ofUM u m hu).v.Coprime (ofUM u m hu).w :=
-  (ofUM u m hu).coprime_of_le hu hm
+/-- When `0 < u ≤ m`, `v` and `w` are coprime. -/
+lemma of_coprime (hu : 0 < u) (hm : u ≤ m) : (of u m).v.Coprime (of u m).w := by
+  by_contra h
+  rw [Prime.not_coprime_iff_dvd] at h
+  obtain ⟨p, pp, dv, dw⟩ := h
+  obtain rfl | op := pp.eq_two_or_odd'
+  · grind [(of u m).w_odd]
+  rw [pp.odd_iff] at op
+  obtain hp | hp := le_or_gt p m
+  · exact ((of u m).not_dvd p (mem_Icc.mpr ⟨op, hp⟩)).1 dv
+  rw [(of u m).eq_add, Nat.dvd_add_left dv] at dw
+  grind [le_of_dvd hu dw]
 
 end VWPair
 
@@ -217,8 +210,8 @@ lemma isSubsumBlock_vwTup (hB : m + ∑ i ∈ range n, primeChain s i ≤ B) :
   have vlb : m + ∑ i ∈ range n, primeChain s i < vw.v := hB.trans_lt vw.m_lt_v
   apply IsSubsumBlock.pair_of_sum_natAbs_lt
   · simp_rw [this, vwTup, addCases_right, Int.natAbs_natCast, vlb]
-  · simp_rw [this, vwTup, addCases_right, Int.natAbs_neg, Int.natAbs_natCast,
-      vlb.trans_le vw.v_le_w]
+  · simp_rw [this, vwTup, addCases_right, Int.natAbs_neg, Int.natAbs_natCast, vw.eq_add]
+    lia
   · simp_rw [vwTup, addCases_right, mul_neg, Left.neg_nonpos_iff, ← Nat.cast_mul]
     exact Int.natCast_nonneg _
 
@@ -230,9 +223,8 @@ lemma tupReduce_vwTup {c₂ : n + 1 = n + 3 - #{natAdd n 0, natAdd n 1}} :
   | last =>
     rw [lastCases_last, sum_pair (by simp)]
     have : last (n + 1) = natAdd n (1 : Fin 2) := rfl
-    simp_rw [vwTup, addCases_right, ← sub_eq_add_neg, chainTup, this, addCases_right,
-      ← neg_eq_iff_eq_neg, neg_sub, ← Nat.cast_sub vw.v_le_w, ← vw.u_eq_sub,
-      ← Nat.cast_add]
+    simp_rw [vwTup, chainTup, this, addCases_right, vw.eq_add]
+    lia
   | cast i =>
     have prel : #{natAdd n (0 : Fin 3), natAdd n 1}ᶜ = n + 1 := by simp [card_compl]
     have : complRank {natAdd n 0, natAdd n 1} c₂ = lastCases (natAdd n 2) (castAdd 3) := by

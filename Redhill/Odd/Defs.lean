@@ -20,7 +20,7 @@ variable (n : ℕ) (F : Finset ℕ)
 def U : ℕ := 8 + ∑ i ∈ range n, primeChain (max 16 (F.sup id)) i
 
 /-- The `VWPair` generated from the inputs `u = U n F, m = max (U n F) (F.sup id)`. -/
-def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .ofUM _ _ (by grind [U])
+def VW : VWPair (U n F) (max (U n F) (F.sup id)) := .of ..
 
 /-- We require `x` in `tup` to be a multiple of this number,
 an optimised version of the paper's `y`. -/
@@ -62,8 +62,8 @@ variable {n F} {x : ℤ}
 lemma sum_tup : ∑ i, tup n F x i = 0 := by
   simp only [tup, sum_univ_add, addCases_left, addCases_right, sum_univ_five,
     add_assoc, show (x - 1) ^ 5 + (10 * (x ^ 2 + 1) ^ 2 + -(x + 1) ^ 5) = 8 by ring]
-  rw [← add_assoc _ _ 8, ← sub_eq_add_neg, ← neg_sub, ← cast_sub (VW n F).v_le_w,
-    ← (VW n F).u_eq_sub, sum_univ_eq_sum_range (f := fun i ↦ (primeChain _ i : ℤ))]
+  rw [(VW n F).eq_add, cast_add, neg_add, ← add_assoc _ _ 8, add_add_neg_cancel'_right,
+    sum_univ_eq_sum_range fun i ↦ (primeChain _ i : ℤ)]
   norm_num [U]
 
 variable {i : Fin n}
@@ -84,8 +84,8 @@ lemma U_lt_V : U n F < (VW n F).v :=
     _ ≤ max (U n F) (F.sup id) := le_max_left ..
     _ < _ := (VW n F).m_lt_v
 
-lemma U_lt_W : U n F < (VW n F).w :=
-  U_lt_V.trans_le (VW n F).v_le_w
+lemma U_lt_W : U n F < (VW n F).w := by
+  grind [U_lt_V, (VW n F).eq_add]
 
 lemma V_lower_bound : 9 ≤ (VW n F).v :=
   calc
@@ -93,8 +93,7 @@ lemma V_lower_bound : 9 ≤ (VW n F).v :=
     _ < _ := (VW n F).m_lt_v
 
 lemma W_lower_bound : 17 ≤ (VW n F).w := by
-  rw [← (eq_tsub_iff_add_eq_of_le (VW n F).v_le_w).mp (VW n F).u_eq_sub]
-  grind [U, V_lower_bound]
+  grind [U, (VW n F).eq_add, V_lower_bound]
 
 lemma Y_lower_bound : 1530 ≤ Y n F := by
   rw [show 1530 = 10 * 1 * 1 * 9 * 17 by rfl, Y]
@@ -157,10 +156,7 @@ lemma V_coprime_ten (hn : Even n) : (VW n F).v.Coprime 10 := by
       have (i : ℕ) : 3 ≤ primeChain (max 16 (F.sup id)) i :=
         sixteen_lt_primeChain.le.trans' (by decide)
       simpa [this]
-    rw [(VW n F).u_eq_sub, even_sub (VW n F).v_le_w, ← not_iff_not, not_even_iff_odd,
-      not_even_iff_odd] at key
-    rw [← key]
-    exact (VW n F).w_odd
+    grind [(VW n F).w_odd, (VW n F).eq_add]
   · rw [coprime_comm, prime_five.coprime_iff_not_dvd]
     exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by grind [U]⟩)).1
 
@@ -191,7 +187,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
     · rw [tup_natAdd_zero]
       obtain rfl | rfl | rfl | rfl : j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 := by lia
       · rw [tup_natAdd_one, IsCoprime.neg_right_iff, isCoprime_iff_coprime]
-        exact (VW n F).coprime_of_le (by grind [U]) (le_max_left ..)
+        exact VWPair.of_coprime (by grind [U]) (le_max_left ..)
       · rw [tup_natAdd_two]
         exact (IsCoprime.sub_one_right_of_dvd dv).pow_right
       · rw [tup_natAdd_three, IsCoprime.mul_right_iff]

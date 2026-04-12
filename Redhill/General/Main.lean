@@ -28,7 +28,7 @@ lemma radical_tup_dvd :
     ← mul_assoc, mul_neg, neg_mul, neg_neg, ← Nat.cast_prod, ← Nat.cast_mul]
   set C := (∏ i : Fin n, primeChain (200 * Y F ^ 6) i.1) * (VW n F).v * (VW n F).w
   have Cpos : 0 < C := by
-    iterate 2 refine Nat.mul_pos ?_ (by grind [(VW n F).m_lt_v, (VW n F).v_le_w])
+    iterate 2 refine Nat.mul_pos ?_ (by grind [(VW n F).m_lt_v, (VW n F).eq_add])
     exact Finset.prod_pos fun i _ ↦ by grind [primeChain_gt]
   let x : ℤ[X] := Polynomial.X
   refine ⟨C * (10 * Y F - 1) * (Y F + 1) * (x ^ 2 + 10 * Y F ^ 3) * (x - Y F) * (x + Y F),

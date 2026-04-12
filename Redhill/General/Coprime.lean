@@ -299,7 +299,7 @@ lemma isCoprime_natAdd_natAdd {i j : Fin 6} (hij : i < j) :
   · simp_rw [tup_natAdd_zero]
     obtain rfl | rfl | rfl | rfl | rfl : j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 := by lia
     · simp_rw [tup_natAdd_one, neg_right_iff, Nat.isCoprime_iff_coprime]
-      exact .of_forall fun _ ↦ (VW n F).coprime_of_le U_pos le_rfl
+      exact .of_forall fun _ ↦ VWPair.of_coprime U_pos le_rfl
     · refine isCoprime_natAdd_two_of_rough (Q := fun F ↦ (VW n F).v) fun {f} lf df ↦ ?_
       have := (VW n F).not_dvd
       contrapose! df
