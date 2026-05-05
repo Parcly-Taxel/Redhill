@@ -13,7 +13,7 @@ public import Redhill.Common.Conjectures
 # The "warm-up" result (Theorem 2.1)
 -/
 
-@[expose] public section
+public section
 
 namespace KonyaginPrelude
 
