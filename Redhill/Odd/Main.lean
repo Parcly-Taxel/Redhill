@@ -1,10 +1,19 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Redhill.Odd.Pell
 public import Redhill.Odd.Subsum
 public import Redhill.Common.Conjectures
 
-@[expose] public section
+/-!
+# The odd case (Theorem 1.13)
+-/
+
+public section
 
 namespace OddCase
 

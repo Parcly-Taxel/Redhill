@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 import Mathlib.Tactic.Zify
@@ -5,6 +10,10 @@ public import Redhill.Common.MaxAbs
 public import Redhill.Odd.Defs
 public import Redhill.ToMathlib.NatAbs
 public import Redhill.ToMathlib.NatSumProd
+
+/-!
+# Subsum condition for the odd case
+-/
 
 namespace OddCase
 

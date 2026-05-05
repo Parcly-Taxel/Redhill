@@ -1,11 +1,17 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 import Mathlib.Order.Filter.Finite
 public import Redhill.Common.PairwiseCoprime
 public import Redhill.General.Defs
-public import Redhill.ToMathlib.Coprime
 
 /-!
+# Coprimality proof for the general case
+
 In the paper it is claimed in the proof of coprimality of `a₃` and `a₄` over there –
 `isCoprime_natAdd_two_three` here – that "as 101 is prime and `10y - 1 > 101`,
 they have no common factor". This is not always true even with the paper's definition of `y`,

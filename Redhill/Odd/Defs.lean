@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Mathlib.Algebra.BigOperators.Ring.Nat
@@ -6,9 +11,10 @@ public import Mathlib.Tactic.FinCases
 public import Mathlib.Tactic.IntervalCases
 public import Redhill.Common.PairwiseCoprime
 public import Redhill.Common.VWPair
-public import Redhill.ToMathlib.Coprime
 
 /-!
+# Definitions for the odd case
+
 The lower bound `s` for `primeChain` in `U` was originally `max 16 (F.sup id)`.
 This could be lowered because `strongSSC_vwTup` only requires `m ≤ s`, not `2m ≤ s`.
 -/
@@ -186,7 +192,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
     rw [natAdd_lt_natAdd_iff] at h
     obtain ⟨d10, -, -, dv, dw⟩ := dvd_of_Y_dvd dx
     have d2 : 2 ∣ x := dvd_trans (by decide) d10
-    have cp2 := IsCoprime.add_one_sub_one_of_even (dvd_pow d2 two_ne_zero)
+    have cp2 := IsCoprime.add_one_sub_one_of_two_dvd (dvd_pow d2 two_ne_zero)
     rw [show x ^ 2 - 1 = (x + 1) * (x - 1) by ring, IsCoprime.mul_right_iff] at cp2
     obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by lia
     · rw [tup_natAdd_zero]
@@ -214,7 +220,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
       · rw [tup_natAdd_three, IsCoprime.mul_right_iff]
         exact ⟨IsCoprime.sub_one_left_of_dvd d10, (cp2.2.symm).pow_right⟩
       · rw [tup_natAdd_four]
-        exact (IsCoprime.add_one_sub_one_of_even d2).symm.pow_right.neg_right
+        exact (IsCoprime.add_one_sub_one_of_two_dvd d2).symm.pow_right.neg_right
     · obtain rfl : j = 4 := by lia
       rw [tup_natAdd_three, tup_natAdd_four, IsCoprime.neg_right_iff,
         IsCoprime.pow_right_iff (by decide), IsCoprime.mul_left_iff]

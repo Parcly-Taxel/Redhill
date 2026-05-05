@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Mathlib.Data.Nat.ChineseRemainder
@@ -6,6 +11,8 @@ public import Mathlib.Data.ZMod.Defs
 public import Redhill.Common.PrimeChain
 
 /-!
+# VW pairs
+
 The paper stipulates `u < 0 < m` and `w ≤ 0 < v`.
 These bounds are formalised by typing all four variables as natural numbers,
 negating `u` and `w` as needed.

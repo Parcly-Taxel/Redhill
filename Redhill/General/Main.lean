@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Mathlib.RingTheory.Radical.NatInt
@@ -5,7 +10,11 @@ public import Redhill.Common.Conjectures
 public import Redhill.General.Coprime
 public import Redhill.General.Subsum
 
-@[expose] public section
+/-!
+# The general case (Theorem 1.14)
+-/
+
+public section
 
 namespace GeneralCase
 

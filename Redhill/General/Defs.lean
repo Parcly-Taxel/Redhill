@@ -1,9 +1,16 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Mathlib.FieldTheory.Finite.Basic
 public import Redhill.Common.VWPair
 
 /-!
+# Definitions for the general case
+
 In this section `h` is the variable such that `tup n F h ∈ factorFreeTuples F (n + 6)`
 for sufficiently large `h`.
 

@@ -1,9 +1,17 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 public import Mathlib.RingTheory.Radical.NatInt
 public import Redhill.Common.Conjectures
-public import Redhill.ToMathlib.Coprime
+
+/-!
+# The "warm-up" result (Theorem 2.1)
+-/
 
 @[expose] public section
 
@@ -78,7 +86,7 @@ lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := by
   fin_cases j <;> simp only [Fin.reduceFinMk, Fin.not_lt_zero, Fin.lt_one_iff] at *
   · subst h
     rw [tup, pow_left_iff zero_lt_three, tup, neg_right_iff, pow_right_iff zero_lt_three]
-    exact add_one_sub_one_of_even ((show (2 : ℤ) ∣ 6 by lia).pow (by positivity))
+    exact add_one_sub_one_of_two_dvd ((show (2 : ℤ) ∣ 6 by lia).pow (by positivity))
   · rw [tup, neg_mul, neg_right_iff, ← pow_mul, ← pow_succ', pow_right_iff (by positivity)]
     obtain rfl | rfl : i = 0 ∨ i = 1 := by lia
     all_goals simp only [tup, neg_left_iff, pow_left_iff zero_lt_three]
@@ -260,7 +268,7 @@ lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
     apply (show 31 ≤ 6 ^ (2 * 2 ^ 0 + 1) by lia).trans
     gcongr <;> lia
   rw [e2, sup_le_iff, Int.natAbs_neg, Int.natAbs_pow]
-  refine ⟨pow_le_pow_left₀ (zero_le _) (by lia) _, ?_⟩
+  refine ⟨pow_le_pow_left₀ zero_le (by lia) _, ?_⟩
   calc
     _ ≤ 6 ^ (3 * 2 ^ k) := by
       rw [Nat.succ_mul 2]

@@ -1,14 +1,18 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 public import Mathlib.Data.Finset.Lattice.Fold
 public import Mathlib.Data.Fintype.Basic
 
 /-!
-This file contains `maxAbs`, the maximum absolute value of a set of integers,
-and basic theorems about it.
+# Maximum absolute value of a tuple of integers
 -/
 
-@[expose] public section
+public section
 
 open Finset
 

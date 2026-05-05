@@ -1,9 +1,18 @@
+/-
+Copyright (c) 2026 Jeremy Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Tan
+-/
 module
 
 import Mathlib.Algebra.Order.Archimedean.Basic
 public import Redhill.Common.MaxAbs
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.NatAbs
+
+/-!
+# Subsum condition for the general case
+-/
 
 namespace GeneralCase
 
