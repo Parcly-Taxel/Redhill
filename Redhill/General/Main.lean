@@ -68,7 +68,8 @@ lemma radical_tup_le : ∃ C > 0, ∀ h, radical (∏ i, tup n F h i) ≤ C * X 
 lemma le_tupleQuality : ∃ C, ∀ᶠ h in atTop,
     .ofReal (5 * Real.log (X F h) / (C + 4 * Real.log (X F h))) ≤ tupleQuality (tup n F h) := by
   obtain ⟨C, Cpos, hC⟩ := @radical_tup_le n F
-  refine ⟨Real.log C, ((@maxAbs_tup n F).and (@strongSSC_tup n F)).mono fun h ⟨hma, hssc⟩ ↦ ?_⟩
+  refine ⟨Real.log C, ?_⟩
+  filter_upwards [@maxAbs_tup n F, @strongSSC_tup n F] with h hma hssc
   apply ENNReal.ofReal_le_ofReal
   rw [hma]
   apply div_le_div₀
@@ -91,9 +92,9 @@ lemma liminf_tupleQuality_tup : 5 / 4 ≤ liminf (tupleQuality ∘ tup n F) atTo
   refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
   let f (h : ℕ) := Real.log (X F h)
   change Tendsto ((fun x ↦ 5 * x / (C + 4 * x)) ∘ f) atTop (nhds (5 / 4))
-  have ttf : Tendsto f atTop atTop := by
-    refine Real.tendsto_log_atTop.comp (tendsto_natCast_atTop_atTop.comp ?_)
-    exact tendsto_atTop.mpr fun B ↦ (eventually_X_gt fun _ ↦ B).mono fun _ ↦ Nat.le_of_succ_le
+  have ttf : Tendsto f atTop atTop :=
+    Real.tendsto_log_atTop.comp <| tendsto_natCast_atTop_atTop.comp <|
+      tendsto_atTop.mpr fun B ↦ (eventually_X_gt fun _ ↦ B).mono fun _ ↦ Nat.le_of_succ_le
   refine Tendsto.comp ?_ ttf
   apply Tendsto.congr' (f₁ := fun x ↦ 5 / (C * x⁻¹ + 4))
   · exact (eventually_ne_atTop 0).mp (.of_forall fun _ _ ↦ by field)

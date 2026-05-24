@@ -257,8 +257,8 @@ public lemma eventually_X_gt (K : Finset ℕ → ℕ) : ∀ᶠ h in Filter.atTop
 
 lemma isSubsumBlock_redEmb1 :
     ∀ᶠ h in Filter.atTop, IsSubsumBlock (tup n F h) (univ.map redEmb1) := by
-  refine (eventually_X_gt (F := F) (tailK n)).mono fun h hh ↦
-    IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
+  filter_upwards [eventually_X_gt (F := F) (tailK n)] with h hh
+  refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
   conv_rhs => rw [redEmb1, sum_univ_four]
   simp only [Function.Embedding.coeFn_mk, reduceNatAdd, sum_redEmb1_compl,
     tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, tup_natAdd_five]
@@ -298,7 +298,7 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
       fin_cases i <;> rfl
 
 public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) := by
-  refine isSubsumBlock_redEmb1 (n := n) (F := F).mono fun h hh ↦ ?_
+  filter_upwards [isSubsumBlock_redEmb1 (n := n) (F := F)] with h hh
   have c : n + 2 = n + 6 - #(univ.map (redEmb1 (n := n))) := by simp
   apply hh.strongSSC_tupReduce c
   rw [tupReduce_tup]
@@ -308,7 +308,7 @@ public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) :
     exact Nat.mul_le_mul_right _ (by lia)
 
 public lemma maxAbs_tup : ∀ᶠ h in Filter.atTop, maxAbs (tup n F h) = (X F h + Y F) ^ 5 := by
-  refine (eventually_X_gt (F := F) (tailK n)).mono fun h hh ↦ ?_
+  filter_upwards [eventually_X_gt (F := F) (tailK n)] with h hh
   have na5 : (tup n F h (natAdd n 5)).natAbs = (X F h + Y F) ^ 5 := by
     rw [tup_natAdd_five, Int.natAbs_neg, Int.natAbs_pow]
     lia

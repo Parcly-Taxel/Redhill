@@ -123,7 +123,7 @@ lemma isCoprime_natAdd_four_five {h : ℕ} :
 
 lemma isCoprime_natAdd_three_four :
     ∀ᶠ h in atTop, IsCoprime (tup n F h (natAdd n 3)) (tup n F h (natAdd n 4)) := by
-  refine eventually_X_modEq_10Ym1 (F := F).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_10Ym1 (F := F)] with h hx
   simp_rw [tup_natAdd_three, tup_natAdd_four]
   apply (mul_left ?_ (pow_left ?_)).pow_right
   · rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, Nat.cast_one, dvd_sub_comm] at hx
@@ -139,7 +139,7 @@ lemma isCoprime_natAdd_three_four :
 
 lemma isCoprime_natAdd_three_five :
     ∀ᶠ h in atTop, IsCoprime (tup n F h (natAdd n 3)) (tup n F h (natAdd n 5)) := by
-  refine eventually_X_modEq_10Ym1 (F := F).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_10Ym1 (F := F)] with h hx
   rw [tup_natAdd_three, tup_natAdd_five]
   apply (mul_left ?_ (pow_left ?_)).pow_right.neg_right
   · rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, Nat.cast_one, dvd_sub_comm] at hx
@@ -154,7 +154,7 @@ lemma isCoprime_natAdd_three_five :
 
 lemma isCoprime_natAdd_two_three :
     ∀ᶠ h in atTop, IsCoprime (tup n F h (natAdd n 2)) (tup n F h (natAdd n 3)) := by
-  refine eventually_X_modEq_10Ym1 (F := F).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_10Ym1 (F := F)] with h hx
   rw [tup_natAdd_two, tup_natAdd_three]
   apply (mul_right ?_ (pow_right ?_)).pow_left
   · have mcast : (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) := by grind [Y_pos]
@@ -181,7 +181,7 @@ lemma isCoprime_natAdd_two_three :
 
 lemma isCoprime_natAdd_two_sq_sub_sq :
     ∀ᶠ h in atTop, IsCoprime (tup n F h (natAdd n 2)) (X F h ^ 2 - Y F ^ 2) := by
-  refine eventually_X_modEq_10Yp1 (F := F).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_10Yp1 (F := F)] with h hx
   rw [tup_natAdd_two]
   apply pow_left
   rw [← add_mul_left_left_iff (z := -1), mul_neg_one, neg_sub, ← add_sub_assoc, add_assoc,
@@ -207,14 +207,14 @@ lemma isCoprime_natAdd_two_sq_sub_sq :
 
 lemma isCoprime_natAdd_two_four :
     ∀ᶠ h in atTop, IsCoprime (tup n F h (natAdd n 2)) (tup n F h (natAdd n 4)) := by
-  refine isCoprime_natAdd_two_sq_sub_sq (n := n) (F := F).mono fun h hx ↦ ?_
+  filter_upwards [isCoprime_natAdd_two_sq_sub_sq (n := n) (F := F)] with h hx
   rw [sq_sub_sq, mul_right_iff] at hx
   rw [tup_natAdd_four]
   exact hx.2.pow_right
 
 lemma isCoprime_natAdd_two_five :
     ∀ᶠ h in atTop, IsCoprime (tup n F h (natAdd n 2)) (tup n F h (natAdd n 5)) := by
-  refine isCoprime_natAdd_two_sq_sub_sq (n := n) (F := F).mono fun h hx ↦ ?_
+  filter_upwards [isCoprime_natAdd_two_sq_sub_sq (n := n) (F := F)] with h hx
   rw [sq_sub_sq, mul_right_iff] at hx
   rw [tup_natAdd_five]
   exact hx.1.pow_right.neg_right
@@ -223,7 +223,7 @@ lemma isCoprime_natAdd_five_of_rough
     {Q : Finset ℕ → ℕ} (hQ : ∀ {d}, 3 ≤ d → d ∣ Q F → Y F + 1 < d) :
     ∀ᶠ h in atTop, IsCoprime (Q F : ℤ) (tup n F h (natAdd n 5)) := by
   replace hQ := coprime_of_rough Q (Y · + 1) (Y · + 1) hQ (by grind [even_Y]) le_rfl
-  refine (eventually_X_modEq_one_of_coprime Q hQ).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_one_of_coprime Q hQ] with h hx
   rw [tup_natAdd_five]
   apply (pow_right ?_).neg_right
   rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, Nat.cast_one, dvd_sub_comm] at hx
@@ -237,7 +237,7 @@ lemma isCoprime_natAdd_four_of_rough
     {Q : Finset ℕ → ℕ} (hQ : ∀ {d}, 3 ≤ d → d ∣ Q F → Y F + 1 < d) :
     ∀ᶠ h in atTop, IsCoprime (Q F : ℤ) (tup n F h (natAdd n 4)) := by
   have cpQ := coprime_of_rough Q (Y · + 1) (Y · + 1) hQ (by grind [even_Y]) le_rfl
-  refine (eventually_X_modEq_one_of_coprime Q cpQ).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_one_of_coprime Q cpQ] with h hx
   rw [tup_natAdd_four]
   apply pow_right ?_
   rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, Nat.cast_one, dvd_sub_comm] at hx
@@ -251,7 +251,7 @@ lemma isCoprime_natAdd_three_of_rough
     {Q : Finset ℕ → ℕ} (hQ : ∀ {d}, 3 ≤ d → d ∣ Q F → 10 * Y F - 1 < d) :
     ∀ᶠ h in atTop, IsCoprime (Q F : ℤ) (tup n F h (natAdd n 3)) := by
   have cpQ := coprime_of_rough Q (Y · + 1) (10 * Y · - 1) hQ (by grind [even_Y]) (by grind [Y_pos])
-  refine (eventually_X_modEq_one_of_coprime Q cpQ).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_one_of_coprime Q cpQ] with h hx
   rw [tup_natAdd_three]
   apply mul_right ?_ (pow_right ?_)
   · rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos], Nat.isCoprime_iff_coprime]
@@ -267,7 +267,7 @@ lemma isCoprime_natAdd_two_of_rough
     nth_rw 1 [show Y F = 1 * Y F ^ 1 by simp]
     gcongr <;> grind [Y_pos]
   have cpQ := coprime_of_rough Q (Y · + 1) (10 * Y · ^ 3 + 1) hQ (by grind [even_Y]) prele
-  refine (eventually_X_modEq_one_of_coprime Q cpQ).mono fun h hx ↦ ?_
+  filter_upwards [eventually_X_modEq_one_of_coprime Q cpQ] with h hx
   rw [tup_natAdd_two]
   apply pow_right ?_
   replace hx := hx.pow 2
@@ -405,8 +405,8 @@ public theorem pairwiseCoprime_tup : ∀ᶠ h in atTop, PairwiseCoprime (tup n F
   have cp₂' := @isCoprime_castAdd_natAdd n F
   have cp₃' (i j) (hij : i < j) := @isCoprime_natAdd_natAdd n F _ _ hij
   simp_rw [← eventually_all] at cp₂' cp₃'
-  refine (cp₂'.and cp₃').mono fun h ⟨cp₂, cp₃⟩ ↦
-    Pairwise.of_lt (fun _ _ h ↦ h.symm) fun i j hij ↦ ?_
+  filter_upwards [cp₂', cp₃'] with h cp₂ cp₃
+  refine Pairwise.of_lt (fun _ _ h ↦ h.symm) fun i j hij ↦ ?_
   cases i using Fin.addCases <;> cases j using Fin.addCases
   case left.left i j =>
     simp only [tup_castAdd, Nat.isCoprime_iff_coprime]
