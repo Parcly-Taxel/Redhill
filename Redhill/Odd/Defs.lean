@@ -180,7 +180,8 @@ lemma W_coprime_ten : (VW n F).w.Coprime 10 := by
     exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by grind [U]⟩)).2
 
 lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprime (tup n F x) := by
-  refine Pairwise.of_lt (fun _ _ h ↦ h.symm) fun i j h ↦ ?_
+  have : Std.Symm fun i j ↦ IsCoprime (tup n F x i) (tup n F x j) := ⟨fun _ _ h ↦ h.symm⟩
+  refine Pairwise.of_lt fun i j h ↦ ?_
   cases i using Fin.addCases <;> cases j using Fin.addCases
   case left.left i j =>
     simp only [tup_castAdd, isCoprime_iff_coprime]
@@ -234,7 +235,7 @@ lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (max 8 (F
 lemma not_dvd_tup (dx : ↑(Y n F) ∣ x) (dF : Disjoint {0, 1, 2, 5, 10} F) :
     ∀ f ∈ F, ∀ i, ¬↑f ∣ tup n F x i := fun f hf i ↦ by
   simp_rw [disjoint_insert_left, disjoint_singleton_left] at dF
-  have lf : 3 ≤ f := by lia
+  have lf : 3 ≤ f := by grind
   cases i using Fin.addCases with
   | left i =>
     rw [tup_castAdd]

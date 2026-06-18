@@ -82,7 +82,8 @@ lemma isCoprime_31 :
 
 open IsCoprime in
 lemma pairwiseCoprime_tup : PairwiseCoprime (tup k) := by
-  refine Pairwise.of_lt (fun i j h ↦ h.symm) fun i j h ↦ ?_
+  have : Std.Symm fun i j ↦ IsCoprime (tup k i) (tup k j) := ⟨fun _ _ h ↦ h.symm⟩
+  refine Pairwise.of_lt fun i j h ↦ ?_
   fin_cases j <;> simp only [Fin.reduceFinMk, Fin.not_lt_zero, Fin.lt_one_iff] at *
   · subst h
     rw [tup, pow_left_iff zero_lt_three, tup, neg_right_iff, pow_right_iff zero_lt_three]
@@ -222,8 +223,7 @@ lemma strongSSC_tup : StrongSSC (tup k) := by
   obtain rfl | hk := eq_or_ne k 0
   · rw [StrongSSC, IsSubsumBlock]
     decide +kernel
-  convert strongSSC_tupReduced (6 ^ 2 ^ k) ?_ using 1
-  apply (show 10 ≤ 6 ^ 2 ^ 1 by lia).trans
+  refine strongSSC_tupReduced _ ((show 10 ≤ 6 ^ 2 ^ 1 by lia).trans ?_)
   gcongr <;> lia
 
 end Subsum
