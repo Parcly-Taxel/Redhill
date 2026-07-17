@@ -21,10 +21,9 @@ open Fin Finset Nat
 variable {n : ℕ} {F : Finset ℕ} {h : ℕ}
 
 /-- The embedding for the first subsum block reduction. -/
+@[simps]
 def redEmb1 : Fin 4 ↪ Fin (n + 6) :=
   ⟨fun i ↦ (i.natAdd 2).natAdd n, fun i j h ↦ by simpa [natAdd_inj 2] using h⟩
-
-lemma redEmb1_apply {i : Fin 4} : redEmb1 i = (i.natAdd 2).natAdd n := rfl
 
 variable (n F) in
 /-- The sum of `tup n F h`'s first `n + 2` elements, not depending on `h`. -/
