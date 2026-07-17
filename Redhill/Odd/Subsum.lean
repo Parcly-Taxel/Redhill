@@ -25,6 +25,8 @@ variable {n : ℕ} {F : Finset ℕ} {x : ℤ}
 def redEmb1 : Fin 3 ↪ Fin (n + 5) :=
   ⟨fun i ↦ (i.natAdd 2).natAdd n, fun i j h ↦ by simpa [natAdd_inj 2] using h⟩
 
+lemma redEmb1_apply {i : Fin 3} : redEmb1 i = (i.natAdd 2).natAdd n := rfl
+
 lemma sum_redEmb1_compl :
     ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natAbs =
     (VW n F).v + (VW n F).w + ∑ i ∈ range n, primeChain (max 8 (F.sup id)) i := by
@@ -32,8 +34,7 @@ lemma sum_redEmb1_compl :
   have s₁ : univ.map (@castAddEmb n 5) ⊆ (univ.map redEmb1)ᶜ := fun i mi ↦ by
     simp_rw [mem_map, mem_univ, true_and, coe_castAddEmb] at mi
     obtain ⟨j, rfl⟩ := mi
-    simp_rw [redEmb1, mem_compl, mem_map, mem_univ, true_and, Function.Embedding.coeFn_mk,
-      not_exists]
+    simp_rw [mem_compl, mem_map, mem_univ, true_and, redEmb1_apply, not_exists]
     grind
   simp_rw [← sum_sdiff s₁, sum_map, castAddEmb_apply, tup_castAdd, Int.natAbs_natCast]
   have s₂ : (univ.map redEmb1)ᶜ \ univ.map (castAddEmb 5) = {natAdd n 0, natAdd n 1} := by
@@ -42,8 +43,8 @@ lemma sum_redEmb1_compl :
     cases i using addCases with
     | left i => grind [castAdd_inj]
     | right j =>
-      simp_rw [cnn, not_false_eq_true, implies_true, and_true, redEmb1, Function.Embedding.coeFn_mk,
-        mem_insert, mem_singleton, natAdd_inj]
+      simp_rw [cnn, not_false_eq_true, implies_true, and_true, redEmb1_apply, mem_insert,
+        mem_singleton, natAdd_inj]
       decide +revert
   rw [s₂, sum_pair (by grind), tup_natAdd_zero, tup_natAdd_one, Int.natAbs_natCast,
     Int.natAbs_neg, Int.natAbs_natCast, sum_univ_eq_sum_range]
@@ -177,9 +178,8 @@ end Inequalities
 lemma isSubsumBlock_redEmb1 (hx : Y n F ≤ x.natAbs) :
     IsSubsumBlock (tup n F x) (univ.map redEmb1) := by
   refine IsSubsumBlock.of_sum_natAbs_lt redEmb1 fun b ncb ↦ ?_
-  conv_rhs => rw [redEmb1, sum_univ_three]
-  simp only [Function.Embedding.coeFn_mk, reduceNatAdd,
-    tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
+  conv_rhs => enter [1, 2, i]; rw [redEmb1_apply]
+  simp only [sum_univ_three, reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
   apply sum_redEmb1_compl_lt.trans_le
   suffices ∀ {b₁ b₂ b₃ : SignType}, b₁ ≠ b₂ ∨ b₁ ≠ b₃ →
       Y n F ≤ (b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₃ * -(x + 1) ^ 5).natAbs by
@@ -194,7 +194,7 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
   unfold tupReduce
   cases i using lastCases with
   | last =>
-    simp_rw [lastCases_last, sum_map, redEmb1, Function.Embedding.coeFn_mk, sum_univ_three]
+    simp_rw [lastCases_last, sum_map, redEmb1_apply, sum_univ_three]
     simp only [reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four]
     have : last (n + 2) = natAdd n (2 : Fin 3) := by ext; simp
     simp_rw [this, vwTup, addCases_right]
@@ -202,8 +202,8 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 5 - #(univ.map redEmb1)} :
   | cast i =>
     have : complRank (univ.map redEmb1) c₁ = castAdd 3 := by
       refine (orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
-      · simp_rw [mem_compl, mem_map, mem_univ, true_and, redEmb1, Function.Embedding.coeFn_mk,
-          not_exists, natAdd_natAdd, cast_eq_self, ← Fin.val_inj, val_natAdd, val_castAdd]
+      · simp_rw [mem_compl, mem_map, mem_univ, true_and, redEmb1_apply, not_exists, natAdd_natAdd,
+          cast_eq_self, ← Fin.val_inj, val_natAdd, val_castAdd]
         lia
       · exact (castAddOrderEmb _).strictMono
     simp_rw [lastCases_castSucc, this, tup, vwTup]

@@ -194,10 +194,10 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
   obtain rfl | hn := eq_or_ne i j
   · simp [singleton]
   let f : Fin 2 ↪ Fin n := ⟨fun | 0 => i | 1 => j, fun i₁ i₂ h ↦ by grind⟩
-  have mf : univ.map f = {i, j} := by ext k; simp [f]; grind
+  have mf : univ.map f = {i, j} := by ext k; simp [f]; tauto
   rw [← mf]
   refine of_sum_natAbs_lt _ fun b ncb ↦ ?_
-  simp_rw [Fin.sum_univ_two, mf, f, Function.Embedding.coeFn_mk]
+  simp_rw [Fin.sum_univ_two, mf, f]
   suffices ∀ (b₁ b₂ : SignType),
       b₁ ≠ b₂ → ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (b₁ * a i + b₂ * a j).natAbs by
     apply this
