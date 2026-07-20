@@ -180,7 +180,6 @@ lemma W_coprime_ten : (VW n F).w.Coprime 10 := by
     exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by grind [U]⟩)).2
 
 lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprime (tup n F x) := by
-  have : Std.Symm fun i j ↦ IsCoprime (tup n F x i) (tup n F x j) := ⟨fun _ _ h ↦ h.symm⟩
   refine Pairwise.of_lt fun i j h ↦ ?_
   cases i using Fin.addCases <;> cases j using Fin.addCases
   case left.left i j =>
