@@ -7,8 +7,8 @@ module
 
 public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Basic.Sign.Defs
 public import Mathlib.Data.Finset.Sort
-public import Mathlib.Data.Sign.Defs
 
 /-!
 # Subsum conditions
