@@ -223,7 +223,7 @@ lemma strongSSC_tup : StrongSSC (tup k) := by
   · rw [StrongSSC, IsSubsumBlock]
     decide +kernel
   refine strongSSC_tupReduced _ ((show 10 ≤ 6 ^ 2 ^ 1 by lia).trans ?_)
-  gcongr <;> lia
+  gcongr; lia
 
 end Subsum
 
@@ -265,15 +265,13 @@ lemma maxAbs_tup : maxAbs (tup k) = (6 ^ 2 ^ k + 1) ^ 3 := by
     rw [neg_mul, Int.natAbs_neg, ← pow_mul', ← pow_succ', Int.natAbs_pow]
     simp_rw [Int.reduceAbs, sup_eq_left]
     apply (show 31 ≤ 6 ^ (2 * 2 ^ 0 + 1) by lia).trans
-    gcongr <;> lia
+    gcongr; lia
   rw [e2, sup_le_iff, Int.natAbs_neg, Int.natAbs_pow]
   refine ⟨pow_le_pow_left₀ zero_le (by lia) _, ?_⟩
   calc
     _ ≤ 6 ^ (3 * 2 ^ k) := by
       rw [Nat.succ_mul 2]
-      gcongr
-      · lia
-      · exact Nat.one_le_two_pow
+      gcongr; lia
     _ ≤ _ := by
       rw [pow_mul']
       gcongr

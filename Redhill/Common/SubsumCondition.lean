@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Algebra.Order.Ring.Nat
 public import Mathlib.Basic.Sign.Defs
 public import Mathlib.Data.Finset.Sort
 
