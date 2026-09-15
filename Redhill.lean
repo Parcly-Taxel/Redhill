@@ -6,6 +6,7 @@ import Redhill.Common.PrimeChain
 import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
 import Redhill.Common.VWPair
+import Redhill.Four.Defs
 import Redhill.General.Coprime
 import Redhill.General.Defs
 import Redhill.General.Main
@@ -15,5 +16,6 @@ import Redhill.Odd.Defs
 import Redhill.Odd.Main
 import Redhill.Odd.Pell
 import Redhill.Odd.Subsum
+import Redhill.ToMathlib.Bezout
 import Redhill.ToMathlib.NatAbs
 import Redhill.ToMathlib.NatSumProd

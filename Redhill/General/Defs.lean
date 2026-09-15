@@ -5,7 +5,9 @@ Authors: Jeremy Tan
 -/
 module
 
-public import Mathlib.FieldTheory.Finite.Basic
+public import Mathlib.Data.Int.ModEq
+public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.Ring
 public import Redhill.Common.VWPair
 
 /-!

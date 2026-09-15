@@ -6,6 +6,7 @@ Authors: Jeremy Tan
 module
 
 import Mathlib.Algebra.Order.Archimedean.Basic
+public import Mathlib.Order.Filter.AtTopBot.Basic
 public import Redhill.Common.MaxAbs
 public import Redhill.General.Defs
 public import Redhill.ToMathlib.NatAbs

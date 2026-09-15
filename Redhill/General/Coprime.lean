@@ -5,7 +5,7 @@ Authors: Jeremy Tan
 -/
 module
 
-import Mathlib.Order.Filter.Finite
+public import Mathlib.FieldTheory.Finite.Basic
 public import Redhill.Common.PairwiseCoprime
 public import Redhill.General.Defs
 
