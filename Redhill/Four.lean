@@ -18,7 +18,7 @@ and posted at https://github.com/tadamcz/n-conjecture-strong.
 The port to Redhill was done by me without any (further) LLM usage whatsoever.
 -/
 
-@[expose] public section
+public section
 
 namespace FourCase
 

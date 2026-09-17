@@ -6,7 +6,7 @@ import Redhill.Common.PrimeChain
 import Redhill.Common.Quality
 import Redhill.Common.SubsumCondition
 import Redhill.Common.VWPair
-import Redhill.Four.Defs
+import Redhill.Four
 import Redhill.General.Coprime
 import Redhill.General.Defs
 import Redhill.General.Main
