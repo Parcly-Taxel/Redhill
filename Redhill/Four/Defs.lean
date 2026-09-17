@@ -330,6 +330,8 @@ lemma strictMono_E : StrictMono E := by
     two_mul_E_sub_three]
   gcongr <;> lia
 
+lemma add_nineteen_le_E : k + 19 ≤ E k := by induction k <;> grind [E]
+
 lemma injective_tup_E : (tup ∘ E).Injective := fun i j e ↦ by
   replace e := congr($e 0)
   simp_rw [Function.comp_apply, tup] at e
@@ -451,7 +453,8 @@ lemma liminf_tupleQuality_tup_E : 9 / 8 ≤ liminf (tupleQuality ∘ tup ∘ E) 
   change Tendsto ((fun x ↦ 9 * x / (C + 8 * x)) ∘ f) atTop (nhds (9 / 8))
   have ttf : Tendsto f atTop atTop := by
     refine tendsto_log_atTop.comp (tendsto_intCast_atTop_atTop.comp ?_)
-    sorry
+    exact tendsto_atTop_atTop_of_monotone strictMono_E.monotone fun b ↦
+      ⟨(b - 19).natAbs, by grind [@add_nineteen_le_E (b - 19).natAbs]⟩
   refine Tendsto.comp ?_ ttf
   apply Tendsto.congr' (f₁ := fun x ↦ 9 / (C * x⁻¹ + 8))
   · exact (eventually_ne_atTop 0).mp (.of_forall fun _ _ ↦ by field)
