@@ -137,14 +137,7 @@ lemma tupReduce_chainTup {c : n + 1 = n + 1 + 2 - #{natAdd n (0 : Fin 3), natAdd
 
 lemma strongSSC_chainTup (hm : 0 < m) (hs : m ≤ s) : StrongSSC (chainTup n m s) := by
   induction n with
-  | zero =>
-    rw [chainTup_zero]
-    intro b hs
-    rw [Fin.sum_univ_two] at hs
-    simp only [Fin.isValue, mul_neg, ← sub_eq_add_neg, ← sub_mul] at hs
-    simp_rw [Int.mul_eq_zero, Int.sub_eq_zero, Int.natCast_eq_zero, hm.ne', or_false] at hs
-    simp_rw [mem_univ, forall_const, Nat.reduceAdd, forall_fin_two, exists_eq_left']
-    cases s₀ : b 0 <;> cases s₁ : b 1 <;> simp_all
+  | zero => rw [chainTup_zero]; exact strongSSC_pair (by lia)
   | succ n ih =>
     have c : n + 1 = n + 1 + 2 - #{natAdd n (0 : Fin 3), natAdd n 2} := by simp
     apply (isSubsumBlock_chainTup hs).strongSSC_tupReduce c

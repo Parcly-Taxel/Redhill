@@ -121,6 +121,13 @@ lemma StrongSSC.one_lt_natAbs_prod (ha : StrongSSC a) (hn : 3 ≤ n) : 1 < (∏ 
     rw [Nat.mod_eq_of_lt (by lia), Nat.mod_eq_of_lt (by lia)]
     decide
 
+lemma strongSSC_pair {m : ℤ} (hm : m ≠ 0) : StrongSSC fun | (0 : Fin 2) => m | 1 => -m := by
+  intro b hs
+  simp only [Fin.sum_univ_two, mul_neg, ← sub_eq_add_neg, ← sub_mul, Int.mul_eq_zero,
+    Int.sub_eq_zero, hm, or_false] at hs
+  simp_rw [mem_univ, forall_const, Fin.forall_fin_two, exists_eq_left']
+  cases s₀ : b 0 <;> cases s₁ : b 1 <;> simp_all
+
 section TupReduce
 
 variable (s : Finset (Fin n)) (hk : k = n - #s)

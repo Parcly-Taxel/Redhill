@@ -116,8 +116,7 @@ def tupReduced : Fin 5 → ℤ
 lemma sum_tupReduced_lt_tupReduced_one (hk : 10 ≤ k) :
     ∑ i ∈ {0, 1}ᶜ, (tupReduced k i).natAbs < (tupReduced k 1).natAbs := by
   have se : ({0, 1}ᶜ : Finset (Fin 5)) = {2, 3, 4} := by decide
-  simp only [se, Finset.mem_insert, Fin.reduceEq, Finset.mem_singleton, or_self, not_false_eq_true,
-    Finset.sum_insert, Finset.sum_singleton]
+  rw [se, Finset.sum_insert (by decide), Finset.sum_pair (by decide)]
   unfold tupReduced
   simp only [Int.reduceNeg, neg_mul, Int.natAbs_neg, Int.natAbs_mul, Int.reduceAbs, Int.natAbs_pow,
     Int.natAbs_natCast, Nat.reduceAdd, show (k - 1 : ℤ).natAbs = k - 1 by lia]
@@ -149,8 +148,7 @@ def tupReduced2 : Fin 4 → ℤ
   | 2 => 29
   | 3 => 6 * k ^ 2 + 2
 
-lemma tupReduce_tupReduced {c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card} :
-    tupReduce (tupReduced k) {0, 1} c₁ = tupReduced2 k := by
+lemma tupReduce_tupReduced : tupReduce (tupReduced k) {0, 1} (by simp) = tupReduced2 k := by
   ext i
   unfold tupReduce
   cases i using Fin.lastCases with
@@ -159,7 +157,7 @@ lemma tupReduce_tupReduced {c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card} :
       Fin.reduceLast]
     ring
   | cast i =>
-    have : complRank {0, 1} c₁ = (·.natAdd 2) := by
+    have : @complRank 5 3 {0, 1} (by simp) = (·.natAdd 2) := by
       refine (Finset.orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
       · fin_cases i <;> simp
       · exact (Fin.natAddOrderEmb 2).strictMono
@@ -183,8 +181,7 @@ lemma sum_tupReduced2_lt_tupReduced2_three (hk : 10 ≤ k) :
   iterate 2 rw [Int.natAbs_of_nonneg (by positivity)]
   lia
 
-lemma tupReduce_tupReduced2 {c₂ : 2 = 4 - ({0, 3} : Finset (Fin 4)).card} :
-    tupReduce (tupReduced2 k) {0, 3} c₂ = ![-31, 29, 2] := by
+lemma tupReduce_tupReduced2 : tupReduce (tupReduced2 k) {0, 3} (by simp) = ![-31, 29, 2] := by
   ext i
   unfold tupReduce
   cases i using Fin.lastCases with
@@ -192,7 +189,7 @@ lemma tupReduce_tupReduced2 {c₂ : 2 = 4 - ({0, 3} : Finset (Fin 4)).card} :
     rw [Fin.lastCases_last, Finset.sum_pair (by decide)]
     simp [tupReduced2]
   | cast i =>
-    have : complRank {0, 3} c₂ = ![1, 2] := by
+    have : @complRank 4 2 {0, 3} (by simp) = ![1, 2] := by
       refine (Finset.orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
       · fin_cases i <;> simp
       · decide
@@ -205,16 +202,14 @@ lemma strongSSC_tupReduced (hk : 10 ≤ k) : StrongSSC (tupReduced k) := by
       (sum_tupReduced_lt_tupReduced_one _ hk)
     simp_rw [tupReduced, mul_neg, Int.neg_nonpos_iff, ← mul_pow]
     exact Int.pow_nonneg (mul_nonneg (by lia) (by lia))
-  have c₁ : 3 = 5 - ({0, 1} : Finset (Fin 5)).card := by simp
-  apply key.strongSSC_tupReduce c₁
+  apply key.strongSSC_tupReduce
   rw [tupReduce_tupReduced]
   have key2 : IsSubsumBlock (tupReduced2 k) {0, 3} := by
     apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced2_lt_tupReduced2_zero _ hk)
       (sum_tupReduced2_lt_tupReduced2_three _ hk)
     simp_rw [tupReduced2, neg_mul, Int.neg_nonpos_iff]
     positivity
-  have c₂ : 2 = 4 - ({0, 3} : Finset (Fin 4)).card := by simp
-  apply key2.strongSSC_tupReduce c₂
+  apply key2.strongSSC_tupReduce
   rw [tupReduce_tupReduced2, StrongSSC, IsSubsumBlock]
   decide +kernel
 
