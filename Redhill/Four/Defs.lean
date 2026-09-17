@@ -5,6 +5,7 @@ Authors: Jeremy Tan
 -/
 module
 
+public import Mathlib.RingTheory.Radical.NatInt
 public import Redhill.Common.Conjectures
 public import Redhill.ToMathlib.Bezout
 public import Redhill.ToMathlib.NatAbs
@@ -303,13 +304,173 @@ lemma strongSSC_tup (hu : 10728480 ≤ u.natAbs) : StrongSSC (tup u) := by
     exact Q_le_neg_tup_two hu
   apply key2.strongSSC_tupReduce
   rw [tupReduce_tupReduced]
-  apply strongSSC_pair
-  simp_rw [zero_eta, Matrix.cons_val]
-  exact (Q_pos (by lia)).ne'
+  exact strongSSC_pair (Q_pos (by lia)).ne'
 
 end Subsum
 
+/-- An infinite sequence of integers satisfying `2 * E n - 3 = 35 * (2 * M + 1) ^ n`. -/
+def E : ℕ → ℤ
+  | 0 => 19
+  | k + 1 => (2 * M + 1) * E k - 3 * M
+
+variable {k : ℕ}
+
+lemma two_mul_E_sub_three : 2 * E k - 3 = 35 * (2 * M + 1) ^ k := by induction k <;> grind [E]
+
+lemma E_modEq : E k ≡ 19 [ZMOD M] := by
+  induction k with
+  | zero => simp [E]
+  | succ k ih =>
+    rw [E, show (2 * M + 1) * E k - 3 * M = E k + M * (2 * E k - 3) by ring]
+    exact modEq_add_fac_self.trans ih
+
+lemma strictMono_E : StrictMono E := by
+  refine strictMono_nat_of_lt_succ fun k ↦ ?_
+  rw [← Int.mul_lt_mul_left zero_lt_two, ← sub_lt_sub_iff_right 3, two_mul_E_sub_three,
+    two_mul_E_sub_three]
+  gcongr <;> lia
+
+lemma injective_tup_E : (tup ∘ E).Injective := fun i j e ↦ by
+  replace e := congr($e 0)
+  simp_rw [Function.comp_apply, tup] at e
+  rwa [Odd.pow_inj (by decide), strictMono_E.injective.eq_iff] at e
+
+lemma strongSSC_tup_E : StrongSSC (tup (E k)) := by
+  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
+  · rw [StrongSSC, IsSubsumBlock]
+    decide
+  · apply strongSSC_tup
+    have : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
+    lia
+
+lemma tup_E_mem_factorFreeTuples : tup (E k) ∈ factorFreeTuples ∅ 4 :=
+  ⟨sum_tup, strongSSC_tup_E, pairwiseCoprime_tup E_modEq, by simp⟩
+
+lemma maxAbs_tup_E : maxAbs (tup (E k)) = (E k).natAbs ^ 9 := by
+  simp_rw [maxAbs_eq_foldr, List.ofFn_succ, List.ofFn_zero, reduceSucc, List.foldr_cons,
+    List.foldr_nil, tup, max_zero]
+  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
+  · decide
+  have lE : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
+  have hu : 10728480 ≤ (E k).natAbs := by lia
+  have e1 := sum_tupReduced_lt_tupReduced_zero hu
+  simp_rw [show ({0, 2}ᶜ : Finset (Fin 3)) = {1} by decide, Finset.sum_singleton, tupReduced] at e1
+  have e2 := sum_tup_lt_tup_one hu
+  rw [show ({0, 1}ᶜ : Finset (Fin 4)) = {2, 3} by decide, Finset.sum_pair (by decide)] at e2
+  replace e2 : (-105 * (2 * E k - 3) ^ 6).natAbs ≤
+      ((8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2).natAbs := by grind [tup]
+  rw [max_eq_left e1.le, max_eq_left e2, ← natAbs_pow, max_eq_left_iff]
+  have tnn : (8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2 ≤ 0 := by
+    rw [← neg_nonneg, ← neg_mul, ← Odd.neg_pow (by decide), neg_sub]
+    have Epos : 0 < E k - 8 := by lia
+    positivity
+  suffices -((8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2) ≤ E k ^ 9 by lia
+  rw [neg_le_iff_add_nonneg, show E k ^ 9 + (8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2 =
+    105 * (2 * (E k) - 3) ^ 6 - Q (E k) by ring, sub_nonneg]
+  exact Q_le_neg_tup_two hu
+
+section Quality
+
+open Real UniqueFactorizationMonoid
+
+lemma radical_tup_E_dvd :
+    ∃ C > 0, ∀ k,
+    radical (∏ i, tup (E k) i) ∣ C * E k * (E k - 8) * (E k ^ 2 + 20 * E k + 280) * Q (E k) := by
+  simp_rw [prod_univ_four, tup]
+  refine ⟨105 * 35 * (2 * M + 1), by positivity, fun k ↦ ?_⟩
+  grw [radical_mul_dvd, mul_dvd_mul ?_ radical_dvd_self]
+  rw [← mul_rotate, ← mul_assoc]
+  grw [radical_mul_dvd, radical_pow _ two_ne_zero, mul_dvd_mul ?_ radical_dvd_self]
+  rw [show -105 * (2 * E k - 3) ^ 6 * E k ^ 9 * (8 - E k) ^ 5 =
+    105 * (2 * E k - 3) ^ 6 * E k ^ 9 * (E k - 8) ^ 5 by ring]
+  iterate 2 grw [radical_mul_dvd, radical_pow _ (by decide), mul_dvd_mul ?_ radical_dvd_self]
+  rw [mul_assoc, two_mul_E_sub_three]
+  grw [radical_mul_dvd, radical_pow _ (by decide), mul_dvd_mul radical_dvd_self]
+  grw [radical_mul_dvd, mul_dvd_mul radical_dvd_self]
+  grw [radical_pow_dvd]
+  exact radical_dvd_self
+
+lemma Q_E_pos : 0 < Q (E k) := by
+  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
+  · decide
+  · have lE : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
+    have lQ := Q_pos (show 100 ≤ (E k).natAbs by lia)
+    lia
+
+lemma Q_E_upper_bound : Q (E k) ≤ 293248 * E k ^ 4 := by
+  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
+  · decide
+  · have lE : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
+    have lQ := Q_upper_bound (show 10728480 ≤ (E k).natAbs by lia)
+    lia
+
+lemma radical_tup_E_le : ∃ C > 0, ∀ k, radical (∏ i, tup (E k) i) ≤ C * E k ^ 8 := by
+  obtain ⟨C, Cpos, hC⟩ := radical_tup_E_dvd
+  refine ⟨3 * 293248 * C, by positivity, fun k ↦ ?_⟩
+  rw [show 3 * 293248 * C * E k ^ 8 = C * E k * E k * (3 * E k ^ 2) * (293248 * E k ^ 4) by ring]
+  have lE : 19 ≤ E k := strictMono_E.monotone k.zero_le
+  have Epos : 0 < E k - 8 := by lia
+  have Qpos := @Q_E_pos k
+  have Qub := @Q_E_upper_bound k
+  refine (le_of_dvd (by positivity) (hC k)).trans ?_
+  gcongr
+  · lia
+  · rw [show 3 * E k ^ 2 = E k ^ 2 + (E k ^ 2 + (E k * (E k - 1) + E k)) by ring, add_assoc,
+      add_le_add_iff_left, show 20 * E k + 280 = 19 * E k + (280 + E k) by ring, sq]
+    gcongr
+    calc
+      _ ≤ (19 * 18 : ℤ) := by lia
+      _ ≤ _ := by gcongr; lia
+
+lemma le_tupleQuality :
+    ∃ C, ∀ k, .ofReal (9 * log (E k) / (C + 8 * log (E k))) ≤ tupleQuality (tup (E k)) := by
+  obtain ⟨C, Cpos, hC⟩ := radical_tup_E_le
+  refine ⟨log C, fun k ↦ ?_⟩
+  apply ENNReal.ofReal_le_ofReal
+  rw [maxAbs_tup_E, Nat.cast_pow, Nat.cast_natAbs, cast_abs, log_pow, Nat.cast_ofNat, log_abs]
+  apply div_le_div_of_nonneg_left (by positivity)
+  · apply log_pos
+    rw [← cast_one, cast_lt, one_lt_radical_iff]
+    exact strongSSC_tup_E.one_lt_natAbs_prod (by lia)
+  · have p8 : (E k ^ 8 : ℝ) ≠ 0 := by
+      apply pow_ne_zero
+      have : 19 ≤ E k := strictMono_E.monotone k.zero_le
+      positivity
+    rw [show (8 : ℝ) = (8 : ℕ) by rfl, ← log_pow, ← log_mul (by rw [cast_ne_zero]; lia) p8]
+    exact log_le_log (mod_cast radical_pos _) (mod_cast hC _)
+
+open Filter in
+lemma liminf_tupleQuality_tup_E : 9 / 8 ≤ liminf (tupleQuality ∘ tup ∘ E) atTop := by
+  obtain ⟨C, hC⟩ := le_tupleQuality
+  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall hC))
+  have e₁ : (9 / 8 : ENNReal) = ENNReal.ofReal (9 / 8) := by
+    simp [ENNReal.ofReal_div_of_pos (show 0 < 8 by simp)]
+  rw [e₁]
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
+  let f (k : ℕ) := log (E k)
+  change Tendsto ((fun x ↦ 9 * x / (C + 8 * x)) ∘ f) atTop (nhds (9 / 8))
+  have ttf : Tendsto f atTop atTop := by
+    refine tendsto_log_atTop.comp (tendsto_intCast_atTop_atTop.comp ?_)
+    sorry
+  refine Tendsto.comp ?_ ttf
+  apply Tendsto.congr' (f₁ := fun x ↦ 9 / (C * x⁻¹ + 8))
+  · exact (eventually_ne_atTop 0).mp (.of_forall fun _ _ ↦ by field)
+  · refine tendsto_const_nhds.div ?_ (by simp)
+    nth_rw 2 [show 8 = C * 0 + 8 by simp]
+    exact (tendsto_inv_atTop_zero.const_mul _).add_const _
+
+end Quality
+
 end FourCase
 
---theorem not_ramaekersConjecture_four : ¬RamaekersConjecture 4 := by
---  sorry
+open FourCase
+
+theorem quality_factorFreeTuples_four_ge : 9 / 8 ≤ quality (factorFreeTuples ∅ 4) := by
+  refine quality_ge_of_liminf_univ ⟨_, injective_tup_E⟩ ?_ liminf_tupleQuality_tup_E
+  simp [tup_E_mem_factorFreeTuples]
+
+theorem not_ramaekersConjecture_four : ¬RamaekersConjecture 4 := by
+  have := quality_factorFreeTuples_four_ge.trans quality_factorFreeTuples_le_ramaekersTuples
+  refine (this.trans_lt' ?_).ne'
+  rw [ENNReal.lt_div_iff_mul_lt (by simp) (by simp)]
+  norm_num
