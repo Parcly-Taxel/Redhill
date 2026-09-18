@@ -128,11 +128,11 @@ lemma le_tupleQuality :
 open Filter in
 lemma liminf_tupleQuality_tupPell : 5 / 3 ≤ liminf (tupleQuality ∘ tupPell n F) atTop := by
   obtain ⟨C, hC⟩ := @le_tupleQuality n F
-  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall hC))
+  apply (liminf_le_liminf (.of_forall hC)).trans_eq'
   have e₁ : (5 / 3 : ENNReal) = ENNReal.ofReal (5 / 3) := by
     simp [ENNReal.ofReal_div_of_pos zero_lt_three]
   rw [e₁]
-  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq
   let f (k : ℕ) := Real.log ((pell (Y n F ^ 2) k).1 * Y n F : ℕ)
   change Tendsto ((fun x ↦ 5 * x / (C + 3 * x)) ∘ f) atTop (nhds (5 / 3))
   have ttf : Tendsto f atTop atTop := by

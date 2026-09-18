@@ -264,11 +264,11 @@ lemma le_tupleQuality (hk : k ≠ 0) :
 
 open Filter in
 lemma liminf_tupleQuality_tup : (2 * n + 1 : ℕ) ≤ liminf (tupleQuality ∘ tup n) atTop := by
-  refine le_of_eq_of_le ?_ <| liminf_le_liminf <|
-    eventually_atTop.mpr ⟨1, fun k hk ↦ le_tupleQuality (by lia)⟩
+  apply (liminf_le_liminf <|
+    eventually_atTop.mpr ⟨1, fun k hk ↦ le_tupleQuality (by lia)⟩).trans_eq'
   set Q : ℝ := log (2 * ∏ j ∈ range (n + 1), C n j)
   rw [← ENNReal.ofReal_natCast]
-  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq
   simp_rw [mul_div_assoc (2 * n + 1 : ℝ)]
   rw [← mul_one (2 * n + 1)]
   push_cast

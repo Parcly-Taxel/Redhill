@@ -13,7 +13,7 @@ public import Redhill.ToMathlib.NatAbs
 /-!
 # Ramaekers's conjecture is false for `n = 4`
 
-This construction was originally found by Tom Adamczewski using GPT-6
+This construction was originally found by Tom Adamczewski using GPT-6 Astra
 and posted at https://github.com/tadamcz/n-conjecture-strong.
 The port to Redhill was done by me without any (further) LLM usage whatsoever.
 -/
@@ -123,190 +123,74 @@ lemma pairwiseCoprime_tup (mu : u ≡ 19 [ZMOD M]) : PairwiseCoprime (tup u) := 
 
 end Coprime
 
-section Subsum
+section Bounds
 
-lemma tup_two_upper_bound (hu : 3 ≤ u.natAbs) :
-    (-105 * (2 * u - 3) ^ 6).natAbs ≤ 76545 * u.natAbs ^ 6 := by
-  simp_rw [natAbs_mul, natAbs_pow, reduceAbs, show 76545 = 105 * 3 ^ 6 by decide, mul_assoc,
-    ← mul_pow]
-  gcongr; lia
+lemma Q_lower_bound (hu : 19 ≤ u) : 38216358337 ≤ Q u := calc
+  _ = 19 ^ 2 * (130032 * 19 ^ 2 + 10728480 * (19 - 19) + 862140) +
+    1238324220 * 19 - 2568934655 := by decide
+  _ ≤ u ^ 2 * (130032 * u ^ 2 + 10728480 * (u - 19) + 862140) + 1238324220 * u - 2568934655 := by
+    gcongr
+  _ = _ := by ring
 
-lemma Q_upper_bound (hu : 10728480 ≤ u.natAbs) : (Q u).natAbs ≤ 130036 * u.natAbs ^ 4 := by
-  simp_rw [show 130036 = 130032 + 1 + 1 + 1 + 1 by rfl, add_one_mul]
-  grw [natAbs_sub_le, natAbs_add_le, natAbs_sub_le, natAbs_add_le]
-  simp_rw [natAbs_mul, natAbs_pow, reduceAbs]
-  gcongr
-  · rw [pow_succ' _ 3]; gcongr
-  · rw [← two_add_two_eq_four, pow_add]
-    rw [← Nat.pow_le_pow_iff_left two_ne_zero] at hu; gcongr; lia
-  · rw [pow_succ _ 3]
-    rw [← Nat.pow_le_pow_iff_left three_ne_zero] at hu; gcongr; lia
-  · rw [← Nat.pow_le_pow_iff_left four_ne_zero] at hu; lia
-
-lemma sum_tup_lt_tup_zero (hu : 10728480 ≤ u.natAbs) :
-    ∑ i ∈ {0, 1}ᶜ, (tup u i).natAbs < (tup u 0).natAbs := by
-  rw [show ({0, 1}ᶜ : Finset (Fin 4)) = {2, 3} by decide, Finset.sum_pair (by decide)]
-  simp only [tup]
+lemma Q_upper_bound (hu : 19 ≤ u) : (Q u).natAbs < 875230 * u.natAbs ^ 4 := by
+  have nn : 0 ≤ 10728480 * u ^ 3 - 202978980 * u ^ 2 := by
+    rw [sub_nonneg, pow_succ' _ 2, ← mul_assoc]
+    exact mul_le_mul_of_nonneg_right (by lia) (by positivity)
+  rw [Q, add_sub_assoc, add_sub_assoc, natAbs_add_of_nonneg (by positivity) (by lia),
+    natAbs_add_of_nonneg (by positivity) nn]
   calc
-    _ ≤ 76545 * u.natAbs ^ 6 + 130036 * u.natAbs ^ 4 :=
-      add_le_add (tup_two_upper_bound (by lia)) (Q_upper_bound hu)
-    _ ≤ 76545 * u.natAbs ^ 6 + u.natAbs ^ 6 := by
-      rw [add_le_add_iff_left, show 6 = 2 + 4 by rfl, pow_add]
-      rw [← Nat.pow_le_pow_iff_left two_ne_zero] at hu
-      gcongr; lia
-    _ < _ := by
-      rw [← add_one_mul, natAbs_pow, show 9 = 3 + 6 by rfl, pow_add]
-      refine Nat.mul_lt_mul_of_pos_right ?_ (by positivity)
-      rw [← Nat.pow_le_pow_iff_left three_ne_zero] at hu
-      lia
+    _ < (130032 * u ^ 4).natAbs + (10728480 * u ^ 3).natAbs + (1238324220 * u).natAbs := by
+      gcongr
+      · suffices 0 < 202978980 * u ^ 2 by lia
+        positivity
+      · lia
+    _ ≤ 130032 * u.natAbs ^ 4 + 564657 * u.natAbs ^ 4 + 180541 * u.natAbs ^ 4 := by
+      simp_rw [natAbs_mul, natAbs_pow, reduceAbs]
+      gcongr _ + ?_ + ?_
+      · rw [pow_succ' _ 3, ← mul_assoc]; gcongr; lia
+      · grw [show 1238324220 ≤ 180541 * 19 ^ 3 by decide, pow_succ _ 3, ← mul_assoc]; gcongr; lia
+    _ = _ := by ring
 
-lemma sum_tup_lt_tup_one (hu : 10728480 ≤ u.natAbs) :
-    ∑ i ∈ {0, 1}ᶜ, (tup u i).natAbs < (tup u 1).natAbs := by
-  rw [show ({0, 1}ᶜ : Finset (Fin 4)) = {2, 3} by decide, Finset.sum_pair (by decide)]
-  simp only [tup]
-  calc
-    _ ≤ 76545 * u.natAbs ^ 6 + 130036 * u.natAbs ^ 4 :=
-      add_le_add (tup_two_upper_bound (by lia)) (Q_upper_bound hu)
-    _ ≤ 76545 * u.natAbs ^ 6 + u.natAbs ^ 6 := by
-      rw [add_le_add_iff_left, show 6 = 2 + 4 by rfl, pow_add]
-      rw [← Nat.pow_le_pow_iff_left two_ne_zero] at hu
-      gcongr; lia
-    _ ≤ 2449472 * (u.natAbs - 8) ^ 5 * u.natAbs := by
-      rw [← add_one_mul, pow_succ, ← mul_assoc, show 2449472 = (76545 + 1) * 2 ^ 5 by decide,
-        mul_assoc _ (2 ^ 5), ← mul_pow]
-      gcongr; lia
-    _ ≤ (8 - u).natAbs ^ 5 * u.natAbs ^ 2 := by
-      rw [mul_rotate, sq, mul_assoc]
-      gcongr <;> lia
-    _ < _ := by
-      simp only [natAbs_mul, natAbs_pow]
-      refine mul_lt_mul_of_pos_left (Nat.pow_lt_pow_left ?_ two_ne_zero) (Nat.pow_pos (by lia))
-      rw [add_right_comm]
-      refine (Nat.lt_sub_of_add_lt ?_).trans_le sub_le_add_natAbs
-      rw [natAbs_mul, ← one_add_mul, natAbs_add_of_nonneg u.sq_nonneg (by decide)]
-      calc
-        _ < (u ^ 2).natAbs := by rw [sq, natAbs_mul]; gcongr; lia
-        _ < _ := by lia
-
-/-- `tup` with the first two terms added together. -/
-def tupReduced (u : ℤ) : Fin 3 → ℤ
-  | 0 => -105 * (2 * u - 3) ^ 6
-  | 1 => Q u
-  | 2 => 105 * (2 * u - 3) ^ 6 - Q u
-
-lemma tupReduce_tup : tupReduce (tup u) {0, 1} (by simp) = tupReduced u := by
-  ext i
-  unfold tupReduce
-  cases i using lastCases with
-  | last =>
-    simp_rw [lastCases_last, Finset.sum_pair zero_ne_one, tup, tupReduced, reduceLast]
-    ring
-  | cast i =>
-    have : @complRank 4 2 {0, 1} (by simp) = (·.natAdd 2) := by
-      refine (Finset.orderEmbOfFin_unique _ (fun i ↦ ?_) ?_).symm
-      · fin_cases i <;> simp
-      · exact (natAddOrderEmb 2).strictMono
-    simp_rw [lastCases_castSucc, this, tup, tupReduced]
-    fin_cases i <;> rfl
-
-lemma tup_two_lower_bound (hu : 3 ≤ u.natAbs) :
-    105 * u.natAbs ^ 6 ≤ (-105 * (2 * u - 3) ^ 6).natAbs := by
-  simp_rw [natAbs_mul, natAbs_pow, reduceAbs]
-  gcongr; lia
-
-lemma sum_tupReduced_lt_tupReduced_zero (hu : 10728480 ≤ u.natAbs) :
-    ∑ i ∈ {0, 2}ᶜ, (tupReduced u i).natAbs < (tupReduced u 0).natAbs := by
-  rw [show ({0, 2}ᶜ : Finset (Fin 3)) = {1} by decide, Finset.sum_singleton]
-  simp only [tupReduced]
-  calc
-    _ ≤ _ := Q_upper_bound hu
-    _ < _ := by rw [pow_succ' _ 5, ← mul_assoc]; gcongr <;> lia
-    _ ≤ _ := tup_two_lower_bound (by lia)
-
-lemma sum_tupReduced_lt_tupReduced_two (hu : 10728480 ≤ u.natAbs) :
-    ∑ i ∈ {0, 2}ᶜ, (tupReduced u i).natAbs < (tupReduced u 2).natAbs := by
-  rw [show ({0, 2}ᶜ : Finset (Fin 3)) = {1} by decide, Finset.sum_singleton, tupReduced, tupReduced,
-    sub_eq_add_neg]
-  refine (Nat.lt_sub_of_add_lt ?_).trans_le sub_le_add_natAbs
-  rw [natAbs_neg, ← two_mul]
-  calc
-    _ ≤ _ := Nat.mul_le_mul_left _ (Q_upper_bound hu)
-    _ < 105 * u.natAbs ^ 6 := by rw [pow_succ' _ 5, ← mul_assoc, ← mul_assoc]; gcongr <;> lia
-    _ ≤ _ := by
-      conv_rhs => rw [← natAbs_neg, ← neg_mul]
-      exact tup_two_lower_bound (by lia)
-
-lemma tupReduce_tupReduced : tupReduce (tupReduced u) {0, 2} (by simp) = ![Q u, -Q u] := by
-  ext i
-  unfold tupReduce
-  cases i using lastCases with
-  | last =>
-    rw [lastCases_last, Finset.sum_pair (by decide), tupReduced, tupReduced]
-    simp_rw [reduceLast, Matrix.cons_val]
-    ring
-  | cast i =>
-    have : @complRank 3 1 {0, 2} (by simp) = ![1] :=
-      (Finset.orderEmbOfFin_unique _ (by simp) (by decide)).symm
-    simp_rw [lastCases_castSucc, this, tupReduced]
-    fin_cases i; rfl
-
-lemma Q_le_neg_tup_two (hu : 10728480 ≤ u.natAbs) : Q u ≤ 105 * (2 * u - 3) ^ 6 := calc
+lemma tup_three_lt_neg_tup_two (hu : 19 ≤ u) : tup u 3 < -tup u 2 := calc
   _ ≤ _ := le_natAbs
-  _ ≤ 130036 * u.natAbs ^ 4 := mod_cast Q_upper_bound hu
-  _ ≤ 130036 * (2 * u - 3) ^ 4 := by
+  _ < 875230 * u.natAbs ^ 4 := mod_cast Q_upper_bound hu
+  _ ≤ 79567 * (2 * u - 3) ^ 4 := by
+    grw [show (875230 : ℤ) ≤ 79567 * 11 by decide, mul_assoc, natAbs_of_nonneg (by lia)]
     refine mul_le_mul_of_nonneg_left ?_ (by decide)
-    simp only [show 4 = 2 * 2 by rfl, pow_mul, sq_le_sq, abs_pow]
-    grind
+    obtain rfl | ⟨_, _⟩ : u = 19 ∨ 0 ≤ 5 * u - 96 ∧ 0 ≤ u - 1 := by lia
+    · decide
+    · rw [show (2 * u - 3) ^ 4 = (5 * u - 96) * u ^ 3 + 216 * u * (u - 1) + 81 + 11 * u ^ 4 by ring,
+        le_add_iff_nonneg_left]
+      positivity
   _ ≤ _ := by
-    rw [pow_add _ 2 4, ← mul_assoc]
+    rw [tup, pow_add _ 2 4, neg_mul, neg_neg, ← mul_assoc]
     refine mul_le_mul_of_nonneg_right ?_ (by positivity)
-    suffices 40 ^ 2 ≤ (2 * u - 3) ^ 2 by lia
-    rw [sq_le_sq]
-    grind
+    grw [show (79567 : ℤ) ≤ 105 * 35 ^ 2 by decide]; gcongr; lia
 
-lemma Q_pos (hu : 100 ≤ u.natAbs) : 0 < Q u := by
-  obtain lu | gu : 0 ≤ u - 19 ∨ 100 ≤ -u := by lia
-  · rw [show Q u = u ^ 2 * (130032 * u ^ 2 + 10728480 * (u - 19) + 862140) +
-      (1238324220 * u - 2568934655) by ring]
-    have : 0 < 1238324220 * u - 2568934655 := by lia
-    positivity
-  · rw [sub_pos, ← sub_lt_iff_lt_add, lt_sub_iff_add_lt, ← sub_lt_iff_lt_add]
-    calc
-      _ < 26 * (-u) ^ 4 + 1239 * (-u) ^ 4 + 20298 * (-u) ^ 4 + 107285 * (-u) ^ 4 := by
-        iterate 2 rw [sub_eq_add_neg, ← mul_neg]
-        gcongr ?_ + ?_ + ?_ + ?_
-        · have := pow_le_pow_left₀ (by decide) hu 4; lia
-        · have := pow_le_pow_left₀ (by decide) hu 3
-          rw [pow_succ, ← mul_assoc]; gcongr; lia
-        · have := pow_le_pow_left₀ (by decide) hu 2
-          rw [← neg_sq, ← two_add_two_eq_four, pow_add, ← mul_assoc]; gcongr; lia
-        · rw [← Odd.neg_pow (by decide), pow_succ' _ 3, ← mul_assoc]; gcongr; lia
-      _ ≤ _ := by
-        simp_rw [(show Even 4 by decide).neg_pow, ← add_mul]
-        exact mul_le_mul_of_nonneg_right (by decide) (by positivity)
+lemma tup_three_lt_neg_tup_one (hu : 19 ≤ u) : tup u 3 < -tup u 1 := calc
+  _ ≤ _ := le_natAbs
+  _ < 875230 * u.natAbs ^ 4 := mod_cast Q_upper_bound hu
+  _ ≤ (u - 8) ^ 5 * 875230 := by
+    rw [mul_comm, mul_le_mul_iff_of_pos_right (by decide), natAbs_of_nonneg (by lia),
+      ← (11 ^ 4 : ℤ).mul_le_mul_left (by decide), ← mul_pow]
+    grw [show 11 * u ≤ 19 * (u - 8) by lia, mul_pow, pow_succ' _ 4, ← mul_assoc]
+    exact mul_le_mul_of_nonneg_right (by lia) (by positivity)
+  _ ≤ _ := by
+    rw [tup, ← neg_mul, ← Odd.neg_pow (by decide), neg_sub]
+    refine mul_le_mul_of_nonneg_left ?_ (Int.pow_nonneg (by lia))
+    grw [show 875230 ≤ (19 ^ 2 + 20 * 19 + 280 : ℤ) ^ 2 by decide, hu]
 
-lemma strongSSC_tup (hu : 10728480 ≤ u.natAbs) : StrongSSC (tup u) := by
-  have key : IsSubsumBlock (tup u) {0, 1} := by
-    apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tup_lt_tup_zero hu) (sum_tup_lt_tup_one hu)
-    simp only [tup, ← mul_assoc]
-    refine mul_nonpos_of_nonpos_of_nonneg ?_ (sq_nonneg _)
-    obtain lu | gu := le_total 0 u
-    · exact mul_nonpos_of_nonneg_of_nonpos (by positivity) (Odd.pow_nonpos (by decide) (by lia))
-    · exact mul_nonpos_of_nonpos_of_nonneg (Odd.pow_nonpos (by decide) gu) (Int.pow_nonneg (by lia))
-  apply key.strongSSC_tupReduce
-  rw [tupReduce_tup]
-  have key2 : IsSubsumBlock (tupReduced u) {0, 2} := by
-    apply IsSubsumBlock.pair_of_sum_natAbs_lt (sum_tupReduced_lt_tupReduced_zero hu)
-      (sum_tupReduced_lt_tupReduced_two hu)
-    simp only [tupReduced, neg_mul, Int.neg_nonpos_iff]
-    apply mul_nonneg (by positivity)
-    rw [sub_nonneg]
-    exact Q_le_neg_tup_two hu
-  apply key2.strongSSC_tupReduce
-  rw [tupReduce_tupReduced]
-  exact strongSSC_pair (Q_pos (by lia)).ne'
+lemma neg_tup_two_lt_tup_zero (hu : 19 ≤ u) : -tup u 2 < tup u 0 := calc
+  _ = _ := by rw [tup, neg_mul, neg_neg]
+  _ < 105 * (2 * u) ^ 6 := by gcongr <;> lia
+  _ ≤ _ := by
+    grw [tup, mul_pow, ← mul_assoc, show (105 : ℤ) * 2 ^ 6 ≤ 19 ^ 3 by decide, hu, pow_add _ 3 6]
 
-end Subsum
+lemma neg_tup_one_lt_tup_zero (hu : 19 ≤ u) : -tup u 1 < tup u 0 := by
+  rw [neg_lt_iff_pos_add, show tup u 0 + tup u 1 = -tup u 2 - tup u 3 by grind [tup], sub_pos]
+  exact tup_three_lt_neg_tup_two hu
+
+end Bounds
 
 /-- An infinite sequence of integers satisfying `2 * E n - 3 = 35 * (2 * M + 1) ^ n`. -/
 def E : ℕ → ℤ
@@ -337,39 +221,36 @@ lemma injective_tup_E : (tup ∘ E).Injective := fun i j e ↦ by
   simp_rw [Function.comp_apply, tup] at e
   rwa [Odd.pow_inj (by decide), strictMono_E.injective.eq_iff] at e
 
-lemma strongSSC_tup_E : StrongSSC (tup (E k)) := by
-  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
-  · rw [StrongSSC, IsSubsumBlock]
-    decide
-  · apply strongSSC_tup
-    have : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
-    lia
+lemma tup_E_ineq_package (k : ℕ) :
+    1 < tup (E k) 3 ∧ tup (E k) 3 < -tup (E k) 2 ∧ tup (E k) 3 < -tup (E k) 1 ∧
+    -tup (E k) 2 < tup (E k) 0 ∧ -tup (E k) 1 < tup (E k) 0 := by
+  have hu : 19 ≤ E k := by grind [@add_nineteen_le_E k]
+  exact ⟨(Q_lower_bound hu).trans_lt' (by decide), tup_three_lt_neg_tup_two hu,
+    tup_three_lt_neg_tup_one hu, neg_tup_two_lt_tup_zero hu, neg_tup_one_lt_tup_zero hu⟩
 
-lemma tup_E_mem_factorFreeTuples : tup (E k) ∈ factorFreeTuples ∅ 4 :=
-  ⟨sum_tup, strongSSC_tup_E, pairwiseCoprime_tup E_modEq, by simp⟩
+lemma tup_E_mem_ramaekersTuples : tup (E k) ∈ ramaekersTuples 4 := by
+  refine ⟨sum_tup, fun b n₁ n₂ hs ↦ ?_, pairwiseCoprime_tup E_modEq⟩
+  rw [← Finset.card_pos] at n₁
+  rw [← Finset.card_compl_lt_iff_nonempty, Fintype.card_fin, compl_compl] at n₂
+  have := tup_E_ineq_package k
+  obtain cb | cb | cb : b.card = 1 ∨ b.card = 2 ∨ b.card = 3 := by lia
+  · obtain ⟨i, rfl⟩ := Finset.card_eq_one.mp cb
+    rw [Finset.sum_singleton] at hs
+    fin_cases i <;> lia
+  · obtain ⟨i, j, hn, rfl⟩ := Finset.card_eq_two.mp cb
+    rw [Finset.sum_pair hn] at hs
+    fin_cases i <;> fin_cases j <;> lia
+  · replace cb : bᶜ.card = 1 := by rw [Finset.card_compl, Fintype.card_fin]; lia
+    rw [← @sum_tup (E k), ← Finset.sum_add_sum_compl b, left_eq_add] at hs
+    obtain ⟨i, e⟩ := Finset.card_eq_one.mp cb
+    rw [e, Finset.sum_singleton] at hs
+    fin_cases i <;> lia
 
 lemma maxAbs_tup_E : maxAbs (tup (E k)) = (E k).natAbs ^ 9 := by
-  simp_rw [maxAbs_eq_foldr, List.ofFn_succ, List.ofFn_zero, reduceSucc, List.foldr_cons,
-    List.foldr_nil, tup, max_zero]
-  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
-  · decide
-  have lE : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
-  have hu : 10728480 ≤ (E k).natAbs := by lia
-  have e1 := sum_tupReduced_lt_tupReduced_zero hu
-  simp_rw [show ({0, 2}ᶜ : Finset (Fin 3)) = {1} by decide, Finset.sum_singleton, tupReduced] at e1
-  have e2 := sum_tup_lt_tup_one hu
-  rw [show ({0, 1}ᶜ : Finset (Fin 4)) = {2, 3} by decide, Finset.sum_pair (by decide)] at e2
-  replace e2 : (-105 * (2 * E k - 3) ^ 6).natAbs ≤
-      ((8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2).natAbs := by grind [tup]
-  rw [max_eq_left e1.le, max_eq_left e2, ← natAbs_pow, max_eq_left_iff]
-  have tnn : (8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2 ≤ 0 := by
-    rw [← neg_nonneg, ← neg_mul, ← Odd.neg_pow (by decide), neg_sub]
-    have Epos : 0 < E k - 8 := by lia
-    positivity
-  suffices -((8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2) ≤ E k ^ 9 by lia
-  rw [neg_le_iff_add_nonneg, show E k ^ 9 + (8 - E k) ^ 5 * (E k ^ 2 + 20 * E k + 280) ^ 2 =
-    105 * (2 * (E k) - 3) ^ 6 - Q (E k) by ring, sub_nonneg]
-  exact Q_le_neg_tup_two hu
+  rw [show (E k).natAbs ^ 9 = (tup (E k) 0).natAbs by simp [tup]]
+  refine maxAbs_eq_of_forall_le fun i ↦ ?_
+  have := tup_E_ineq_package k
+  fin_cases i <;> lia
 
 section Quality
 
@@ -392,28 +273,13 @@ lemma radical_tup_E_dvd :
   grw [radical_pow_dvd]
   exact radical_dvd_self
 
-lemma Q_E_pos : 0 < Q (E k) := by
-  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
-  · decide
-  · have lE : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
-    have lQ := Q_pos (show 100 ≤ (E k).natAbs by lia)
-    lia
-
-lemma Q_E_upper_bound : Q (E k) ≤ 293248 * E k ^ 4 := by
-  obtain rfl | hk : k = 0 ∨ 1 ≤ k := by lia
-  · decide
-  · have lE : 10728480 ≤ E k := (strictMono_E.monotone hk).trans' (by decide)
-    have lQ := Q_upper_bound (show 10728480 ≤ (E k).natAbs by lia)
-    lia
-
 lemma radical_tup_E_le : ∃ C > 0, ∀ k, radical (∏ i, tup (E k) i) ≤ C * E k ^ 8 := by
   obtain ⟨C, Cpos, hC⟩ := radical_tup_E_dvd
-  refine ⟨3 * 293248 * C, by positivity, fun k ↦ ?_⟩
-  rw [show 3 * 293248 * C * E k ^ 8 = C * E k * E k * (3 * E k ^ 2) * (293248 * E k ^ 4) by ring]
-  have lE : 19 ≤ E k := strictMono_E.monotone k.zero_le
-  have Epos : 0 < E k - 8 := by lia
-  have Qpos := @Q_E_pos k
-  have Qub := @Q_E_upper_bound k
+  refine ⟨2625690 * C, by positivity, fun k ↦ ?_⟩
+  rw [show 2625690 * C * E k ^ 8 = C * E k * E k * (3 * E k ^ 2) * (875230 * E k ^ 4) by ring]
+  have hu : 19 ≤ E k := by grind [@add_nineteen_le_E k]
+  have hu' : 0 < E k - 8 := by lia
+  have Qpos : 0 < Q (E k) := (Q_lower_bound hu).trans_lt' (by decide)
   refine (le_of_dvd (by positivity) (hC k)).trans ?_
   gcongr
   · lia
@@ -423,6 +289,9 @@ lemma radical_tup_E_le : ∃ C > 0, ∀ k, radical (∏ i, tup (E k) i) ≤ C * 
     calc
       _ ≤ (19 * 18 : ℤ) := by lia
       _ ≤ _ := by gcongr; lia
+  · have Qub := (Q_upper_bound hu).le
+    rwa [← Nat.cast_le (α := ℤ), Nat.cast_mul, Nat.cast_pow, natAbs_of_nonneg (by lia),
+      natAbs_of_nonneg (by lia)] at Qub
 
 lemma le_tupleQuality :
     ∃ C, ∀ k, .ofReal (9 * log (E k) / (C + 8 * log (E k))) ≤ tupleQuality (tup (E k)) := by
@@ -432,8 +301,10 @@ lemma le_tupleQuality :
   rw [maxAbs_tup_E, Nat.cast_pow, Nat.cast_natAbs, cast_abs, log_pow, Nat.cast_ofNat, log_abs]
   apply div_le_div_of_nonneg_left (by positivity)
   · apply log_pos
-    rw [← cast_one, cast_lt, one_lt_radical_iff]
-    exact strongSSC_tup_E.one_lt_natAbs_prod (by lia)
+    have := tup_E_ineq_package k
+    rw [← cast_one, cast_lt, one_lt_radical_iff, Finset.natAbs_prod,
+      Finset.one_lt_prod_iff_of_one_le fun i _ ↦ by fin_cases i <;> lia]
+    exact ⟨3, by simp, by lia⟩
   · have p8 : (E k ^ 8 : ℝ) ≠ 0 := by
       apply pow_ne_zero
       have : 19 ≤ E k := strictMono_E.monotone k.zero_le
@@ -444,12 +315,12 @@ lemma le_tupleQuality :
 open Filter in
 lemma liminf_tupleQuality_tup_E : 9 / 8 ≤ liminf (tupleQuality ∘ tup ∘ E) atTop := by
   obtain ⟨C, hC⟩ := le_tupleQuality
-  refine le_of_eq_of_le ?_ (liminf_le_liminf (.of_forall hC))
+  apply (liminf_le_liminf (.of_forall hC)).trans_eq'
   have e₁ : (9 / 8 : ENNReal) = ENNReal.ofReal (9 / 8) := by
     simp [ENNReal.ofReal_div_of_pos (show 0 < 8 by simp)]
   rw [e₁]
-  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
-  let f (k : ℕ) := log (E k)
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq
+  let f (k) := log (E k)
   change Tendsto ((fun x ↦ 9 * x / (C + 8 * x)) ∘ f) atTop (nhds (9 / 8))
   have ttf : Tendsto f atTop atTop := by
     refine tendsto_log_atTop.comp (tendsto_intCast_atTop_atTop.comp ?_)
@@ -468,12 +339,11 @@ end FourCase
 
 open FourCase
 
-theorem quality_factorFreeTuples_four_ge : 9 / 8 ≤ quality (factorFreeTuples ∅ 4) := by
+theorem quality_ramaekersTuples_four_ge : 9 / 8 ≤ quality (ramaekersTuples 4) := by
   refine quality_ge_of_liminf_univ ⟨_, injective_tup_E⟩ ?_ liminf_tupleQuality_tup_E
-  simp [tup_E_mem_factorFreeTuples]
+  simp [tup_E_mem_ramaekersTuples]
 
 theorem not_ramaekersConjecture_four : ¬RamaekersConjecture 4 := by
-  have := quality_factorFreeTuples_four_ge.trans quality_factorFreeTuples_le_ramaekersTuples
-  refine (this.trans_lt' ?_).ne'
+  refine (quality_ramaekersTuples_four_ge.trans_lt' ?_).ne'
   rw [ENNReal.lt_div_iff_mul_lt (by simp) (by simp)]
   norm_num

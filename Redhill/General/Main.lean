@@ -85,11 +85,11 @@ lemma le_tupleQuality : ∃ C, ∀ᶠ h in atTop,
 
 lemma liminf_tupleQuality_tup : 5 / 4 ≤ liminf (tupleQuality ∘ tup n F) atTop := by
   obtain ⟨C, hC⟩ := @le_tupleQuality n F
-  refine le_of_eq_of_le ?_ (liminf_le_liminf hC)
+  apply (liminf_le_liminf hC).trans_eq'
   have e₁ : (5 / 4 : ENNReal) = ENNReal.ofReal (5 / 4) := by
     simp [ENNReal.ofReal_div_of_pos zero_lt_four]
   rw [e₁]
-  refine (ENNReal.tendsto_ofReal ?_).liminf_eq.symm
+  refine (ENNReal.tendsto_ofReal ?_).liminf_eq
   let f (h : ℕ) := Real.log (X F h)
   change Tendsto ((fun x ↦ 5 * x / (C + 4 * x)) ∘ f) atTop (nhds (5 / 4))
   have ttf : Tendsto f atTop atTop :=
