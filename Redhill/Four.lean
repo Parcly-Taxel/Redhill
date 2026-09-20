@@ -167,24 +167,15 @@ lemma tup_three_lt_neg_tup_two (hu : 19 ≤ u) : tup u 3 < -tup u 2 := calc
     refine mul_le_mul_of_nonneg_right ?_ (by positivity)
     grw [show (79567 : ℤ) ≤ 105 * 35 ^ 2 by decide]; gcongr; lia
 
-lemma tup_three_lt_neg_tup_one (hu : 19 ≤ u) : tup u 3 < -tup u 1 := calc
-  _ ≤ _ := le_natAbs
-  _ < 875230 * u.natAbs ^ 4 := mod_cast Q_upper_bound hu
-  _ ≤ (u - 8) ^ 5 * 875230 := by
-    rw [mul_comm, mul_le_mul_iff_of_pos_right (by decide), natAbs_of_nonneg (by lia),
-      ← (11 ^ 4 : ℤ).mul_le_mul_left (by decide), ← mul_pow]
-    grw [show 11 * u ≤ 19 * (u - 8) by lia, mul_pow, pow_succ' _ 4, ← mul_assoc]
-    exact mul_le_mul_of_nonneg_right (by lia) (by positivity)
-  _ ≤ _ := by
-    rw [tup, ← neg_mul, ← Odd.neg_pow (by decide), neg_sub]
-    refine mul_le_mul_of_nonneg_left ?_ (Int.pow_nonneg (by lia))
-    grw [show 875230 ≤ (19 ^ 2 + 20 * 19 + 280 : ℤ) ^ 2 by decide, hu]
-
 lemma neg_tup_two_lt_tup_zero (hu : 19 ≤ u) : -tup u 2 < tup u 0 := calc
   _ = _ := by rw [tup, neg_mul, neg_neg]
   _ < 105 * (2 * u) ^ 6 := by gcongr <;> lia
   _ ≤ _ := by
     grw [tup, mul_pow, ← mul_assoc, show (105 : ℤ) * 2 ^ 6 ≤ 19 ^ 3 by decide, hu, pow_add _ 3 6]
+
+lemma tup_three_lt_neg_tup_one (hu : 19 ≤ u) : tup u 3 < -tup u 1 := by
+  rw [lt_neg_iff_add_neg, show tup u 3 + tup u 1 = -tup u 2 - tup u 0 by grind [tup], sub_lt_zero]
+  exact neg_tup_two_lt_tup_zero hu
 
 lemma neg_tup_one_lt_tup_zero (hu : 19 ≤ u) : -tup u 1 < tup u 0 := by
   rw [neg_lt_iff_pos_add, show tup u 0 + tup u 1 = -tup u 2 - tup u 3 by grind [tup], sub_pos]
