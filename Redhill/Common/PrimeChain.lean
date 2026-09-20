@@ -34,7 +34,7 @@ lemma primeChain_succ_gt {s n : ℕ} : 2 * primeChain s n < primeChain s (n + 1)
   (Nat.find_spec (exists_infinite_primes _)).1
 
 lemma strictMono_primeChain {s : ℕ} : StrictMono (primeChain s) :=
-  strictMono_nat_of_lt_succ (by grind [primeChain_succ_gt])
+  strictMono_nat_of_lt_succ (by lia [primeChain_succ_gt])
 
 lemma primeChain_gt {s n : ℕ} : s < primeChain s n :=
   primeChain_zero_gt.trans_le (strictMono_primeChain.monotone (Nat.zero_le _))
@@ -90,7 +90,7 @@ lemma isSubsumBlock_chainTup (h : m ≤ s) :
     exact add_sum_lt_primeChain h
   · simp_rw [this, chainTup, sh₂, addCases_right, Int.natAbs_neg, ← cast_add, Int.natAbs_natCast,
       sum_range_succ, ← add_assoc]
-    exact Nat.lt_add_of_pos_right (by grind [primeChain_gt])
+    exact Nat.lt_add_of_pos_right (by lia [primeChain_gt])
   · simp_rw [chainTup, sh₁, addCases_left, sh₂, addCases_right, mul_neg, Left.neg_nonpos_iff]
     norm_cast
     exact Nat.zero_le _

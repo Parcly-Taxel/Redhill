@@ -55,8 +55,8 @@ section Inequalities
 lemma tailK_lower_bound : 196 * Y F ^ 6 ≤ tailK n F :=
   calc
     _ = 2 * (98 * Y F * Y F ^ 5) := by ring
-    _ ≤ 2 * ((100 * Y F - 2) * Y F ^ 5) := by gcongr; grind [Y_pos]
-    _ ≤ _ := by grind [U, tailK, (VW n F).eq_add, (VW n F).m_lt_v]
+    _ ≤ 2 * ((100 * Y F - 2) * Y F ^ 5) := by gcongr; lia [Y_pos]
+    _ ≤ _ := by lia [U, tailK, (VW n F).eq_add, (VW n F).m_lt_v]
 
 variable (hh : tailK n F < X F h)
 
@@ -81,7 +81,7 @@ lemma b₁_upper_bound : ((X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2).natAbs ≤ 4 * X
       exact le_pow zero_lt_two
 
 lemma b₃_lower_bound : 12 * Y F * X F h ^ 4 ≤ ((X F h - Y F : ℤ) ^ 5).natAbs := by
-  rw [Int.natAbs_pow, ← cast_sub (by grind [Y_lt_X]), Int.natAbs_natCast,
+  rw [Int.natAbs_pow, ← cast_sub (by lia [Y_lt_X]), Int.natAbs_natCast,
     ← Nat.mul_le_mul_left_iff (show 0 < 16 by decide),
     show 16 * (12 * Y F * X F h ^ 4) = 192 * Y F * X F h ^ 4 by ring,
     show 16 * (X F h - Y F) ^ 5 = (X F h - Y F) * (2 * (X F h - Y F)) ^ 4 by ring]
@@ -94,7 +94,7 @@ lemma b₃_lower_bound : 12 * Y F * X F h ^ 4 ≤ ((X F h - Y F : ℤ) ^ 5).natA
 
 lemma b₄_lower_bound : 12 * Y F * X F h ^ 4 ≤ (-(X F h + Y F : ℤ) ^ 5).natAbs := by
   apply (b₃_lower_bound hh).trans
-  rw [← cast_sub (by grind [Y_lt_X]), ← cast_add]
+  rw [← cast_sub (by lia [Y_lt_X]), ← cast_add]
   simp_rw [Int.natAbs_neg, Int.natAbs_pow, Int.natAbs_natCast]
   gcongr
   lia
@@ -106,7 +106,7 @@ lemma X4_le_natAbs_b4 {b₁ b₂ b₃ b₄ : SignType} (hl : b₄ < b₃) :
     _ ≤ (12 * Y F - (4 + (10 * Y F - 1))) * X F h ^ 4 := by
       nth_rw 1 [← one_mul (_ ^ 4)]
       gcongr
-      grind [Y_lower_bound]
+      lia [Y_lower_bound]
     _ ≤ (b₃ * (X F h - Y F : ℤ) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs -
         (4 + (10 * Y F - 1)) * X F h ^ 4 := by
       rw [tsub_mul]
@@ -119,13 +119,13 @@ lemma X4_le_natAbs_b4 {b₁ b₂ b₃ b₄ : SignType} (hl : b₄ < b₃) :
         · simpa using b₃_lower_bound hh
         · simp_rw [SignType.coe_neg, SignType.coe_one, neg_one_mul, neg_neg, one_mul]
           have n₁ : 0 ≤ (X F h - Y F : ℤ) ^ 5 := by
-            rw [← cast_sub (by grind [Y_lt_X])]
+            rw [← cast_sub (by lia [Y_lt_X])]
             exact Int.zero_le_ofNat _
           have n₂ : 0 ≤ (X F h + Y F : ℤ) ^ 5 := by
             rw [← cast_add]
             exact Int.zero_le_ofNat _
           rw [Int.natAbs_add_of_nonneg n₁ n₂]
-          grind [b₃_lower_bound hh]
+          lia [b₃_lower_bound hh]
     _ ≤ (b₃ * (X F h - Y F : ℤ) ^ 5 + b₄ * -(X F h + Y F) ^ 5).natAbs -
         (b₁ * (X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2 + b₂ * ((10 * Y F - 1) * X F h ^ 4)).natAbs := by
       refine Nat.sub_le_sub_left ?_ _
@@ -133,7 +133,7 @@ lemma X4_le_natAbs_b4 {b₁ b₂ b₃ b₄ : SignType} (hl : b₄ < b₃) :
       refine (Int.natAbs_add_le _ _).trans (Nat.add_le_add ?_ ?_)
       · rw [Int.natAbs_mul, ← one_mul (4 * _)]
         exact mul_le_mul' (by decide +revert) (b₁_upper_bound hh)
-      · rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos], ← mul_assoc]
+      · rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by lia [Y_pos], ← mul_assoc]
         simp_rw [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast]
         apply Nat.mul_le_mul_right
         cases b₂ <;> simp
@@ -147,7 +147,7 @@ lemma b₃_lower_bound_2 :
     (-2 * Y F * (5 * X F h ^ 4 + 10 * X F h ^ 2 * Y F ^ 2 + Y F ^ 4 : ℤ)).natAbs := by
   simp_rw [neg_mul, Int.natAbs_neg]
   suffices 5 * X F h ^ 4 ≤ 10 * Y F * X F h ^ 4 by lia
-  exact Nat.mul_le_mul_right _ (by grind [Y_pos])
+  exact Nat.mul_le_mul_right _ (by lia [Y_pos])
 
 lemma X4_le_natAbs_b3 {b₁ b₂ b₃ : SignType} (hl : b₃ < b₂) :
     X F h ^ 4 ≤ (b₁ * (X F h ^ 2 + 10 * Y F ^ 3 : ℤ) ^ 2 + b₂ * ((10 * Y F - 1) * X F h ^ 4) +
@@ -167,7 +167,7 @@ lemma X4_le_natAbs_b3 {b₁ b₂ b₃ : SignType} (hl : b₃ < b₂) :
       · simp at hl
       · obtain rfl : b₃ = -1 := by decide +revert
         simpa using b₃_lower_bound_2
-      · have cY : (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) := by grind [Y_pos]
+      · have cY : (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) := by lia [Y_pos]
         rw [SignType.coe_one, one_mul, cY]
         obtain rfl | rfl : b₃ = 0 ∨ b₃ = -1 := by decide +revert
         · rw [SignType.coe_zero, zero_mul, add_zero, Int.natAbs_mul]
@@ -180,7 +180,7 @@ lemma X4_le_natAbs_b3 {b₁ b₂ b₃ : SignType} (hl : b₃ < b₂) :
             simp_rw [neg_mul, neg_neg]
             exact_mod_cast Nat.zero_le _
           rw [Int.natAbs_add_of_nonneg n₁ n₂]
-          grind [b₃_lower_bound_2]
+          lia [b₃_lower_bound_2]
     _ ≤ _ := by
       rw [add_rotate ((b₁ : ℤ) * _)]
       exact Int.sub_le_add_natAbs
@@ -226,7 +226,7 @@ lemma X_le_natAbs_redEmb1 {b₁ b₂ b₃ b₄ : SignType} (hb : b₁ ≠ b₂ �
     _ ≤ X F h ^ 4 + 20 * X F h ^ 2 * Y F ^ 3 - X F h := by
       suffices 1 * X F h ≤ 20 * X F h * Y F ^ 3 * X F h by lia
       apply Nat.mul_le_mul_right
-      exact one_le_mul (one_le_mul (by decide) (by grind [Y_lt_X])) (one_le_pow _ _ Y_pos)
+      exact one_le_mul (one_le_mul (by decide) (by lia [Y_lt_X])) (one_le_pow _ _ Y_pos)
     _ ≤ ((b₁ - b₂ : ℤ) * (X F h ^ 4 + 20 * X F h ^ 2 * Y F ^ 3)).natAbs - X F h := by
       refine Nat.sub_le_sub_right ?_ _
       rw [Int.natAbs_mul, ← one_mul (X F h ^ 4 + _)]
@@ -252,7 +252,7 @@ end Inequalities
 
 public lemma eventually_X_gt (K : Finset ℕ → ℕ) : ∀ᶠ h in Filter.atTop, K F < X F h := by
   rw [Filter.eventually_atTop]
-  obtain ⟨n, hn⟩ : ∃ n, K F < (Y F + 1) ^ n := add_one_pow_unbounded_of_pos _ (by grind [Y_pos])
+  obtain ⟨n, hn⟩ : ∃ n, K F < (Y F + 1) ^ n := add_one_pow_unbounded_of_pos _ (by lia [Y_pos])
   refine ⟨n, fun h hh ↦ hn.trans_le ?_⟩
   exact Nat.pow_le_pow_right (zero_lt_succ _) (hh.trans (self_le_factorial _))
 
@@ -282,7 +282,7 @@ lemma tupReduce_tup {c₁ : n + 2 = n + 6 - #(univ.map redEmb1)} :
     simp only [reduceNatAdd, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, tup_natAdd_five]
     have : last (n + 2) = natAdd n (2 : Fin 3) := by ext; simp
     simp_rw [this, vwTup, addCases_right, cast_mul, cast_pow,
-      show (100 * Y F - 2 : ℕ) = (100 * Y F - 2 : ℤ) by grind [Y_pos]]
+      show (100 * Y F - 2 : ℕ) = (100 * Y F - 2 : ℤ) by lia [Y_pos]]
     ring
   | cast i =>
     have : complRank (univ.map redEmb1) c₁ = castAdd 4 := by
@@ -304,7 +304,7 @@ public theorem strongSSC_tup : ∀ᶠ h in Filter.atTop, StrongSSC (tup n F h) :
   apply hh.strongSSC_tupReduce c
   rw [tupReduce_tup]
   refine strongSSC_vwTup ?_ ?_ le_rfl
-  · exact mul_pos (by grind [Y_pos]) (pow_pos Y_pos _)
+  · exact mul_pos (by lia [Y_pos]) (pow_pos Y_pos _)
   · rw [pow_succ' _ 5, ← mul_assoc]
     exact Nat.mul_le_mul_right _ (by lia)
 
@@ -324,25 +324,25 @@ public lemma maxAbs_tup : ∀ᶠ h in Filter.atTop, maxAbs (tup n F h) = (X F h 
         rw [← sum_univ_eq_sum_range]
         exact single_le_sum_of_canonicallyOrdered
           (f := fun i : Fin n ↦ primeChain (100 * Y F ^ 6) i) (mem_univ _)
-      _ ≤ X F h + Y F := by grind [tailK]
+      _ ≤ X F h + Y F := by lia [tailK]
       _ ≤ _ := le_pow (by decide)
   | right i =>
     fin_cases i <;> simp only [reduceFinMk]
     · rw [tup_natAdd_zero, Int.natAbs_natCast]
       calc
-        _ ≤ X F h + Y F := by grind [tailK]
+        _ ≤ X F h + Y F := by lia [tailK]
         _ ≤ _ := le_pow (by decide)
     · rw [tup_natAdd_one, Int.natAbs_neg, Int.natAbs_natCast]
       calc
-        _ ≤ X F h + Y F := by grind [tailK]
+        _ ≤ X F h + Y F := by lia [tailK]
         _ ≤ _ := le_pow (by decide)
     · rw [tup_natAdd_two]
       apply (b₁_upper_bound hh).trans
       rw [pow_succ' _ 4]
       gcongr
-      · grind [Y_lower_bound]
+      · lia [Y_lower_bound]
       · exact Nat.le_add_right ..
-    · rw [tup_natAdd_three, show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos]]
+    · rw [tup_natAdd_three, show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by lia [Y_pos]]
       simp_rw [Int.natAbs_mul, Int.natAbs_pow, Int.natAbs_natCast, pow_succ' _ 4]
       gcongr
       · calc
@@ -350,7 +350,7 @@ public lemma maxAbs_tup : ∀ᶠ h in Filter.atTop, maxAbs (tup n F h) = (X F h 
           _ ≤ 196 * Y F ^ 6 := Nat.mul_le_mul_left _ (le_pow (by decide))
           _ ≤ _ := (Y6_le_X hh).trans (Nat.le_add_right ..)
       · exact Nat.le_add_right ..
-    · rw [tup_natAdd_four, Int.natAbs_pow, ← cast_sub (by grind [Y_lt_X]), Int.natAbs_natCast]
+    · rw [tup_natAdd_four, Int.natAbs_pow, ← cast_sub (by lia [Y_lt_X]), Int.natAbs_natCast]
       exact Nat.pow_le_pow_left (by lia) _
     · rw [tup_natAdd_five, Int.natAbs_neg]
       norm_cast

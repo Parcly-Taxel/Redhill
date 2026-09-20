@@ -112,7 +112,7 @@ lemma StrongSSC.one_lt_natAbs_prod (ha : StrongSSC a) (hn : 3 ≤ n) : 1 < (∏ 
     rw [← Int.natAbs_eq_natAbs_iff]
     exact le_antisymm (ha _) (g _)
   let nzn : NeZero n := ⟨by lia⟩
-  obtain h | h | h : a 0 = a 1 ∨ a 1 = a 2 ∨ a 2 = a 0 := by grind [ha 0, ha 1, ha 2]
+  obtain h | h | h : a 0 = a 1 ∨ a 1 = a 2 ∨ a 2 = a 0 := by lia [ha 0, ha 1, ha 2]
   all_goals
     apply StrongSSC.injective.mt
     rw [Function.not_injective_iff]
@@ -201,7 +201,7 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
     IsSubsumBlock a {i, j} := by
   obtain rfl | hn := eq_or_ne i j
   · simp [singleton]
-  let f : Fin 2 ↪ Fin n := ⟨fun | 0 => i | 1 => j, fun i₁ i₂ h ↦ by grind⟩
+  let f : Fin 2 ↪ Fin n := ⟨fun | 0 => i | 1 => j, fun i₁ i₂ h ↦ by lia⟩
   have mf : univ.map f = {i, j} := by ext k; simp [f]; tauto
   rw [← mf]
   refine of_sum_natAbs_lt _ fun b ncb ↦ ?_
@@ -223,7 +223,7 @@ theorem pair_of_sum_natAbs_lt (hi : ∑ k ∈ {i, j}ᶜ, (a k).natAbs < (a i).na
   all_goals
     rw [Int.mul_nonpos_iff] at hprod
     simp only [pos_eq_one, neg_eq_neg_one, coe_neg, coe_one]
-    grind
+    lia
 
 /-- Reduce a subsum block to a single element when proving the strong subsum condition. -/
 theorem strongSSC_tupReduce (p : IsSubsumBlock a s) (hk : k = n - #s)

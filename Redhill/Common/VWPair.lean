@@ -183,7 +183,7 @@ lemma of_coprime (hu : 0 < u) (hm : u ≤ m) : (of u m).v.Coprime (of u m).w := 
   obtain hp | hp := le_or_gt p m
   · exact ((of u m).not_dvd p (mem_Icc.mpr ⟨op, hp⟩)).1 dv
   rw [(of u m).eq_add, Nat.dvd_add_left dv] at dw
-  grind [le_of_dvd hu dw]
+  lia [le_of_dvd hu dw]
 
 end VWPair
 

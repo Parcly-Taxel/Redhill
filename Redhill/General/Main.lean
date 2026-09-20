@@ -35,10 +35,10 @@ lemma radical_tup_dvd : ∃ C > 0, ∀ h,
     ← mul_assoc, mul_neg, neg_mul, neg_neg, ← Nat.cast_prod, ← Nat.cast_mul]
   set D := (∏ i : Fin n, primeChain (100 * Y F ^ 6) i.1) * (VW n F).v * (VW n F).w
   have Dpos : 0 < D := by
-    iterate 2 refine Nat.mul_pos ?_ (by grind [(VW n F).m_lt_v, (VW n F).eq_add])
-    exact Finset.prod_pos fun i _ ↦ by grind [primeChain_gt]
+    iterate 2 refine Nat.mul_pos ?_ (by lia [(VW n F).m_lt_v, (VW n F).eq_add])
+    exact Finset.prod_pos fun i _ ↦ by lia [primeChain_gt]
   refine ⟨D * (10 * Y F - 1) * (Y F + 1), ?_, fun h ↦ ?_⟩
-  · refine mul_pos (mul_pos ?_ ?_) ?_ <;> grind [Y_pos]
+  · refine mul_pos (mul_pos ?_ ?_) ?_ <;> lia [Y_pos]
   · iterate 2 rw [mul_right_comm _ (_ ^ 2)]
     rw [sq_sub_sq, mul_right_comm, ← mul_assoc]
     iterate 3 refine radical_mul_dvd.trans (mul_dvd_mul ?_ (radical_pow_dvd.trans radical_dvd_self))
@@ -59,7 +59,7 @@ lemma radical_tup_le : ∃ C > 0, ∀ h, radical (∏ i, tup n F h i) ≤ C * X 
     · rw [sub_nonneg]
       exact_mod_cast Nat.pow_le_pow_left Y_lt_X.le _
     · apply add_le_mul <;> norm_cast
-      · exact (Nat.le_self_pow two_ne_zero _).trans' (by grind [Y_lt_X])
+      · exact (Nat.le_self_pow two_ne_zero _).trans' (by lia [Y_lt_X])
       · calc
           _ ≤ 10 * Y F := by lia
           _ ≤ _ := mul_le_mul_right (Nat.le_self_pow three_ne_zero _) 10
@@ -75,12 +75,12 @@ lemma le_tupleQuality : ∃ C, ∀ᶠ h in atTop,
   apply div_le_div₀
   · positivity
   · rw [Nat.cast_pow, Real.log_pow, Nat.cast_ofNat, mul_le_mul_iff_right₀ (by simp)]
-    exact Real.log_le_log (by grind [Nat.cast_pos, Y_lt_X]) (mod_cast Nat.le_add_right ..)
+    exact Real.log_le_log (by lia [Nat.cast_pos, Y_lt_X]) (mod_cast Nat.le_add_right ..)
   · apply Real.log_pos
     rw [← Int.cast_one, Int.cast_lt, Int.one_lt_radical_iff]
     exact hssc.one_lt_natAbs_prod (by lia)
   · rw [show (4 : ℝ) = (4 : ℕ) by rfl, ← Real.log_pow,
-      ← Real.log_mul (mod_cast Cpos.ne') (mod_cast pow_ne_zero 4 (by grind [Y_lt_X]))]
+      ← Real.log_mul (mod_cast Cpos.ne') (mod_cast pow_ne_zero 4 (by lia [Y_lt_X]))]
     exact Real.log_le_log (mod_cast Int.radical_pos _) (mod_cast hC h)
 
 lemma liminf_tupleQuality_tup : 5 / 4 ≤ liminf (tupleQuality ∘ tup n F) atTop := by
@@ -117,7 +117,7 @@ theorem quality_factorFreeTuples_ge {n : ℕ} {F : Finset ℕ} (hn : 6 ≤ n) (h
   replace e := congr($e (Fin.natAdd n 5))
   simp_rw [tup_natAdd_five, neg_inj] at e
   norm_cast at e
-  rw [pow_left_inj (by decide), add_left_inj, X, X, Nat.pow_right_inj (by grind [Y_pos])] at e
+  rw [pow_left_inj (by decide), add_left_inj, X, X, Nat.pow_right_inj (by lia [Y_pos])] at e
   grind [Nat.factorial_inj']
 
 theorem not_ramaekersConjecture_ge_six {n : ℕ} (hn : 6 ≤ n) : ¬RamaekersConjecture n := by

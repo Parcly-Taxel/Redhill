@@ -75,7 +75,7 @@ lemma nConjecture_3_iff_ABC : NConjecture 3 ↔ ABCConjecture := by
       ← Int.abs_eq_normalize, ← abs_neg, ← sa, Int.abs_eq_normalize, ← gcd_singleton, ← gcd_insert,
       pair_eq_singleton, gcd_singleton, ← Int.abs_eq_normalize, Nat.cast_eq_one,
       Int.natAbs_abs, Int.natAbs_eq_iff, Nat.cast_one] at ga
-    have ga' : a (i₀ + 2) = 1 ∨ a (i₀ + 2) = -1 := by grind
+    have ga' : a (i₀ + 2) = 1 ∨ a (i₀ + 2) = -1 := by lia
     intro i
     have mi := ueq ▸ mem_univ i
     simp only [mem_insert, mem_singleton] at mi

@@ -37,7 +37,7 @@ lemma Y_lower_bound {F} : 33330 ≤ Y F := by
   rw [← mul_one 33330]
   exact _root_.mul_le_mul_right (one_le_prod (by grind)) _
 
-lemma Y_pos {F} : 0 < Y F := by grind [Y_lower_bound]
+lemma Y_pos {F} : 0 < Y F := by lia [Y_lower_bound]
 
 lemma Y_lt_X {F h} : Y F < X F h :=
   (lt_add_one _).trans_le (le_self_pow (factorial_ne_zero h) _)
@@ -49,7 +49,7 @@ lemma U_lower_bound {n F} : (100 * 33330 - 2) * 33330 ^ 5 ≤ U n F := by
   apply (Nat.le_add_right ..).trans'
   gcongr <;> exact Y_lower_bound
 
-lemma U_pos {n F} : 0 < U n F := by grind [U_lower_bound]
+lemma U_pos {n F} : 0 < U n F := by lia [U_lower_bound]
 
 /-- The `VWPair` generated from the inputs `u = m = U n F`. -/
 def VW : VWPair (U n F) (U n F) := .of ..
@@ -96,7 +96,7 @@ lemma sum_tup : ∑ i, tup n F h i = 0 := by
   rw [show (x ^ 2 + 10 * y ^ 3) ^ 2 + ((10 * y - 1 : ℤ) * x ^ 4 + ((x - y) ^ 5 + -(x + y) ^ 5)) =
     (100 * y - 2) * y ^ 5 by ring, ← add_assoc _ _ (_ * _), (VW n F).eq_add, cast_add, neg_add,
     add_add_neg_cancel'_right, sum_univ_eq_sum_range fun i ↦ (primeChain _ i : ℤ), ← cast_sum]
-  grind [U]
+  lia [U]
 
 section Factors
 
@@ -120,7 +120,7 @@ lemma le_Y_of_mem_F : f ≤ Y F :=
       obtain rfl | f0 := eq_or_ne f 0
       · simp
       · exact single_le_prod (f := id) (by grind) (by simp_all)
-    _ ≤ _ := by grind [Y]
+    _ ≤ _ := by lia [Y]
 
 lemma lt_primeChain_of_mem_F : f < primeChain (100 * Y F ^ 6) n :=
   calc
@@ -131,8 +131,8 @@ lemma lt_primeChain_of_mem_F : f < primeChain (100 * Y F ^ 6) n :=
 lemma le_U_of_mem_F : f ≤ U n F :=
   calc
     _ ≤ 1 * Y F := by simp [le_Y_of_mem_F mf]
-    _ ≤ (100 * Y F - 2) * Y F ^ 5 := mul_le_mul' (by grind [Y_pos]) (le_self_pow (by decide) _)
-    _ ≤ _ := by grind [U]
+    _ ≤ (100 * Y F - 2) * Y F ^ 5 := mul_le_mul' (by lia [Y_pos]) (le_self_pow (by decide) _)
+    _ ≤ _ := by lia [U]
 
 theorem not_dvd_tup (lf : 3 ≤ f) (i) : ¬↑f ∣ tup n F h i := by
   cases i using Fin.addCases with

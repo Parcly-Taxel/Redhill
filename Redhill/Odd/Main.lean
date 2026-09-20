@@ -91,7 +91,7 @@ lemma radical_tupPell_le :
   have p₁ : 0 < ((pell (Y n F ^ 2) k).1 * Y n F : ℤ) ^ 2 - 1 := by
     rw [sub_pos, one_lt_sq_iff₀ (by positivity), ← Nat.cast_mul, Nat.one_lt_cast,
       Nat.one_lt_mul_iff']
-    exact .inl ⟨pell_fst_pos, by grind [Y_lower_bound]⟩
+    exact .inl ⟨pell_fst_pos, by lia [Y_lower_bound]⟩
   have p₂ : 0 < C * (((pell (Y n F ^ 2) k).1 * Y n F) ^ 2 - 1) * (pell (Y n F ^ 2) k).2 :=
     mul_pos (mul_pos Cpos p₁) (by simp [pell_snd_pos])
   apply (Int.le_of_dvd p₂ (hC k)).trans

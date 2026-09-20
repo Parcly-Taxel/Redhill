@@ -75,7 +75,7 @@ lemma isCoprime_zero_two (mu : u ≡ 19 [ZMOD 105]) : IsCoprime (tup u 0) (tup u
 
 lemma isCoprime_zero_three (mu : u ≡ 19 [ZMOD 2568934655]) : IsCoprime (tup u 0) (tup u 3) :=
   pow_left <| isCoprime_bezout
-    ⟨130032 * u ^ 3 + 10728480 * u ^ 2 - 202978980 * u + 1238324220, -1, by grind [tup]⟩
+    ⟨130032 * u ^ 3 + 10728480 * u ^ 2 - 202978980 * u + 1238324220, -1, by lia [tup]⟩
     mu (Q_modEq mu) (by decide)
 
 lemma isCoprime_one_two (mu : u ≡ 19 [ZMOD M]) : IsCoprime (tup u 1) (tup u 2) := by
@@ -94,7 +94,7 @@ lemma isCoprime_one_three (mu : u ≡ 19 [ZMOD M]) : IsCoprime (tup u 1) (tup u 
   have m₂ : u ≡ 19 [ZMOD 2084099646478812202205] := mu.of_dvd (by decide)
   refine (pow_left ?_).mul_left (pow_left ?_)
   · exact isCoprime_bezout
-      ⟨130032 * u ^ 3 + 11768736 * u ^ 2 - 108829092 * u + 367691484, 1, by grind [tup]⟩
+      ⟨130032 * u ^ 3 + 11768736 * u ^ 2 - 108829092 * u + 367691484, 1, by lia [tup]⟩
       (m₁.sub_left 8) (Q_modEq m₁) (by decide)
   · exact isCoprime_bezout ⟨182081828432448 * u ^ 3 + 12162857834916432 * u ^ 2 -
       513984089089536720 * u + 7388067383983043940, -1400284764 * u - 6010576771, by grind [tup]⟩
@@ -106,7 +106,7 @@ lemma isCoprime_two_three (mu : u ≡ 19 [ZMOD M]) : IsCoprime (tup u 2) (tup u 
   refine (neg_left ?_).mul_left (pow_left ?_)
   · exact isCoprime_bezout_right (Q_modEq m₁) (by decide)
   · exact isCoprime_bezout
-      ⟨65016 * u ^ 3 + 5461764 * u ^ 2 - 93296844 * u + 479216844, -1, by grind [tup]⟩
+      ⟨65016 * u ^ 3 + 5461764 * u ^ 2 - 93296844 * u + 479216844, -1, by lia [tup]⟩
       ((m₂.mul_left 2).sub_right 3) (Q_modEq m₂) (by decide)
 
 lemma pairwiseCoprime_tup (mu : u ≡ 19 [ZMOD M]) : PairwiseCoprime (tup u) := by
@@ -174,12 +174,10 @@ lemma neg_tup_two_lt_tup_zero (hu : 19 ≤ u) : -tup u 2 < tup u 0 := calc
     grw [tup, mul_pow, ← mul_assoc, show (105 : ℤ) * 2 ^ 6 ≤ 19 ^ 3 by decide, hu, pow_add _ 3 6]
 
 lemma tup_three_lt_neg_tup_one (hu : 19 ≤ u) : tup u 3 < -tup u 1 := by
-  rw [lt_neg_iff_add_neg, show tup u 3 + tup u 1 = -tup u 2 - tup u 0 by grind [tup], sub_neg]
-  exact neg_tup_two_lt_tup_zero hu
+  lia [neg_tup_two_lt_tup_zero hu, tup]
 
 lemma neg_tup_one_lt_tup_zero (hu : 19 ≤ u) : -tup u 1 < tup u 0 := by
-  rw [neg_lt_iff_pos_add, show tup u 0 + tup u 1 = -tup u 2 - tup u 3 by grind [tup], sub_pos]
-  exact tup_three_lt_neg_tup_two hu
+  lia [tup_three_lt_neg_tup_two hu, tup]
 
 end Bounds
 
@@ -190,7 +188,7 @@ def E : ℕ → ℤ
 
 variable {k : ℕ}
 
-lemma two_mul_E_sub_three : 2 * E k - 3 = 35 * (2 * M + 1) ^ k := by induction k <;> grind [E]
+lemma two_mul_E_sub_three : 2 * E k - 3 = 35 * (2 * M + 1) ^ k := by induction k <;> lia [E]
 
 lemma E_modEq : E k ≡ 19 [ZMOD M] := by
   induction k with
@@ -205,7 +203,7 @@ lemma strictMono_E : StrictMono E := by
     two_mul_E_sub_three]
   gcongr <;> lia
 
-lemma add_nineteen_le_E : k + 19 ≤ E k := by induction k <;> grind [E]
+lemma add_nineteen_le_E : k + 19 ≤ E k := by induction k <;> lia [E]
 
 lemma injective_tup_E : (tup ∘ E).Injective := fun i j e ↦ by
   replace e := congr($e 0)
@@ -215,7 +213,7 @@ lemma injective_tup_E : (tup ∘ E).Injective := fun i j e ↦ by
 lemma tup_E_ineq_package (k : ℕ) :
     1 < tup (E k) 3 ∧ tup (E k) 3 < -tup (E k) 2 ∧ tup (E k) 3 < -tup (E k) 1 ∧
     -tup (E k) 2 < tup (E k) 0 ∧ -tup (E k) 1 < tup (E k) 0 := by
-  have hu : 19 ≤ E k := by grind [@add_nineteen_le_E k]
+  have hu : 19 ≤ E k := by lia [@add_nineteen_le_E k]
   exact ⟨(Q_lower_bound hu).trans_lt' (by decide), tup_three_lt_neg_tup_two hu,
     tup_three_lt_neg_tup_one hu, neg_tup_two_lt_tup_zero hu, neg_tup_one_lt_tup_zero hu⟩
 
@@ -268,7 +266,7 @@ lemma radical_tup_E_le : ∃ C > 0, ∀ k, radical (∏ i, tup (E k) i) ≤ C * 
   obtain ⟨C, Cpos, hC⟩ := radical_tup_E_dvd
   refine ⟨2625690 * C, by positivity, fun k ↦ ?_⟩
   rw [show 2625690 * C * E k ^ 8 = C * E k * E k * (3 * E k ^ 2) * (875230 * E k ^ 4) by ring]
-  have hu : 19 ≤ E k := by grind [@add_nineteen_le_E k]
+  have hu : 19 ≤ E k := by lia [@add_nineteen_le_E k]
   have hu' : 0 < E k - 8 := by lia
   have Qpos : 0 < Q (E k) := (Q_lower_bound hu).trans_lt' (by decide)
   refine (le_of_dvd (by positivity) (hC k)).trans ?_
@@ -316,7 +314,7 @@ lemma liminf_tupleQuality_tup_E : 9 / 8 ≤ liminf (tupleQuality ∘ tup ∘ E) 
   have ttf : Tendsto f atTop atTop := by
     refine tendsto_log_atTop.comp (tendsto_intCast_atTop_atTop.comp ?_)
     exact tendsto_atTop_atTop_of_monotone strictMono_E.monotone fun b ↦
-      ⟨(b - 19).natAbs, by grind [@add_nineteen_le_E (b - 19).natAbs]⟩
+      ⟨(b - 19).natAbs, by lia [@add_nineteen_le_E (b - 19).natAbs]⟩
   refine Tendsto.comp ?_ ttf
   apply Tendsto.congr' (f₁ := fun x ↦ 9 / (C * x⁻¹ + 8))
   · exact (eventually_ne_atTop 0).mp (.of_forall fun _ _ ↦ by field)

@@ -96,25 +96,25 @@ lemma U_lt_V : U n F < (VW n F).v :=
     _ < _ := (VW n F).m_lt_v
 
 lemma U_lt_W : U n F < (VW n F).w := by
-  grind [U_lt_V, (VW n F).eq_add]
+  lia [U_lt_V, (VW n F).eq_add]
 
 lemma V_lower_bound : 9 ≤ (VW n F).v :=
   calc
-    _ ≤ max (U n F) (F.sup id) := by grind [U]
+    _ ≤ max (U n F) (F.sup id) := by lia [U]
     _ < _ := (VW n F).m_lt_v
 
 lemma W_lower_bound : 17 ≤ (VW n F).w := by
-  grind [U, (VW n F).eq_add, V_lower_bound]
+  lia [U, (VW n F).eq_add, V_lower_bound]
 
 lemma Y_lower_bound : 1530 ≤ Y n F := by
   rw [show 1530 = 10 * 1 * 1 * 9 * 17 by rfl, Y]
   gcongr
   · exact one_le_prod (by grind)
-  · exact one_le_prod (by grind [ten_lt_primeChain])
+  · exact one_le_prod (by lia [ten_lt_primeChain])
   · exact V_lower_bound
   · exact W_lower_bound
 
-lemma Y_pos : 0 < Y n F := by grind [Y_lower_bound]
+lemma Y_pos : 0 < Y n F := by lia [Y_lower_bound]
 
 end Bounds
 
@@ -151,7 +151,7 @@ lemma isCoprime_tup_castAdd_natAdd {j : Fin 5} (dx : ↑(Y n F) ∣ x) :
   · rw [tup_natAdd_three, IsCoprime.mul_right_iff, IsCoprime.pow_right_iff zero_lt_two]
     constructor
     · norm_cast
-      exact coprime_of_lt_prime (by decide) (by grind [ten_lt_primeChain]) prime_primeChain
+      exact coprime_of_lt_prime (by decide) (by lia [ten_lt_primeChain]) prime_primeChain
     · exact IsCoprime.add_one_right_of_dvd (dvd_pow (dx i) two_ne_zero)
   · rw [tup_natAdd_four, IsCoprime.neg_right_iff, IsCoprime.pow_right_iff (by decide)]
     exact IsCoprime.add_one_right_of_dvd (dx _)
@@ -169,7 +169,7 @@ lemma V_coprime_ten (hn : Even n) : (VW n F).v.Coprime 10 := by
       simpa [this]
     grind [(VW n F).w_odd, (VW n F).eq_add]
   · rw [coprime_comm, prime_five.coprime_iff_not_dvd]
-    exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by grind [U]⟩)).1
+    exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by lia [U]⟩)).1
 
 lemma W_coprime_ten : (VW n F).w.Coprime 10 := by
   rw [show 10 = 2 * 5 by rfl]
@@ -177,7 +177,7 @@ lemma W_coprime_ten : (VW n F).w.Coprime 10 := by
   · rw [coprime_two_right]
     exact (VW n F).w_odd
   · rw [coprime_comm, prime_five.coprime_iff_not_dvd]
-    exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by grind [U]⟩)).2
+    exact ((VW n F).not_dvd 5 (mem_Icc.mpr ⟨by decide, by lia [U]⟩)).2
 
 lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprime (tup n F x) := by
   refine Pairwise.of_lt fun i j h ↦ ?_
@@ -198,7 +198,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
     · rw [tup_natAdd_zero]
       obtain rfl | rfl | rfl | rfl : j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 := by lia
       · rw [tup_natAdd_one, IsCoprime.neg_right_iff, isCoprime_iff_coprime]
-        exact VWPair.of_coprime (by grind [U]) (le_max_left ..)
+        exact VWPair.of_coprime (by lia [U]) (le_max_left ..)
       · rw [tup_natAdd_two]
         exact (IsCoprime.sub_one_right_of_dvd dv).pow_right
       · rw [tup_natAdd_three, IsCoprime.mul_right_iff]
@@ -229,7 +229,7 @@ lemma pairwiseCoprime_tup (hn : Even n) (dx : ↑(Y n F) ∣ x) : PairwiseCoprim
 lemma lt_primeChain_of_mem_F {f : ℕ} (hf : f ∈ F) : f < primeChain (max 8 (F.sup id)) n :=
   calc
     _ ≤ F.sup id := le_sup hf
-    _ < _ := by grind [primeChain_gt]
+    _ < _ := by lia [primeChain_gt]
 
 lemma not_dvd_tup (dx : ↑(Y n F) ∣ x) (dF : Disjoint {0, 1, 2, 5, 10} F) :
     ∀ f ∈ F, ∀ i, ¬↑f ∣ tup n F x i := fun f hf i ↦ by

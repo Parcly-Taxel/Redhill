@@ -52,12 +52,12 @@ lemma sum_redEmb1_compl_lt : ∑ i ∈ (univ.map redEmb1)ᶜ, (tup n F x i).natA
   rw [sum_redEmb1_compl]
   calc
     _ ≤ (VW n F).v + (VW n F).w + ∏ i ∈ range n, primeChain (max 8 (F.sup id)) i :=
-      add_le_add_right (Nat.sum_le_prod (by grind [ten_lt_primeChain])) _
+      add_le_add_right (Nat.sum_le_prod (by lia [ten_lt_primeChain])) _
     _ < (VW n F).v * (VW n F).w * ∏ i ∈ range n, primeChain (max 8 (F.sup id)) i := by
       apply Nat.add3_lt_mul3
-      · grind [U, U_lt_V]
-      · grind [U, U_lt_W]
-      · exact one_le_prod (by grind [ten_lt_primeChain])
+      · lia [U, U_lt_V]
+      · lia [U, U_lt_W]
+      · exact one_le_prod (by lia [ten_lt_primeChain])
     _ ≤ _ := by
       unfold Y
       set P := ∏ i ∈ range n, primeChain (max 8 (F.sup id)) i
@@ -163,14 +163,14 @@ lemma Y_le_natAbs_redEmb1 {b₁ b₂ b₃ : SignType} (h : b₁ ≠ b₂ ∨ b�
       specialize this (b₂ := -b₂) (by simp_all) negh
       simp_rw [SignType.coe_neg, neg_mul, ← neg_add, Int.natAbs_neg] at this
       exact this
-    apply (natAbs_pow_le_redEmb1 h (by grind [Y_lower_bound])).trans'
+    apply (natAbs_pow_le_redEmb1 h (by lia [Y_lower_bound])).trans'
     exact hx.trans (Nat.le_self_pow four_ne_zero _)
   replace h := h.resolve_right hb₁₃
   rw [not_ne_iff] at hb₁₃
   subst hb₁₃
   rw [show b₁ * (x - 1) ^ 5 + b₂ * (10 * (x ^ 2 + 1) ^ 2) + b₁ * -(x + 1) ^ 5 =
     (b₂ - b₁) * (10 * (x ^ 2 + 1) ^ 2) + b₁ * 8 by ring]
-  exact hx.trans (natAbs_le_redEmb1_reduced h (by grind [Y_lower_bound]))
+  exact hx.trans (natAbs_le_redEmb1_reduced h (by lia [Y_lower_bound]))
 
 end Inequalities
 
@@ -226,7 +226,7 @@ public lemma maxAbs_tup {x : ℕ} (hx : Y n F ≤ x) : maxAbs (tup n F x) = (x +
   rw [← na4]
   refine maxAbs_eq_of_forall_le fun i ↦ ?_
   rw [tup_natAdd_four, Int.natAbs_neg]
-  have y26 : 26 ≤ Y n F := by grind [Y_lower_bound]
+  have y26 : 26 ≤ Y n F := by lia [Y_lower_bound]
   have xb : Y n F ≤ (x : ℤ).natAbs := by rwa [Int.natAbs_natCast]
   have key₁ : Y n F ≤ ((x + 1 : ℤ) ^ 5).natAbs := by
     refine (xb.trans ?_).trans (b₃_lower_bound (by lia))

@@ -43,19 +43,19 @@ lemma Yp1_coprime_10Yp1 : (Y F + 1).Coprime (10 * Y F + 1) := by
   rw [show 10 * Y F + 1 = Y F + 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
   refine (Coprime.pow_right _ ?_).mul_right (by simp)
   rw [coprime_comm, prime_three.coprime_iff_not_dvd]
-  grind [three_dvd_Y]
+  lia [three_dvd_Y]
 
 lemma Yp1_coprime_10Ym1 : (Y F + 1).Coprime (10 * Y F - 1) := by
-  rw [← coprime_self_add_right, show Y F + 1 + (10 * Y F - 1) = 11 * Y F by grind [Y_pos]]
+  rw [← coprime_self_add_right, show Y F + 1 + (10 * Y F - 1) = 11 * Y F by lia [Y_pos]]
   refine Coprime.mul_right ?_ (by simp)
   rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
-  grind [eleven_dvd_Y]
+  lia [eleven_dvd_Y]
 
 lemma Ym1_coprime_10Yp1 : (Y F - 1).Coprime (10 * Y F + 1) := by
-  rw [← coprime_self_add_right, show Y F - 1 + (10 * Y F + 1) = 11 * Y F by grind [Y_pos]]
+  rw [← coprime_self_add_right, show Y F - 1 + (10 * Y F + 1) = 11 * Y F by lia [Y_pos]]
   refine Coprime.mul_right ?_ ?_
   · rw [coprime_comm, prime_eleven.coprime_iff_not_dvd]
-    grind [Y_pos, eleven_dvd_Y]
+    lia [Y_pos, eleven_dvd_Y]
   · rw [← sub_one_add_one Y_pos.ne']
     simp
 
@@ -63,7 +63,7 @@ lemma Ym1_coprime_10Ym1 : (Y F - 1).Coprime (10 * Y F - 1) := by
   rw [show 10 * Y F - 1 = Y F - 1 + 3 ^ 2 * Y F by lia, coprime_self_add_right]
   refine (Coprime.pow_right _ ?_).mul_right ?_
   · rw [coprime_comm, prime_three.coprime_iff_not_dvd]
-    grind [Y_pos, three_dvd_Y]
+    lia [Y_pos, three_dvd_Y]
   · rw [← sub_one_add_one Y_pos.ne']
     simp
 
@@ -78,7 +78,7 @@ lemma eventually_X_modEq_one_of_coprime (Q : Finset ℕ → ℕ) (hQ : (Y F + 1)
     contrapose! hQ
     rw [le_zero] at hQ
     rw [hQ, Nat.gcd_zero_right]
-    grind [Y_pos]
+    lia [Y_pos]
   obtain ⟨d, hd⟩ := dvd_factorial tpos hk
   replace meq := meq.pow d
   rwa [← pow_mul, ← hd, one_pow] at meq
@@ -103,7 +103,7 @@ lemma coprime_of_rough (Q K L : Finset ℕ → ℕ) (hQ : ∀ {d}, 3 ≤ d → d
     subst dp₁
     rwa [← even_iff_two_dvd, not_even_iff_odd]
   specialize hQ lp dp₂
-  replace dp₁ := le_of_dvd (by grind [hK.pos]) dp₁
+  replace dp₁ := le_of_dvd (by lia [hK.pos]) dp₁
   lia
 
 end Helpers
@@ -129,8 +129,8 @@ lemma isCoprime_natAdd_three_four :
   · rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, Nat.cast_one, dvd_sub_comm] at hx
     obtain ⟨m, hm⟩ := hx
     rw [sub_eq_iff_eq_add] at hm
-    rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos], hm, add_sub_assoc,
-      mul_add_left_right_iff, show (1 - Y F : ℤ) = -(Y F - 1 : ℕ) by grind [Y_pos], neg_right_iff,
+    rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by lia [Y_pos], hm, add_sub_assoc,
+      mul_add_left_right_iff, show (1 - Y F : ℤ) = -(Y F - 1 : ℕ) by lia [Y_pos], neg_right_iff,
       Nat.isCoprime_iff_coprime]
     exact Ym1_coprime_10Ym1.symm
   · rw [← add_mul_left_right_iff (z := -1), mul_neg_one, ← sub_eq_add_neg, sub_sub_cancel_left,
@@ -145,7 +145,7 @@ lemma isCoprime_natAdd_three_five :
   · rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, Nat.cast_one, dvd_sub_comm] at hx
     obtain ⟨m, hm⟩ := hx
     rw [sub_eq_iff_eq_add] at hm
-    rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos], hm, add_assoc,
+    rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by lia [Y_pos], hm, add_assoc,
       mul_add_left_right_iff, add_comm, ← Nat.cast_add_one, Nat.isCoprime_iff_coprime]
     exact Yp1_coprime_10Ym1.symm
   · rw [← add_mul_left_right_iff (z := -1), mul_neg_one, ← sub_eq_add_neg, add_sub_cancel_left,
@@ -157,7 +157,7 @@ lemma isCoprime_natAdd_two_three :
   filter_upwards [eventually_X_modEq_10Ym1 (F := F)] with h hx
   rw [tup_natAdd_two, tup_natAdd_three]
   apply (mul_right ?_ (pow_right ?_)).pow_left
-  · have mcast : (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) := by grind [Y_pos]
+  · have mcast : (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) := by lia [Y_pos]
     replace hx := hx.pow 2
     rw [← Int.natCast_modEq_iff, Int.modEq_iff_dvd, one_pow, Nat.cast_one, dvd_sub_comm] at hx
     obtain ⟨m, hm⟩ := hx
@@ -169,7 +169,7 @@ lemma isCoprime_natAdd_two_three :
     apply mul_left ?_ (pow_left ?_)
     · rw [mcast, show (1 + 10 ^ 2 : ℤ) = (101 : ℕ) by rfl, Nat.isCoprime_iff_coprime,
         (show Nat.Prime 101 by decide).coprime_iff_not_dvd]
-      grind [hundredone_dvd_Y]
+      lia [hundredone_dvd_Y]
     · rw [sub_eq_add_neg, mul_add_right_right_iff, neg_right_iff]
       exact isCoprime_one_right
   · rw [sq, mul_add_right_left_iff, X, Nat.cast_pow]
@@ -196,7 +196,7 @@ lemma isCoprime_natAdd_two_sq_sub_sq :
         Nat.isCoprime_iff_coprime]
       exact Yp1_coprime_10Yp1.symm
     · rw [add_sub_assoc, mul_add_left_right_iff,
-        show (1 - Y F : ℤ) = -(Y F - 1 : ℕ) by grind [Y_pos], neg_right_iff,
+        show (1 - Y F : ℤ) = -(Y F - 1 : ℕ) by lia [Y_pos], neg_right_iff,
         Nat.isCoprime_iff_coprime]
       exact Ym1_coprime_10Yp1.symm
   · rw [← add_mul_left_right_iff (z := -1), mul_neg_one, add_neg_cancel_right,
@@ -254,7 +254,7 @@ lemma isCoprime_natAdd_three_of_rough
   filter_upwards [eventually_X_modEq_one_of_coprime Q cpQ] with h hx
   rw [tup_natAdd_three]
   apply mul_right ?_ (pow_right ?_)
-  · rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by grind [Y_pos], Nat.isCoprime_iff_coprime]
+  · rw [show (10 * Y F - 1 : ℤ) = (10 * Y F - 1 : ℕ) by lia [Y_pos], Nat.isCoprime_iff_coprime]
     exact (coprime_of_rough Q (10 * Y · - 1) (10 * Y · - 1) hQ (by grind [Y_pos]) le_rfl).symm
   · rw [← mul_one (X F h)] at hx
     replace hx := (Nat.coprime_of_mul_modEq_one _ hx).symm
@@ -265,7 +265,7 @@ lemma isCoprime_natAdd_two_of_rough
     ∀ᶠ h in atTop, IsCoprime (Q F : ℤ) (tup n F h (natAdd n 2)) := by
   have prele : Y F + 1 ≤ 10 * Y F ^ 3 + 1 := by
     nth_rw 1 [show Y F = 1 * Y F ^ 1 by simp]
-    gcongr <;> grind [Y_pos]
+    gcongr <;> lia [Y_pos]
   have cpQ := coprime_of_rough Q (Y · + 1) (10 * Y · ^ 3 + 1) hQ (by grind [even_Y]) prele
   filter_upwards [eventually_X_modEq_one_of_coprime Q cpQ] with h hx
   rw [tup_natAdd_two]
@@ -284,7 +284,7 @@ lemma tenY3p1_le_U : 10 * Y F ^ 3 + 1 ≤ U n F :=
     _ ≤ 11 * Y F ^ 3 := by
       rw [show 11 = 10 + 1 by rfl, add_one_mul]
       exact add_le_add_right (Nat.one_le_pow _ _ Y_pos) _
-    _ ≤ (100 * Y F - 2) * Y F ^ 5 := by gcongr <;> grind [Y_pos]
+    _ ≤ (100 * Y F - 2) * Y F ^ 5 := by gcongr <;> lia [Y_pos]
     _ ≤ _ := by simp [U]
 
 lemma tenYm1_le_U : 10 * Y F - 1 ≤ U n F :=
@@ -375,31 +375,31 @@ lemma isCoprime_castAdd_natAdd {i : Fin n} {j : Fin 6} :
       _ ≤ 11 * Y F ^ 3 := by
         rw [show 11 = 10 + 1 by rfl, add_one_mul]
         exact add_le_add_right (Nat.one_le_pow _ _ Y_pos) _
-      _ ≤ _ := by gcongr <;> grind [Y_pos]
+      _ ≤ _ := by gcongr <;> lia [Y_pos]
   · refine isCoprime_natAdd_three_of_rough
       (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'
     calc
-      _ ≤ 11 * Y F ^ 1 := by grind [Y_pos]
-      _ ≤ _ := by gcongr <;> grind [Y_pos]
+      _ ≤ 11 * Y F ^ 1 := by lia [Y_pos]
+      _ ≤ _ := by gcongr <;> lia [Y_pos]
   · refine isCoprime_natAdd_four_of_rough
       (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'
     calc
-      _ ≤ 2 * Y F ^ 1 := by grind [Y_pos]
-      _ ≤ _ := by gcongr <;> grind [Y_pos]
+      _ ≤ 2 * Y F ^ 1 := by lia [Y_pos]
+      _ ≤ _ := by gcongr <;> lia [Y_pos]
   · refine isCoprime_natAdd_five_of_rough
       (Q := fun F ↦ primeChain (100 * Y F ^ 6) _) fun {f} lf df ↦ ?_
     rw [Nat.dvd_prime_two_le prime_primeChain (by lia)] at df
     subst f
     apply primeChain_gt.trans_le'
     calc
-      _ ≤ 2 * Y F ^ 1 := by grind [Y_pos]
-      _ ≤ _ := by gcongr <;> grind [Y_pos]
+      _ ≤ 2 * Y F ^ 1 := by lia [Y_pos]
+      _ ≤ _ := by gcongr <;> lia [Y_pos]
 
 public theorem pairwiseCoprime_tup : ∀ᶠ h in atTop, PairwiseCoprime (tup n F h) := by
   have cp₂' := @isCoprime_castAdd_natAdd n F
