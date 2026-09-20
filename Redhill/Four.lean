@@ -174,7 +174,7 @@ lemma neg_tup_two_lt_tup_zero (hu : 19 ≤ u) : -tup u 2 < tup u 0 := calc
     grw [tup, mul_pow, ← mul_assoc, show (105 : ℤ) * 2 ^ 6 ≤ 19 ^ 3 by decide, hu, pow_add _ 3 6]
 
 lemma tup_three_lt_neg_tup_one (hu : 19 ≤ u) : tup u 3 < -tup u 1 := by
-  rw [lt_neg_iff_add_neg, show tup u 3 + tup u 1 = -tup u 2 - tup u 0 by grind [tup], sub_lt_zero]
+  rw [lt_neg_iff_add_neg, show tup u 3 + tup u 1 = -tup u 2 - tup u 0 by grind [tup], sub_neg]
   exact neg_tup_two_lt_tup_zero hu
 
 lemma neg_tup_one_lt_tup_zero (hu : 19 ≤ u) : -tup u 1 < tup u 0 := by
