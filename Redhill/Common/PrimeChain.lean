@@ -14,7 +14,7 @@ public import Redhill.Common.SubsumCondition
 These are sequences of primes where the next prime is at least twice the last.
 -/
 
-@[expose] public section
+public section
 
 open Nat
 
@@ -42,7 +42,7 @@ lemma primeChain_gt {s n : ℕ} : s < primeChain s n :=
 open Fin Finset
 
 /-- An `(n + 2)`-tuple that satisfies the strong subsum condition if `0 < m ≤ s`. -/
-def chainTup (n m s : ℕ) (i : Fin (n + 2)) : ℤ :=
+@[expose] def chainTup (n m s : ℕ) (i : Fin (n + 2)) : ℤ :=
   i.addCases (primeChain s ·.1) fun | 0 => m | 1 => -(m + ∑ i ∈ range n, primeChain s i)
 
 variable {n m s : ℕ}
