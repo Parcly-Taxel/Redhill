@@ -291,7 +291,7 @@ lemma le_tupleQuality :
   apply div_le_div_of_nonneg_left (by positivity)
   · apply log_pos
     have := tup_E_ineq_package k
-    rw [← cast_one, cast_lt, one_lt_radical_iff, Finset.natAbs_prod,
+    rw [← cast_one, cast_lt, one_lt_radical_iff, Int.natAbs_prod,
       Finset.one_lt_prod_iff_of_one_le fun i _ ↦ by fin_cases i <;> lia]
     exact ⟨3, by simp, by lia⟩
   · have p8 : (E k ^ 8 : ℝ) ≠ 0 := by

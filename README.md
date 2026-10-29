@@ -9,3 +9,4 @@ The name Redhill is a location and corresponding MRT station in Singapore.
 * #36488 (`Finset.disjoint_preimage` – eventually found unnecessary)
 * #36799 (miscellaneous lemmas, including `n ≤ primorial n`)
 * #36948 (lemmas for `IsCoprime` and `IsRelPrime`)
+* #45398 (`Int.natAbs_prod`)

@@ -94,14 +94,8 @@ lemma StrongSSC.injective (h : StrongSSC a) : a.Injective := fun i j e ↦ by
     | neg => exact ⟨i, by simp⟩
     | pos => exact ⟨j, by simp [h.symm]⟩
 
-/-- Upstreamable to mathlib! [Mathlib.Algebra.BigOperators.Group.Finset.Basic] -/
-lemma Finset.natAbs_prod {ι : Type*} {s : Finset ι} {f : ι → ℤ} :
-    (∏ i ∈ s, f i).natAbs = ∏ i ∈ s, (f i).natAbs := by
-  classical
-  induction s using Finset.induction with simp_all [Int.natAbs_mul]
-
 lemma StrongSSC.one_lt_natAbs_prod (ha : StrongSSC a) (hn : 3 ≤ n) : 1 < (∏ i, a i).natAbs := by
-  rw [Finset.natAbs_prod]
+  rw [Int.natAbs_prod]
   have g (i : Fin n) : 1 ≤ (a i).natAbs := by
     rw [Nat.one_le_iff_ne_zero, Int.natAbs_ne_zero]
     exact ha.ne_zero (by lia)
