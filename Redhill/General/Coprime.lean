@@ -348,7 +348,7 @@ lemma isCoprime_natAdd_natAdd {i j : Fin 6} (hij : i < j) :
     exact .of_forall fun _ ↦ isCoprime_natAdd_four_five
   · lia
 
-lemma primeChain_mem_Icc {i : Fin n} : primeChain (100 * Y F ^ 6) i.1 ∈ Finset.Icc 3 (U n F) := by
+lemma primeChain_mem_Icc {i : Fin n} : primeChain (100 * Y F ^ 6) i.val ∈ Finset.Icc 3 (U n F) := by
   refine Finset.mem_Icc.mpr ⟨primeChain_gt.le.trans' ?_, le_add_self.trans' ?_⟩
   · calc
       _ ≤ 100 * 1 := by decide

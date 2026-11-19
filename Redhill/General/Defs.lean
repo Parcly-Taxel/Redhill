@@ -57,7 +57,7 @@ def VW : VWPair (U n F) (U n F) := .of ..
 /-- The sequence of `(n + 6)`-tuples whose tail is in `factorFreeTuples`
 and has quality tending to `5 / 4`. -/
 def tup (i : Fin (n + 6)) : ℤ :=
-  i.addCases (primeChain (100 * Y F ^ 6) ·.1) fun
+  i.addCases (primeChain (100 * Y F ^ 6) ·.val) fun
     | 0 => (VW n F).v
     | 1 => -(VW n F).w
     | 2 => (X F h ^ 2 + 10 * Y F ^ 3) ^ 2
@@ -68,7 +68,7 @@ def tup (i : Fin (n + 6)) : ℤ :=
 variable {n F h}
 
 @[simp] lemma tup_castAdd {i : Fin n} :
-    tup n F h (i.castAdd 6) = primeChain (100 * Y F ^ 6) i.1 := by
+    tup n F h (i.castAdd 6) = primeChain (100 * Y F ^ 6) i.val := by
   simp [tup]
 
 @[simp] lemma tup_natAdd_zero : tup n F h (natAdd n 0) = (VW n F).v := by

@@ -33,7 +33,7 @@ lemma radical_tup_dvd : ∃ C > 0, ∀ h,
   simp_rw [Fin.prod_univ_add, tup_castAdd, Fin.prod_univ_six, tup_natAdd_zero,
     tup_natAdd_one, tup_natAdd_two, tup_natAdd_three, tup_natAdd_four, tup_natAdd_five,
     ← mul_assoc, mul_neg, neg_mul, neg_neg, ← Nat.cast_prod, ← Nat.cast_mul]
-  set D := (∏ i : Fin n, primeChain (100 * Y F ^ 6) i.1) * (VW n F).v * (VW n F).w
+  set D := (∏ i : Fin n, primeChain (100 * Y F ^ 6) i.val) * (VW n F).v * (VW n F).w
   have Dpos : 0 < D := by
     iterate 2 refine Nat.mul_pos ?_ (by lia [(VW n F).m_lt_v, (VW n F).eq_add])
     exact Finset.prod_pos fun i _ ↦ by lia [primeChain_gt]

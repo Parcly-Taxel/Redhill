@@ -43,7 +43,7 @@ open Fin Finset
 
 /-- An `(n + 2)`-tuple that satisfies the strong subsum condition if `0 < m ≤ s`. -/
 @[expose] def chainTup (n m s : ℕ) (i : Fin (n + 2)) : ℤ :=
-  i.addCases (primeChain s ·.1) fun | 0 => m | 1 => -(m + ∑ i ∈ range n, primeChain s i)
+  i.addCases (primeChain s ·.val) fun | 0 => m | 1 => -(m + ∑ i ∈ range n, primeChain s i)
 
 variable {n m s : ℕ}
 

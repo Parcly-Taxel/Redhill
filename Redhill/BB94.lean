@@ -118,7 +118,7 @@ end
 def tup (n k : ℕ) (i : Fin (n + 3)) : ℤ :=
   i.lastCases 1 fun i' ↦
     i'.lastCases (-(2 ^ k) ^ (2 * n + 1)) fun j ↦
-      C n j.1 * (2 ^ k - 1) ^ (2 * j.1 + 1) * (2 ^ k) ^ (n - j.1)
+      C n j.val * (2 ^ k - 1) ^ (2 * j.val + 1) * (2 ^ k) ^ (n - j.val)
 
 variable {n k : ℕ}
 
@@ -130,7 +130,8 @@ lemma tup_second_last : tup n k (Fin.last _).castSucc = -(2 ^ k) ^ (2 * n + 1) :
 
 @[simp]
 lemma tup_except_last_two {i : Fin (n + 1)} :
-    tup n k i.castSucc.castSucc = C n i.1 * (2 ^ k - 1) ^ (2 * i.1 + 1) * (2 ^ k) ^ (n - i.1) := by
+    tup n k i.castSucc.castSucc =
+    C n i.val * (2 ^ k - 1) ^ (2 * i.val + 1) * (2 ^ k) ^ (n - i.val) := by
   simp [tup]
 
 lemma injective_tup : (tup n).Injective := fun i j e ↦ by
@@ -159,9 +160,9 @@ lemma tup_sign {i : Fin (n + 3)} (hk : k ≠ 0) : 0 < tup n k i ↔ i ≠ (Fin.l
     cases i using Fin.lastCases with
     | last => simp [tup_second_last]
     | cast i =>
-      suffices (0 : ℤ) < (C n i.1) * (2 ^ k - 1) ^ (2 * i.1 + 1) * (2 ^ k) ^ (n - i.1) by
+      suffices (0 : ℤ) < (C n i.val) * (2 ^ k - 1) ^ (2 * i.val + 1) * (2 ^ k) ^ (n - i.val) by
         simp [this]
-      have : 0 < C n i.1 := by rw [C_pos_iff]; lia
+      have : 0 < C n i.val := by rw [C_pos_iff]; lia
       have : 0 < (2 : ℤ) ^ k - 1 := by
         rw [sub_pos]
         exact (one_lt_pow₀ one_lt_two hk)

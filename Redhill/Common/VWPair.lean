@@ -96,8 +96,8 @@ lemma fourAndOddPrimes_pairwise_coprime : Set.Pairwise (fourAndOddPrimes m) Copr
 /-- Produce a number `i < p` such that `v + i` and `w + i` are both not divisible by `p`.
 When `p = 4`, `w + i` is additionally guaranteed to be odd. Return 0 for `p ≤ 2`. -/
 def nonDividingShift (v w p : ℕ) : ℕ :=
-  if p = 4 then (min' _ (nonempty_double_not_dvd_four v w)).1 else
-  if hp : 3 ≤ p then (min' _ (nonempty_double_not_dvd v w p hp)).1 else 0
+  if p = 4 then (min' _ (nonempty_double_not_dvd_four v w)).val else
+  if hp : 3 ≤ p then (min' _ (nonempty_double_not_dvd v w p hp)).val else 0
 
 lemma not_dvd_nonDividingShift_of_three_le (hp : 3 ≤ p) :
     ¬p ∣ v + nonDividingShift v w p ∧ ¬p ∣ w + nonDividingShift v w p := by
@@ -121,7 +121,7 @@ def crtShift (v w m : ℕ) : ℕ :=
 
 lemma crtShift_modEq (mi : p ∈ fourAndOddPrimes m) :
     crtShift v w m ≡ nonDividingShift v w p [MOD p] :=
-  (chineseRemainderOfFinset ..).2 _ mi
+  (chineseRemainderOfFinset ..).property _ mi
 
 lemma crtShift_not_dvd {k : ℕ} (hk : k ∈ Icc 3 m) :
     ¬k ∣ v + crtShift v w m ∧ ¬k ∣ w + crtShift v w m := by
@@ -194,7 +194,7 @@ variable {n m s B : ℕ} {vw : VWPair (m + ∑ i ∈ range n, primeChain s i) B}
 variable (vw) in
 /-- An `(n + 3)`-tuple reducing to `chainTup n m s`. -/
 @[expose] def vwTup (i : Fin (n + 3)) : ℤ :=
-  i.addCases (primeChain s ·.1) fun
+  i.addCases (primeChain s ·.val) fun
     | 0 => vw.v
     | 1 => -vw.w
     | 2 => m

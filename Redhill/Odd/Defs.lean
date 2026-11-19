@@ -42,7 +42,7 @@ def Y : ℕ :=
 /-- The sequence of `(n + 5)`-tuples containing an infinite subsequence in `factorFreeTuples`
 whose qualities tend to `5 / 3`, assuming `n` is even and `0, 1, 2, 5, 10 ∉ F`. -/
 def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
-  i.addCases (primeChain (max 8 (F.sup id)) ·.1) fun
+  i.addCases (primeChain (max 8 (F.sup id)) ·.val) fun
     | 0 => (VW n F).v
     | 1 => -(VW n F).w
     | 2 => (x - 1) ^ 5
@@ -52,7 +52,7 @@ def tup (x : ℤ) (i : Fin (n + 5)) : ℤ :=
 variable {n F} {x : ℤ}
 
 @[simp] lemma tup_castAdd {i : Fin n} :
-    tup n F x (i.castAdd 5) = primeChain (max 8 (F.sup id)) i.1 := by
+    tup n F x (i.castAdd 5) = primeChain (max 8 (F.sup id)) i.val := by
   simp [tup]
 
 @[simp] lemma tup_natAdd_zero : tup n F x (natAdd n 0) = (VW n F).v := by
@@ -81,13 +81,13 @@ variable {i : Fin n}
 
 section Bounds
 
-lemma primeChain_lt_U : primeChain (max 8 (F.sup id)) i.1 < U n F :=
+lemma primeChain_lt_U : primeChain (max 8 (F.sup id)) i.val < U n F :=
   (single_le_sum_of_canonicallyOrdered (by simp_all)).trans_lt (lt_add_of_pos_left _ (by decide))
 
 lemma ten_lt_primeChain : 10 < primeChain (max 8 (F.sup id)) n := by
   grind [primeChain_gt, prime_primeChain, show ¬Nat.Prime 9 ∧ ¬Nat.Prime 10 by decide]
 
-lemma primeChain_mem_Icc : primeChain (max 8 (F.sup id)) i.1 ∈ Icc 3 (max (U n F) (F.sup id)) :=
+lemma primeChain_mem_Icc : primeChain (max 8 (F.sup id)) i.val ∈ Icc 3 (max (U n F) (F.sup id)) :=
   mem_Icc.mpr ⟨ten_lt_primeChain.trans' (by decide), le_max_iff.mpr (.inl primeChain_lt_U.le)⟩
 
 lemma U_lt_V : U n F < (VW n F).v :=
@@ -121,7 +121,7 @@ end Bounds
 section Coprime
 
 lemma dvd_of_Y_dvd (dx : ↑(Y n F) ∣ x) :
-    10 ∣ x ∧ (∀ f ∈ F.erase 0, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 8 (F.sup id)) i.1) ∣ x) ∧
+    10 ∣ x ∧ (∀ f ∈ F.erase 0, ↑f ∣ x) ∧ (∀ i : Fin n, ↑(primeChain (max 8 (F.sup id)) i.val) ∣ x) ∧
     ↑(VW n F).v ∣ x ∧ ↑(VW n F).w ∣ x := by
   simp_rw [Y, cast_mul, cast_ofNat, cast_prod, id_eq] at dx
   simp_rw [← and_assoc]
